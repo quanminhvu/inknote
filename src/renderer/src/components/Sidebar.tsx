@@ -9,6 +9,8 @@ import { getStatuses } from '@/lib/statuses'
 import type { Book, NoteStatus, Selection } from '@/lib/types'
 import { cx, isMac } from '@/lib/util'
 import { openTodayNote } from '@/lib/dailyNote'
+import { collectTasks, dueCounts } from '@/lib/tasks'
+import { dayKey } from '@/lib/dueDates'
 import { openGraph } from '@/lib/graph'
 import { exportNotes } from '@/lib/actions'
 import { copyId } from '@/lib/clipboard'
@@ -266,6 +268,8 @@ export function Sidebar(): React.JSX.Element {
     })
 
   const children = useMemo(() => childrenByParent(books), [books])
+  // Số task đến hạn hôm nay / quá hạn, hiện cạnh dòng Today
+  const due = useMemo(() => dueCounts(collectTasks(notes), dayKey(new Date())), [notes])
 
   const counts = useMemo(() => {
     const byBook = new Map<string, number>()
@@ -420,6 +424,14 @@ export function Sidebar(): React.JSX.Element {
             <CalendarDays size={15} />
           </span>
           <span className="side-label">Today</span>
+          {(due.today > 0 || due.overdue > 0) && (
+            <span
+              className={cx('side-count', 'due-count', due.overdue > 0 && 'overdue')}
+              title={[due.overdue && `${due.overdue} overdue`, due.today && `${due.today} due today`].filter(Boolean).join(', ') + ' — press [ in the command palette to see them'}
+            >
+              {due.today + due.overdue}
+            </span>
+          )}
         </div>
         <div className="side-row" style={{ paddingLeft: 10 }} title={`Graph of linked notes (${isMac() ? '⌘⇧G' : 'Ctrl+Shift+G'})`} onClick={() => openGraph()}>
           <span className="side-icon">

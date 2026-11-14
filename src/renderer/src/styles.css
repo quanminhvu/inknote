@@ -4638,3 +4638,34 @@ html.resizing-panes, html.resizing-panes * {
   word-break: break-all;
   user-select: text;
 }
+
+/* ── Hạn chót của task (@2026-11-20) ── */
+.cm-due {
+  border-radius: 4px;
+  padding: 0 3px;
+  font-weight: 550;
+}
+.cm-due-overdue { color: #d93f3f; background: rgba(217, 63, 63, 0.12); }
+.cm-due-today { color: #c26a00; background: rgba(240, 140, 26, 0.16); }
+.cm-due-soon { color: var(--accent); background: var(--accent-soft); }
+.cm-due-later { color: var(--ink-3); background: var(--hover); }
+.cm-due-done { color: var(--ink-3); background: none; text-decoration: line-through; font-weight: 400; }
+.due {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.due-overdue { color: #fff; background: #e0484e; }
+.due-today { color: #fff; background: #f08c1a; }
+.due-soon { color: var(--accent); background: var(--accent-soft); }
+.due-later { color: var(--ink-2); background: var(--hover); }
+.due-done { color: var(--ink-3); background: var(--hover); text-decoration: line-through; font-weight: 500; }
+.pal-item .due { flex: none; font-size: 11px; margin: 0 6px 0 0; }
+.side-count.due-count { color: #c26a00; font-weight: 600; }
+.side-count.due-count.overdue { color: #fff; background: #e0484e; border-radius: 999px; padding: 0 6px; min-width: 18px; text-align: center; }

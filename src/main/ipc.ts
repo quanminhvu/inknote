@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, nativeTheme, shell } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, nativeTheme, shell } from 'electron'
 import { existsSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { writeFile } from 'node:fs/promises'
@@ -177,6 +177,8 @@ export function registerIpc(openNoteWindow: (noteId: string) => void): void {
     await writeFile(res.filePath, new Uint8Array(await htmlToPdf(html)))
     return res.filePath
   })
+  // Dán chữ thuần (⌘⇧V): renderer bị sandbox nên đọc clipboard qua main
+  ipcMain.handle('clipboard:readText', () => clipboard.readText())
   ipcMain.handle('app:openDataFolder', async () => (await shell.openPath(app.getPath('userData'))) || null)
   ipcMain.handle('themes:list', () => listUserThemes())
   // Lớp trong mờ của macOS (vibrancy) theo giao diện hệ thống; đổi sang sáng/tối

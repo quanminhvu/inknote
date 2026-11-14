@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { FileText, Hash, Heading, LayoutTemplate, ListChecks, Notebook, Palette, Search, Square, TerminalSquare } from 'lucide-react'
 import { collectTasks } from '@/lib/tasks'
+import { dueLabel, dueState, withoutDue } from '@/lib/dueDates'
+import type { DueState } from '@/lib/dueDates'
 import { toggleTask } from '@/lib/markdown'
 import { backupNow, exportNote, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { runAppleNotesImport, runImport } from '@/lib/importer'
@@ -60,18 +62,24 @@ interface Item {
   altRun?: () => void
   /** Nội dung xem trước bên phải (template) */
   template?: { title: string; body: string; book?: string }
+  /** Nhãn hạn chót của task */
+  due?: { text: string; state: DueState }
 }
 
 function taskItems(): Item[] {
   const s = useStore.getState()
+  // Task có hạn lên đầu, hạn sớm nhất trước (quá hạn → hôm nay → sắp tới); task không hạn giữ thứ tự cũ
   return collectTasks(s.notes)
     .filter((t) => !t.done)
-    .map<Item>((t) => ({
+    .map((t, order) => ({ t, order }))
+    .sort((a, b) => (a.t.due && b.t.due ? a.t.due.localeCompare(b.t.due) : a.t.due ? -1 : b.t.due ? 1 : 0) || a.order - b.order)
+    .map<Item>(({ t }) => ({
       id: `task:${t.noteId}:${t.line}`,
       section: 'Open Tasks',
-      label: t.text,
+      label: t.due ? withoutDue(t.text) || t.text : t.text,
       detail: t.noteTitle,
-      keywords: t.noteTitle,
+      keywords: t.due ? `${t.noteTitle} ${t.due} ${dueLabel(t.due)} ${dueState(t.due)} due` : t.noteTitle,
+      ...(t.due ? { due: { text: dueLabel(t.due), state: dueState(t.due) } } : {}),
       icon: <Square size={15} />,
       run: () => {
         if (!s.openNote(t.noteId)) return
@@ -474,6 +482,7 @@ function PaletteBody({ mode }: { mode: 'commands' | 'templates' | 'actions' | 't
                   <span className="pal-label">
                     <Highlighted text={item.label} indices={indices} />
                   </span>
+                  {item.due && <span className={cx('due', `due-${item.due.state}`)}>{item.due.text}</span>}
                   {item.detail && <span className="pal-detail">{item.detail}</span>}
                   {item.shortcut && <kbd className="pal-kbd">{item.shortcut}</kbd>}
                 </div>

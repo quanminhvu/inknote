@@ -5,6 +5,7 @@ import { fillGithubEmbeds, renderMarkdown } from '@/lib/markdown'
 import { fileIdFromUrl, openAttachment, resolveFileUrls, useFileTick } from '@/lib/attachments'
 import { followNoteLink } from '@/lib/noteLinks'
 import { previewLinkOut, previewLinkOver } from '@/lib/noteHover'
+import { decorateDueDates } from '@/lib/dueDates'
 import { PreviewFind } from './PreviewFind'
 
 interface Props {
@@ -48,6 +49,7 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
     const gen = ++generation.current
     renderMermaidIn(root, () => generation.current === gen)
     fillGithubEmbeds(root)
+    decorateDueDates(root)
   }, [html])
 
   // Đổi theme: vẽ lại sơ đồ với màu mới

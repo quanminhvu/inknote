@@ -118,6 +118,8 @@ interface NibmarkBridge {
   }
   ready(): void
   /** Mở thư mục dữ liệu của app; trả về thông báo lỗi hoặc null */
+  /** Chữ thuần trong clipboard (dùng cho ⌘⇧V dán chữ thuần) */
+  readClipboardText(): Promise<string>
   openDataFolder(): Promise<string | null>
   importer: {
     /** null = người dùng hủy */

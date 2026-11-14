@@ -10,6 +10,8 @@ import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } 
 import { followNoteLink, NOTE_LINK_PREFIX, noteLinkCompletions } from '@/lib/noteLinks'
 import { noteLinkHover } from '@/lib/noteHover'
 import { setSelectionText } from '@/lib/noteStats'
+import { htmlToMarkdown } from '@/lib/pasteHtml'
+import { dueCompletions, dueDateHighlight } from '@/lib/dueDates'
 import { editorSpot, saveEditorSpot } from '@/lib/viewMemory'
 import { emojiCompletions, fenceLanguageCompletions, slashCompletions } from '@/lib/completions'
 import { formatToolbar, toggleWrap } from '@/lib/formatToolbar'
@@ -36,6 +38,22 @@ function spellExt(p: EditorPrefs): Extension {
 }
 function strikeExt(p: EditorPrefs): Extension {
   return p.strikeDone ? strikeDoneTasks : []
+}
+
+/** Vị trí pos có nằm trong khối code hay code trong dòng không */
+function inCode(view: EditorView, pos: number): boolean {
+  for (let node: ReturnType<ReturnType<typeof syntaxTree>['resolveInner']> | null = syntaxTree(view.state).resolveInner(pos, -1); node; node = node.parent) {
+    if (/^(FencedCode|CodeBlock|InlineCode|CodeText)$/.test(node.name)) return true
+  }
+  return false
+}
+
+/** Dán chữ thuần trong clipboard vào chỗ đang chọn */
+async function pastePlain(view: EditorView): Promise<void> {
+  const text = (await window.nibmark?.readClipboardText()) ?? (await navigator.clipboard.readText().catch(() => ''))
+  if (!text || !view.dom.isConnected) return
+  const { from, to } = view.state.selection.main
+  view.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length }, userEvent: 'input.paste', scrollIntoView: true })
 }
 
 /** Dán một URL vào chỗ trống: biến thành link Markdown theo tùy chọn. */
@@ -171,7 +189,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
           bracketMatching(),
           closeBrackets(),
           autocompletion({
-            override: [noteLinkCompletions, slashCompletions, fenceLanguageCompletions, emojiCompletions],
+            override: [noteLinkCompletions, dueCompletions, slashCompletions, fenceLanguageCompletions, emojiCompletions],
             icons: false,
             defaultKeymap: false
           }),
@@ -180,6 +198,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
           tableToolbar(),
           imageToolbar(),
           noteLinkHover,
+          dueDateHighlight,
           highlightSelectionMatches(),
           search({ top: true }),
           prefConf.current.wrap.of(wrapExt(useEditorPrefs.getState())),
@@ -190,6 +209,8 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
           syntaxHighlighting(highlight),
           placeholder('Start writing…'),
           keymap.of([
+            // ⌘⇧V / Ctrl+Shift+V: dán chữ thuần, bỏ mọi định dạng
+            { key: 'Mod-Shift-v', preventDefault: true, run: (v) => (void pastePlain(v), true) },
             { key: 'Mod-b', run: toggleWrap('**') },
             { key: 'Mod-i', run: toggleWrap('*') },
             ...completionKeymap,
@@ -243,7 +264,23 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
               }
               const text = event.clipboardData?.getData('text/plain').trim() ?? ''
               const { main } = view.state.selection
-              if (view.state.selection.ranges.length > 1 || !/^https?:\/\/\S+$/.test(text)) return false
+              if (view.state.selection.ranges.length > 1) return false
+              if (!/^https?:\/\/\S+$/.test(text)) {
+                // Văn bản có định dạng (web, Google Docs, Notion…): dán thành Markdown,
+                // trừ khi đang ở trong khối code hay code trong dòng
+                const html = event.clipboardData?.getData('text/html') ?? ''
+                if (!html || inCode(view, main.from)) return false
+                const markdown = htmlToMarkdown(html)
+                if (!markdown) return false
+                event.preventDefault()
+                view.dispatch({
+                  changes: { from: main.from, to: main.to, insert: markdown },
+                  selection: { anchor: main.from + markdown.length },
+                  userEvent: 'input.paste',
+                  scrollIntoView: true
+                })
+                return true
+              }
               if (main.empty) {
                 if (!pasteUrl(view, text)) return false
                 // Đã tự chèn: chặn thao tác dán mặc định để URL không bị chèn lần nữa
