@@ -20,7 +20,7 @@ const EXAMPLE = `/* name: Moss */
 /*
  * Một theme mẫu. Theme kế thừa toàn bộ màu của "base" và chỉ ghi đè
  * những biến viết ở dưới. Sửa file này, hoặc tạo thêm file .css khác
- * trong thư mục này, rồi quay lại Nibmark là thấy thay đổi.
+ * trong thư mục này, rồi quay lại Inknote là thấy thay đổi.
  *
  * Các biến hay dùng: --paper, --surface, --surface-2, --ink, --ink-2, --ink-3,
  * --line, --hover, --selected, --accent, --accent-soft, --code-bg, --mark,
@@ -36,7 +36,7 @@ const EXAMPLE = `/* name: Moss */
 
 const STYLES_TEMPLATE = `/*
  * CSS tùy chỉnh của bạn. Áp dụng cho mọi theme.
- * Lưu file rồi quay lại Nibmark là thấy thay đổi.
+ * Lưu file rồi quay lại Inknote là thấy thay đổi.
  *
  * Ví dụ:
  *   .editor-host .cm-scroller { font-size: 15px; }

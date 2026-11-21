@@ -16,9 +16,9 @@ import type { PasteLink, WrapMode } from '@/lib/editorPrefs'
 export function Preferences(): React.JSX.Element | null {
   const open = useStore((s) => s.prefsOpen)
   const setOpen = useStore((s) => s.setPrefsOpen)
-  const [settings, setSettings] = useState<NibmarkSettings | null>(null)
+  const [settings, setSettings] = useState<InknoteSettings | null>(null)
   const [status, setStatus] = useState<BackupStatus>({ lastBackupAt: null, error: null })
-  const bridge = window.nibmark
+  const bridge = window.inknote
 
   useEffect(() => {
     if (!open || !bridge) return
@@ -118,7 +118,7 @@ export function Preferences(): React.JSX.Element | null {
             <section className="pref-section">
               <h3>Restore</h3>
               <p className="pref-note">
-                Bring notes back from a backup folder. Notes that are newer in Nibmark are kept as they are.
+                Bring notes back from a backup folder. Notes that are newer in Inknote are kept as they are.
               </p>
               <div className="pref-actions">
                 <button className="btn" onClick={() => void restoreFromBackup()}>
@@ -130,7 +130,7 @@ export function Preferences(): React.JSX.Element | null {
             <section className="pref-section">
               <h3>Data</h3>
               <p className="pref-note">
-                The note database, version history, themes and settings live in Nibmark&rsquo;s data folder.
+                The note database, version history, themes and settings live in Inknote&rsquo;s data folder.
               </p>
               <div className="pref-actions">
                 <button
@@ -200,7 +200,7 @@ function Appearance(): React.JSX.Element {
   const choice = useTheme((s) => s.choice)
   const userThemes = useTheme((s) => s.userThemes)
   const setChoice = useTheme((s) => s.setChoice)
-  const bridge = window.nibmark
+  const bridge = window.inknote
   const report = (error: string | null): void => {
     if (error) useStore.getState().showNotice(error, 'error')
   }
@@ -217,7 +217,7 @@ function Appearance(): React.JSX.Element {
         <>
           <p className="pref-note">
             Add your own themes as .css files in the themes folder, or tweak any theme with your own styles.css. Changes
-            show up when you come back to Nibmark.
+            show up when you come back to Inknote.
           </p>
           <div className="pref-actions">
             <button className="btn" onClick={async () => report(await bridge.themes.openFolder())}>
@@ -271,7 +271,7 @@ function EditorSection(): React.JSX.Element {
         </select>
       </div>
       {p.pasteLink === 'title' && (
-        <p className="pref-note">Nibmark fetches the page once to read its title. Pasting onto selected text always links that text.</p>
+        <p className="pref-note">Inknote fetches the page once to read its title. Pasting onto selected text always links that text.</p>
       )}
     </section>
   )
@@ -330,12 +330,12 @@ function Templates(): React.JSX.Element {
   )
 }
 
-const isMacKey = (): string => (window.nibmark?.platform === 'darwin' ? '⌘' : 'Ctrl+')
+const isMacKey = (): string => (window.inknote?.platform === 'darwin' ? '⌘' : 'Ctrl+')
 
 /** Đổi chuỗi phím tắt kiểu Electron thành ký hiệu dễ đọc, ví dụ ⌘⌥N */
 function prettyAccelerator(acc: string): string {
   if (!acc) return 'Off'
-  const mac = window.nibmark?.platform === 'darwin'
+  const mac = window.inknote?.platform === 'darwin'
   const map: Record<string, string> = mac
     ? { CommandOrControl: '⌘', Command: '⌘', Control: '⌃', Alt: '⌥', Shift: '⇧', Space: 'Space' }
     : { CommandOrControl: 'Ctrl', Command: 'Win', Control: 'Ctrl', Alt: 'Alt', Shift: 'Shift', Space: 'Space' }
@@ -345,7 +345,7 @@ function prettyAccelerator(acc: string): string {
 
 /** Ghi lại tổ hợp phím người dùng bấm thành chuỗi Electron (cần ít nhất một phím bổ trợ) */
 function acceleratorFromEvent(e: React.KeyboardEvent): string | null {
-  const mac = window.nibmark?.platform === 'darwin'
+  const mac = window.inknote?.platform === 'darwin'
   const mods: string[] = []
   if (e.metaKey) mods.push(mac ? 'CommandOrControl' : 'Super')
   if (e.ctrlKey) mods.push(mac ? 'Control' : 'CommandOrControl')
@@ -365,8 +365,8 @@ function acceleratorFromEvent(e: React.KeyboardEvent): string | null {
 }
 
 function QuickNote(): React.JSX.Element | null {
-  const bridge = window.nibmark
-  const [settings, setSettings] = useState<NibmarkSettings | null>(null)
+  const bridge = window.inknote
+  const [settings, setSettings] = useState<InknoteSettings | null>(null)
   useEffect(() => {
     if (bridge) void bridge.settings.get().then(setSettings)
   }, [bridge])
@@ -377,10 +377,10 @@ function QuickNote(): React.JSX.Element | null {
       <ShortcutField
         kind="quickNote"
         label="Quick Note"
-        note="Brings Nibmark to the front with a new note, even when the app is in the background."
+        note="Brings Inknote to the front with a new note, even when the app is in the background."
         fallback="CommandOrControl+Alt+N"
       />
-      <ShortcutField kind="toggleWindow" label="Show or hide Nibmark" note="Brings Nibmark to the front, or hides it when it is already in front." />
+      <ShortcutField kind="toggleWindow" label="Show or hide Inknote" note="Brings Inknote to the front, or hides it when it is already in front." />
       {settings?.traySupported && (
         <label className="pref-toggle tray-toggle">
           <input type="checkbox" checked={settings.trayEnabled} onChange={async (e) => setSettings(await bridge.settings.setTray(e.target.checked))} />
@@ -403,8 +403,8 @@ function ShortcutField({
   /** Phím tắt mặc định (nếu có), để hiện nút "Use Default" */
   fallback?: string
 }): React.JSX.Element | null {
-  const bridge = window.nibmark
-  const [status, setStatus] = useState<NibmarkShortcutStatus | null>(null)
+  const bridge = window.inknote
+  const [status, setStatus] = useState<InknoteShortcutStatus | null>(null)
   const [recording, setRecording] = useState(false)
 
   useEffect(() => {
@@ -470,16 +470,16 @@ function ShortcutField({
 const shellQuote = (s: string): string => (/^[\w@%+=:,./-]+$/.test(s) ? s : `'${s.replace(/'/g, `'\\''`)}'`)
 
 function AgentsSection(): React.JSX.Element | null {
-  const bridge = window.nibmark
-  const [settings, setSettings] = useState<NibmarkSettings | null>(null)
+  const bridge = window.inknote
+  const [settings, setSettings] = useState<InknoteSettings | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   useEffect(() => {
     if (bridge) void bridge.settings.get().then(setSettings)
   }, [bridge])
   if (!bridge || !settings) return null
   const { command, args, env } = settings.mcpCommand
-  const claudeCode = ['claude mcp add nibmark', ...Object.entries(env).map(([k, v]) => `-e ${k}=${shellQuote(v)}`), '--', shellQuote(command), ...args.map(shellQuote)].join(' ')
-  const desktopJson = JSON.stringify({ mcpServers: { nibmark: { command, args, env } } }, null, 2)
+  const claudeCode = ['claude mcp add inknote', ...Object.entries(env).map(([k, v]) => `-e ${k}=${shellQuote(v)}`), '--', shellQuote(command), ...args.map(shellQuote)].join(' ')
+  const desktopJson = JSON.stringify({ mcpServers: { inknote: { command, args, env } } }, null, 2)
   const copy = (key: string, value: string): void => {
     void navigator.clipboard.writeText(value).then(() => {
       setCopied(key)
@@ -503,7 +503,7 @@ function AgentsSection(): React.JSX.Element | null {
         <span>Allow agents to create, edit and delete notes</span>
       </label>
       <p className="pref-note">
-        Agents can only reach Nibmark from this computer and this user account. Deleted notes go to the Trash, and every edit is
+        Agents can only reach Inknote from this computer and this user account. Deleted notes go to the Trash, and every edit is
         kept in the note&apos;s version history, so you can always undo.
       </p>
       {settings.mcpEnabled && (
@@ -528,4 +528,4 @@ function AgentsSection(): React.JSX.Element | null {
   )
 }
 
-const isMacFormat = (): string => (window.nibmark?.platform === 'darwin' ? '⌥⇧F formats any time' : 'Alt+Shift+F formats any time')
+const isMacFormat = (): string => (window.inknote?.platform === 'darwin' ? '⌥⇧F formats any time' : 'Alt+Shift+F formats any time')

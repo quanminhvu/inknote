@@ -1,4 +1,4 @@
-# Contributing to Nibmark
+# Contributing to Inknote
 
 Thanks for helping! This guide covers the development setup, the checks every change goes through, and how releases are made.
 
@@ -14,10 +14,10 @@ npm run dev
 To work against a throwaway profile instead of your real notes:
 
 ```bash
-NIBMARK_USER_DATA="$PWD/.tmp-profile" npm run dev
+INKNOTE_USER_DATA="$PWD/.tmp-profile" npm run dev
 ```
 
-A test profile never registers the global Quick Note shortcut, so it cannot fight with an installed copy of Nibmark.
+A test profile never registers the global Quick Note shortcut, so it cannot fight with an installed copy of Inknote.
 
 ## Scripts
 
@@ -64,7 +64,7 @@ Common types: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, 
 
 ### Ground rules
 
-- **Your notes are data, not a test fixture.** Run Electron with `NIBMARK_USER_DATA` pointing at a temporary folder.
+- **Your notes are data, not a test fixture.** Run Electron with `INKNOTE_USER_DATA` pointing at a temporary folder.
 - **The renderer never chooses file paths.** File access goes through the main process, either to a configured folder or to a path the user picked in a native dialog.
 - **Backups are append-only.** Nothing deletes files from a backup folder; deleted items move to `deleted/`.
 - **Colors are CSS variables** defined in `src/renderer/src/themes.css`; don't hard-code colors in components.
@@ -77,7 +77,7 @@ Common types: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, 
 4. Tag and push:
 
    ```bash
-   git tag -a v0.4.0 -m "Nibmark 0.4.0"
+   git tag -a v0.4.0 -m "Inknote 0.4.0"
    git push origin main --tags
    ```
 

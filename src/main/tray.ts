@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu, Tray, nativeImage } from 'electron'
 import { join } from 'node:path'
 import { getSettings } from './settings'
 
-// Windows/Linux: khi bật, đóng cửa sổ chính chỉ ẩn nó đi; Nibmark tiếp tục chạy ở khay
+// Windows/Linux: khi bật, đóng cửa sổ chính chỉ ẩn nó đi; Inknote tiếp tục chạy ở khay
 // hệ thống (để phím tắt ghi nhanh vẫn dùng được). macOS đã có sẵn hành vi này qua Dock.
 
 let tray: Tray | null = null
@@ -32,13 +32,13 @@ export function applyTray(actions: { show: () => void; quickNote: () => void }):
   if (tray) return
   const image = nativeImage.createFromPath(iconPath()).resize({ width: 16, height: 16 })
   tray = new Tray(image)
-  tray.setToolTip('Nibmark')
+  tray.setToolTip('Inknote')
   tray.setContextMenu(
     Menu.buildFromTemplate([
-      { label: 'Show Nibmark', click: actions.show },
+      { label: 'Show Inknote', click: actions.show },
       { label: 'Quick Note', click: actions.quickNote },
       { type: 'separator' },
-      { label: 'Quit Nibmark', click: () => app.quit() }
+      { label: 'Quit Inknote', click: () => app.quit() }
     ])
   )
   tray.on('click', actions.show)

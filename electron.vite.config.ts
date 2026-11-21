@@ -5,7 +5,7 @@ import type { Plugin } from 'vite'
 
 // Khi chạy dev, Vite chèn script inline cho HMR nên phải bỏ CSP; bản build giữ nguyên CSP chặt.
 const devCsp = (): Plugin => ({
-  name: 'nibmark-dev-csp',
+  name: 'inknote-dev-csp',
   apply: 'serve',
   transformIndexHtml: (html) => html.replace(/<meta\s+http-equiv="Content-Security-Policy"[\s\S]*?\/>/, '')
 })

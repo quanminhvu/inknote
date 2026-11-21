@@ -7,11 +7,11 @@ import { useStore } from './store'
 import { getStatuses } from './statuses'
 import type { Book, Note, NoteStatus } from './types'
 
-// Chuyển dữ liệu import (Markdown, HTML, Evernote) thành ghi chú Nibmark.
+// Chuyển dữ liệu import (Markdown, HTML, Evernote) thành ghi chú Inknote.
 // Chỉ THÊM dữ liệu: mọi thứ nằm trong một notebook mới "Imported <ngày>" (hoặc notebook đích),
 // không ghi đè ghi chú nào đang có. Chuyển đổi lỗi thì vẫn giữ nguyên văn bản gốc.
 
-type ScanDoc = NibmarkImportScan['docs'][number]
+type ScanDoc = InknoteImportScan['docs'][number]
 
 interface Parsed {
   title: string
@@ -431,17 +431,17 @@ function fromEnex(doc: ScanDoc): Parsed[] {
   return out
 }
 
-// ── Ghi vào Nibmark ──
+// ── Ghi vào Inknote ──
 
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-/** Đổi đường dẫn file trong văn bản thành nibmark://file/<id> */
+/** Đổi đường dẫn file trong văn bản thành inknote://file/<id> */
 function rewriteLinks(body: string, refs: Map<string, string>): string {
   let out = body
   for (const [ref, url] of refs) {
-    // Obsidian ![[ảnh.png]] → ![ảnh.png](nibmark://file/…)
+    // Obsidian ![[ảnh.png]] → ![ảnh.png](inknote://file/…)
     out = out.replace(new RegExp(`!\\[\\[${escapeRegExp(ref)}(?:[|#][^\\]]*)?\\]\\]`, 'g'), `![${ref}](${url})`)
     // (đường dẫn) và (<đường dẫn>) trong link Markdown, kể cả khi turndown đã giữ nguyên
     out = out.replace(new RegExp(`\\]\\(\\s*<?${escapeRegExp(ref)}>?(\\s+"[^"]*")?\\s*\\)`, 'g'), `](${url}$1)`)
@@ -449,7 +449,7 @@ function rewriteLinks(body: string, refs: Map<string, string>): string {
   return out
 }
 
-export async function importScan(scan: NibmarkImportScan, targetBookId: string | null, rootLabel = 'Imported'): Promise<ImportReport> {
+export async function importScan(scan: InknoteImportScan, targetBookId: string | null, rootLabel = 'Imported'): Promise<ImportReport> {
   const store = useStore.getState()
   const skipped = [...scan.skipped]
   let failed = 0
@@ -563,12 +563,12 @@ export async function importScan(scan: NibmarkImportScan, targetBookId: string |
 
 /** Import toàn bộ Apple Notes (macOS hỏi quyền ở lần đầu) vào notebook "Apple Notes <ngày>". */
 export async function runAppleNotesImport(): Promise<ImportReport | null> {
-  const bridge = window.nibmark
+  const bridge = window.inknote
   const s = useStore.getState()
   if (!bridge) return null
   if (
     !window.confirm(
-      'Import all notes from Apple Notes?\n\nmacOS will ask whether Nibmark may control Notes. Locked notes and Recently Deleted are skipped. Your notes in Apple Notes are not changed.'
+      'Import all notes from Apple Notes?\n\nmacOS will ask whether Inknote may control Notes. Locked notes and Recently Deleted are skipped. Your notes in Apple Notes are not changed.'
     )
   )
     return null
@@ -599,7 +599,7 @@ function notifyReport(report: ImportReport): void {
 
 /** Mở hộp thoại chọn file rồi import; báo kết quả bằng thông báo */
 export async function runImport(targetBookId: string | null = null): Promise<ImportReport | null> {
-  const bridge = window.nibmark
+  const bridge = window.inknote
   const s = useStore.getState()
   if (!bridge) return null
   const scan = await bridge.importer.pick()

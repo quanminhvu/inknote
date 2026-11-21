@@ -3,7 +3,8 @@ import { extname, join } from 'node:path'
 import { backupDir, getSettings, updateSettings } from './settings'
 
 // Định dạng thư mục sao lưu:
-//   <dir>/nibmark-backup.json        đánh dấu đây là thư mục sao lưu của Nibmark
+//   <dir>/inknote-backup.json        đánh dấu đây là thư mục sao lưu của Inknote
+//                                    (thư mục sao lưu cũ từ thời Nibmark có nibmark-backup.json)
 //   <dir>/notes|books|tags|templates/<id>.json  mỗi document một file JSON
 //   <dir>/files/<id>.json + <id>.<đuôi>         file đính kèm: thông tin + nội dung gốc
 //   <dir>/deleted/<loại>/…            document đã bị xóa khỏi app
@@ -74,10 +75,14 @@ function writeAtomic(path: string, content: string): void {
   renameSync(tmp, path)
 }
 
+const MARKER = 'inknote-backup.json'
+const LEGACY_MARKER = 'nibmark-backup.json'
+const isBackupDir = (dir: string): boolean => existsSync(join(dir, MARKER)) || existsSync(join(dir, LEGACY_MARKER))
+
 function ensureLayout(dir: string): void {
   for (const sub of Object.values(FOLDER)) mkdirSync(join(dir, sub), { recursive: true })
-  const marker = join(dir, 'nibmark-backup.json')
-  if (!existsSync(marker)) writeAtomic(marker, JSON.stringify({ app: 'Nibmark', format: 1, createdAt: Date.now() }, null, 2))
+  const marker = join(dir, MARKER)
+  if (!existsSync(marker)) writeAtomic(marker, JSON.stringify({ app: 'Inknote', format: 1, createdAt: Date.now() }, null, 2))
 }
 
 export interface WriteResult {
@@ -179,8 +184,8 @@ export interface BackupFile {
 
 /** Đọc mọi document (trừ thư mục deleted/) từ một thư mục sao lưu. */
 export function readBackup(dir: string): { docs: BackupDoc[]; files: BackupFile[]; error?: string } {
-  if (!existsSync(join(dir, 'nibmark-backup.json'))) {
-    return { docs: [], files: [], error: 'This folder is not a Nibmark backup.' }
+  if (!isBackupDir(dir)) {
+    return { docs: [], files: [], error: 'This folder is not an Inknote backup.' }
   }
   const docs: BackupDoc[] = []
   const files: BackupFile[] = []

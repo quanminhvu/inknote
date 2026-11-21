@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /* eslint-disable */
-// Nibmark MCP bridge.
+// Inknote MCP bridge.
 //
 // AI agents (Claude Code, Claude Desktop, Cursor…) start this script and talk MCP over stdio
-// (newline-delimited JSON-RPC 2.0). Each request is forwarded to the running Nibmark app over
+// (newline-delimited JSON-RPC 2.0). Each request is forwarded to the running Inknote app over
 // a local socket that only this user account can open; the app answers from its own data.
 //
-// Run it with the Node that ships inside Nibmark:
-//   ELECTRON_RUN_AS_NODE=1 /Applications/Nibmark.app/Contents/MacOS/Nibmark /Applications/Nibmark.app/Contents/Resources/mcp.js
+// Run it with the Node that ships inside Inknote:
+//   ELECTRON_RUN_AS_NODE=1 /Applications/Inknote.app/Contents/MacOS/Inknote /Applications/Inknote.app/Contents/Resources/mcp.js
 'use strict'
 
 const net = require('node:net')
@@ -22,24 +22,24 @@ const CONNECT_WAIT_MS = 25_000
 
 function log(...args) {
   // stdout is the MCP channel: diagnostics go to stderr only
-  process.stderr.write('[nibmark-mcp] ' + args.join(' ') + '\n')
+  process.stderr.write('[inknote-mcp] ' + args.join(' ') + '\n')
 }
 
 function userDataDir() {
-  const custom = process.env.NIBMARK_USER_DATA
+  const custom = process.env.INKNOTE_USER_DATA
   if (custom) return path.resolve(custom)
   const home = os.homedir()
-  if (process.platform === 'darwin') return path.join(home, 'Library', 'Application Support', 'Nibmark')
-  if (process.platform === 'win32') return path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'Nibmark')
-  return path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'Nibmark')
+  if (process.platform === 'darwin') return path.join(home, 'Library', 'Application Support', 'Inknote')
+  if (process.platform === 'win32') return path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'Inknote')
+  return path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'Inknote')
 }
 
 // Must match src/main/mcp.ts
 function socketPath(userData) {
   const hash = crypto.createHash('sha1').update(userData).digest('hex').slice(0, 12)
-  if (process.platform === 'win32') return '\\\\.\\pipe\\nibmark-' + hash
+  if (process.platform === 'win32') return '\\\\.\\pipe\\inknote-' + hash
   const inData = path.join(userData, 'mcp.sock')
-  return Buffer.byteLength(inData) < 100 ? inData : path.join(os.tmpdir(), 'nibmark-' + hash + '.sock')
+  return Buffer.byteLength(inData) < 100 ? inData : path.join(os.tmpdir(), 'inknote-' + hash + '.sock')
 }
 
 function appVersion() {
@@ -71,9 +71,9 @@ function connectOnce(target) {
 }
 
 function launchApp() {
-  if (launched || process.env.NIBMARK_MCP_NO_LAUNCH) return
+  if (launched || process.env.INKNOTE_MCP_NO_LAUNCH) return
   launched = true
-  // The bridge runs with the Nibmark binary itself (ELECTRON_RUN_AS_NODE): start it as the app
+  // The bridge runs with the Inknote binary itself (ELECTRON_RUN_AS_NODE): start it as the app
   const env = Object.assign({}, process.env)
   delete env.ELECTRON_RUN_AS_NODE
   try {
@@ -83,9 +83,9 @@ function launchApp() {
     } else {
       spawn(process.execPath, [], { detached: true, stdio: 'ignore', env }).unref()
     }
-    log('Nibmark was not running; starting it')
+    log('Inknote was not running; starting it')
   } catch (err) {
-    log('could not start Nibmark:', err.message)
+    log('could not start Inknote:', err.message)
   }
 }
 
@@ -104,7 +104,7 @@ async function getConnection() {
       } catch (err) {
         if (Date.now() > deadline) {
           throw new Error(
-            'Could not reach Nibmark. Make sure the app is running and "Let AI agents use your notes" is on in Nibmark → Preferences → AI Agents (MCP).'
+            'Could not reach Inknote. Make sure the app is running and "Let AI agents use your notes" is on in Inknote → Preferences → AI Agents (MCP).'
           )
         }
         launchApp()
@@ -139,14 +139,14 @@ function attach(socket) {
       if (!entry) continue
       waiting.delete(msg.id)
       if (msg.ok) entry.resolve(msg.result)
-      else entry.reject(new Error(msg.error || 'Nibmark returned an error'))
+      else entry.reject(new Error(msg.error || 'Inknote returned an error'))
     }
   })
   const fail = () => {
     if (conn === socket) conn = null
     for (const [id, entry] of waiting) {
       waiting.delete(id)
-      entry.reject(new Error('Lost the connection to Nibmark.'))
+      entry.reject(new Error('Lost the connection to Inknote.'))
     }
   }
   socket.on('close', fail)
@@ -179,7 +179,7 @@ function error(id, code, message) {
 }
 
 const INSTRUCTIONS =
-  'Nibmark is the user\'s local Markdown notebook. Use search_notes to find notes (supports tag:, book:, status: and -exclusions), read_note to read one, and edit_note for small precise edits. Deleting a note moves it to the Trash. Link notes with [Title](nibmark://note/<id without "note:">).'
+  'Inknote is the user\'s local Markdown notebook. Use search_notes to find notes (supports tag:, book:, status: and -exclusions), read_note to read one, and edit_note for small precise edits. Deleting a note moves it to the Trash. Link notes with [Title](inknote://note/<id without "note:">).'
 
 async function handle(msg) {
   const { id, method, params } = msg
@@ -192,7 +192,7 @@ async function handle(msg) {
         result(id, {
           protocolVersion: SUPPORTED_PROTOCOLS.includes(wanted) ? wanted : SUPPORTED_PROTOCOLS[0],
           capabilities: { tools: {}, resources: {} },
-          serverInfo: { name: 'nibmark', title: 'Nibmark', version: appVersion() },
+          serverInfo: { name: 'inknote', title: 'Inknote', version: appVersion() },
           instructions: INSTRUCTIONS
         })
         return

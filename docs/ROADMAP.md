@@ -1,6 +1,6 @@
-# Lộ trình phát triển Nibmark
+# Lộ trình phát triển Inknote
 
-Tài liệu này liệt kê những gì Nibmark **đã có** và **sẽ làm**, chia theo giai đoạn. Thứ tự trong mỗi giai đoạn chưa phải thứ tự làm, có thể đổi khi dùng thực tế.
+Tài liệu này liệt kê những gì Inknote **đã có** và **sẽ làm**, chia theo giai đoạn. Thứ tự trong mỗi giai đoạn chưa phải thứ tự làm, có thể đổi khi dùng thực tế.
 
 Ký hiệu: `[x]` đã xong · `[ ]` chưa làm · *(một phần: …)* đã làm được một phần, ghi rõ phần còn thiếu.
 
@@ -207,7 +207,7 @@ Chưa làm trong giai đoạn này (không tính vào tiến độ), có thể x
 - [ ] Plugin mẫu: mục lục bên cạnh, gập khối code, nhúng YouTube, tab ghi chú, chạy code, đồ thị liên kết, trình chiếu
 - [ ] CLI tạo, cài, cập nhật và phát hành plugin
 - [ ] Plugin API có kiểu TypeScript và tài liệu cho developer
-- [ ] Xuất ghi chú thành website tĩnh (dùng Nibmark làm CMS)
+- [ ] Xuất ghi chú thành website tĩnh (dùng Inknote làm CMS)
 
 ### AI (tùy chọn, tắt được hoàn toàn)
 

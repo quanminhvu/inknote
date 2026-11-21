@@ -7,15 +7,19 @@ import { registerShortcuts } from './shortcuts'
 import { applyTray, hideOnClose, setupTray } from './tray'
 import { updateSettings } from './settings'
 import { applyMcp, registerMcpIpc, stopMcp } from './mcp'
+import { migrateLegacyUserData, reportMigrationError } from './migrate'
 
 const isDev = !app.isPackaged && !!process.env['ELECTRON_RENDERER_URL']
 
 // Cho phép chạy với một hồ sơ dữ liệu riêng (dùng khi thử nghiệm),
-// để không bao giờ đụng vào ghi chú thật trong ~/Library/Application Support/Nibmark.
+// để không bao giờ đụng vào ghi chú thật trong ~/Library/Application Support/Inknote.
 // Hồ sơ dữ liệu riêng (dùng khi test). Đường dẫn tương đối được đổi thành tuyệt đối:
 // bỏ qua nó thì app sẽ lặng lẽ chạy trên dữ liệu thật của người dùng.
-const customUserData = process.env['NIBMARK_USER_DATA']
+const customUserData = process.env['INKNOTE_USER_DATA']
 if (customUserData) app.setPath('userData', isAbsolute(customUserData) ? customUserData : resolve(customUserData))
+
+// Đổi tên Nibmark → Inknote: chép dữ liệu cũ sang thư mục mới trước khi app dùng tới nó
+const migrationError = customUserData ? null : migrateLegacyUserData()
 
 // Chỉ một bản app cho mỗi thư mục dữ liệu: hai bản cùng ghi một cơ sở dữ liệu (và cùng mở
 // socket MCP) sẽ hỏng dữ liệu. Mở lần hai thì đưa cửa sổ của bản đang chạy lên trước.
@@ -45,7 +49,7 @@ function createWindow(noteId?: string): BrowserWindow {
     minWidth: noteId ? 420 : 880,
     minHeight: noteId ? 360 : 520,
     show: false,
-    title: 'Nibmark',
+    title: 'Inknote',
     icon: app.isPackaged ? join(process.resourcesPath, 'icon.png') : join(__dirname, '../../resources/icon.png'),
     // macOS: sidebar trong mờ (vibrancy) cần nền cửa sổ trong suốt
     ...(process.platform === 'darwin'
@@ -105,6 +109,7 @@ app.whenReady().then(() => {
     const icon = nativeImage.createFromPath(join(__dirname, '../../resources/icon.png'))
     if (!icon.isEmpty()) app.dock.setIcon(icon)
   }
+  reportMigrationError(migrationError)
   registerIpc(openNoteWindow)
   buildMenu()
   createWindow()

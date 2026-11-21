@@ -1,7 +1,7 @@
 import { ensureTodayNoteSilently } from './dailyNote'
 import { stripFrontMatter } from './kanban'
 import { linkedNoteIds } from './markdown'
-import { NOTE_LINK_PREFIX, noteIdFromUrl, noteLinkUrl } from './noteLinks'
+import { isNoteLink, noteIdFromUrl, noteLinkUrl } from './noteLinks'
 import { matchesQuery, parseQuery } from './search'
 import { getStatuses } from './statuses'
 import { useStore } from './store'
@@ -26,13 +26,13 @@ interface ToolDef {
 
 const str = (description: string): Record<string, unknown> => ({ type: 'string', description })
 const strList = (description: string): Record<string, unknown> => ({ type: 'array', items: { type: 'string' }, description })
-const NOTE_REF = str('Note id (as returned by search_notes, e.g. "note:1a2b…"), a nibmark://note/… link, or the exact note title')
+const NOTE_REF = str('Note id (as returned by search_notes, e.g. "note:1a2b…"), an inknote://note/… link, or the exact note title')
 
 const TOOLS: ToolDef[] = [
   {
     name: 'search_notes',
     description:
-      'Search notes in Nibmark. Query syntax: words match title and body; "exact phrase"; title:x, body:x; book:x (notebook), tag:x, status:x; prefix any term with - to exclude. An empty query lists the most recently edited notes. Trashed notes are never returned.',
+      'Search notes in Inknote. Query syntax: words match title and body; "exact phrase"; title:x, body:x; book:x (notebook), tag:x, status:x; prefix any term with - to exclude. An empty query lists the most recently edited notes. Trashed notes are never returned.',
     inputSchema: { type: 'object', properties: { query: str('Search query (may be empty)'), limit: { type: 'number', description: 'Maximum results (default 20, max 100)' } } },
     annotations: { readOnlyHint: true }
   },
@@ -69,7 +69,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'create_note',
     description:
-      'Create a note. The body is Markdown. To link to another note use [Title](nibmark://note/<id without "note:">). Returns the new note id.',
+      'Create a note. The body is Markdown. To link to another note use [Title](inknote://note/<id without "note:">). Returns the new note id.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -168,12 +168,12 @@ function list(args: Record<string, unknown>, key: string): string[] | undefined 
   return (value as string[]).map((v) => v.trim()).filter(Boolean).slice(0, 50)
 }
 
-/** Tìm ghi chú theo id, link nibmark://note/…, hoặc đúng tiêu đề (ghi chú sửa gần nhất nếu trùng) */
+/** Tìm ghi chú theo id, link inknote://note/…, hoặc đúng tiêu đề (ghi chú sửa gần nhất nếu trùng) */
 function findNote(ref: unknown, includeTrashed = false): Note {
   if (typeof ref !== 'string' || !ref.trim()) throw new ToolError('Missing "note".')
   const notes = state().notes
   const raw = ref.trim()
-  const id = raw.startsWith(NOTE_LINK_PREFIX) ? noteIdFromUrl(raw) : raw.startsWith('note:') ? raw : `note:${raw}`
+  const id = isNoteLink(raw) ? noteIdFromUrl(raw) : raw.startsWith('note:') ? raw : `note:${raw}`
   const byId = id ? notes[id] : undefined
   if (byId && (includeTrashed || !byId.trashed)) return byId
   const byTitle = Object.values(notes)
@@ -392,7 +392,7 @@ export async function handleMcp(op: string, tool: string, rawArgs: unknown, allo
   }
   const def = TOOLS.find((t) => t.name === tool)
   if (!def) return { isError: true, text: `Unknown tool "${tool}".` }
-  if (def.write && !allowEdits) return { isError: true, text: 'Editing is turned off. The user can allow it in Nibmark → Preferences → AI Agents (MCP).' }
+  if (def.write && !allowEdits) return { isError: true, text: 'Editing is turned off. The user can allow it in Inknote → Preferences → AI Agents (MCP).' }
   const args = rawArgs && typeof rawArgs === 'object' && !Array.isArray(rawArgs) ? (rawArgs as Record<string, unknown>) : {}
   try {
     return { isError: false, text: run(tool, args, client) }
@@ -404,10 +404,10 @@ export async function handleMcp(op: string, tool: string, rawArgs: unknown, allo
 
 /** Gắn bộ xử lý MCP ở cửa sổ chính, sau khi dữ liệu đã nạp xong */
 export function startMcpBridge(): () => void {
-  if (noteWindowId || !window.nibmark?.mcp) return () => {}
+  if (noteWindowId || !window.inknote?.mcp) return () => {}
   let stop: (() => void) | null = null
   const attach = (): void => {
-    if (!stop) stop = window.nibmark!.mcp.serve(handleMcp)
+    if (!stop) stop = window.inknote!.mcp.serve(handleMcp)
   }
   if (state().ready) attach()
   const unsubscribe = useStore.subscribe((s) => {

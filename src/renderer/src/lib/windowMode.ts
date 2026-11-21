@@ -5,5 +5,5 @@
 export const noteWindowId: string | null = new URLSearchParams(location.search).get('note')
 
 export function openInNewWindow(id: string): void {
-  window.nibmark?.openNoteWindow(id)
+  window.inknote?.openNoteWindow(id)
 }

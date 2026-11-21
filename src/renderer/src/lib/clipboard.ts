@@ -11,7 +11,7 @@ async function copy(text: string, what: string): Promise<void> {
 }
 
 /** Link Markdown tới ghi chú, cùng định dạng với [[ */
-/** Link Markdown tới ghi chú: [Tiêu đề](nibmark://note/…) */
+/** Link Markdown tới ghi chú: [Tiêu đề](inknote://note/…) */
 export function noteLinkMarkdown(noteId: string): string {
   const note = useStore.getState().notes[noteId]
   const text = (note?.title.trim() || 'Untitled').replace(/([[\]\\])/g, '\\$1')

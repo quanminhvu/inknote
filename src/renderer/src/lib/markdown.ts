@@ -115,13 +115,13 @@ md.core.ruler.push('github_embed', (state) => {
   }
 })
 
-// Danh sách giao thức mặc định của DOMPurify, thêm nibmark: cho link giữa các ghi chú
-const ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|nibmark):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+// Danh sách giao thức mặc định của DOMPurify, thêm inknote: cho link giữa các ghi chú
+const ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|inknote|nibmark):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
 
 /** Điền các khối nhúng GitHub trong `root` (có cache, chỉ tải mỗi link một lần). */
-const ghCache = new Map<string, Promise<Awaited<ReturnType<NibmarkBridge['web']['githubSnippet']>>>>()
+const ghCache = new Map<string, Promise<Awaited<ReturnType<InknoteBridge['web']['githubSnippet']>>>>()
 export function fillGithubEmbeds(root: HTMLElement): void {
-  const bridge = window.nibmark
+  const bridge = window.inknote
   if (!bridge) return
   for (const el of root.querySelectorAll<HTMLElement>('.gh-embed:not(.loaded)')) {
     const src = el.dataset.src ?? ''
@@ -209,7 +209,7 @@ export function countTasks(source: string): { done: number; total: number } {
 export function linkedNoteIds(source: string): Set<string> {
   const ids = new Set<string>()
   const add = (href: string): void => {
-    const match = /^nibmark:\/\/note\/([A-Za-z0-9_-]{1,64})(?:[/?#].*)?$/.exec(href)
+    const match = /^(?:inknote|nibmark):\/\/note\/([A-Za-z0-9_-]{1,64})(?:[/?#].*)?$/.exec(href)
     if (match) ids.add(`note:${match[1]}`)
   }
   const walk = (tokens: ReturnType<typeof md.parse>): void => {

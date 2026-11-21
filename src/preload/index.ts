@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 // Renderer chỉ gửi dữ liệu; mọi đường dẫn file đều do main process quyết định
 // (thư mục sao lưu đã cấu hình, hoặc đường dẫn người dùng chọn qua hộp thoại).
-contextBridge.exposeInMainWorld('nibmark', {
+contextBridge.exposeInMainWorld('inknote', {
   platform: process.platform,
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),

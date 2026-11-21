@@ -20,7 +20,7 @@ import { BookIcon, openIconPicker } from './BookIcon'
 import { openMenu } from './ContextMenu'
 import { StatusIcon } from './StatusIcon'
 
-export const NOTE_MIME = 'application/x-nibmark-note'
+export const NOTE_MIME = 'application/x-inknote-note'
 
 /** Dữ liệu kéo thả ghi chú là một mảng JSON các id (kéo một hoặc nhiều ghi chú) */
 export function noteIdsFromDrag(data: string): string[] {
@@ -32,9 +32,9 @@ export function noteIdsFromDrag(data: string): string[] {
   }
   return data ? [data] : []
 }
-const STATUS_MIME = 'application/x-nibmark-status'
-const TAG_MIME = 'application/x-nibmark-tag'
-const BOOK_MIME = 'application/x-nibmark-book'
+const STATUS_MIME = 'application/x-inknote-status'
+const TAG_MIME = 'application/x-inknote-tag'
+const BOOK_MIME = 'application/x-inknote-book'
 
 type Editing = { kind: 'new'; parentId: string | null } | { kind: 'rename'; id: string } | { kind: 'renameTag'; id: string } | { kind: 'renameStatus'; id: NoteStatus } | { kind: 'newTag' | 'newStatus' } | null
 

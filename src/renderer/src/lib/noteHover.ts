@@ -6,7 +6,7 @@ import { followNoteLink, noteIdFromUrl, noteLinkUrl } from './noteLinks'
 import { useStore } from './store'
 import { relativeTime } from './util'
 
-// Rê chuột vào link tới ghi chú khác ([Tiêu đề](nibmark://note/…)) thì hiện thẻ xem trước:
+// Rê chuột vào link tới ghi chú khác ([Tiêu đề](inknote://note/…)) thì hiện thẻ xem trước:
 // tiêu đề, notebook, thời gian sửa và phần đầu nội dung. Bấm vào thẻ để mở ghi chú.
 
 /** Chỉ hiện phần đầu để thẻ nhẹ; thẻ tự cắt phần thừa bằng CSS */
@@ -47,11 +47,11 @@ export function noteCard(noteId: string): HTMLElement {
   return card
 }
 
-/** Thẻ xem trước trong editor: rê chuột vào cả cụm [Tiêu đề](nibmark://note/…) */
+/** Thẻ xem trước trong editor: rê chuột vào cả cụm [Tiêu đề](inknote://note/…) */
 export const noteLinkHover = hoverTooltip(
   (view, pos) => {
     const line = view.state.doc.lineAt(pos)
-    for (const m of line.text.matchAll(/\]\((nibmark:\/\/note\/[A-Za-z0-9_-]+)\)/g)) {
+    for (const m of line.text.matchAll(/\]\(((?:inknote|nibmark):\/\/note\/[A-Za-z0-9_-]+)\)/g)) {
       const start = line.from + line.text.lastIndexOf('[', m.index)
       const end = line.from + m.index + m[0].length
       const id = noteIdFromUrl(m[1])
@@ -98,7 +98,7 @@ function placeCard(card: HTMLElement, rect: DOMRect): void {
 
 /** Gắn vào vùng preview (onMouseOver / onMouseOut) */
 export function previewLinkOver(event: React.MouseEvent<HTMLElement>): void {
-  const link = (event.target as Element).closest('a[href^="nibmark://note/"]')
+  const link = (event.target as Element).closest('a[href^="inknote://note/"], a[href^="nibmark://note/"]')
   if (!link) return
   clearTimeout(hideTimer)
   if (link === currentLink) return
@@ -118,7 +118,7 @@ export function previewLinkOver(event: React.MouseEvent<HTMLElement>): void {
 }
 
 export function previewLinkOut(event: React.MouseEvent<HTMLElement>): void {
-  const link = (event.target as Element).closest('a[href^="nibmark://note/"]')
+  const link = (event.target as Element).closest('a[href^="inknote://note/"], a[href^="nibmark://note/"]')
   if (!link) return
   // Chuột vẫn trong link (đi qua phần tử con) thì giữ nguyên
   if (event.relatedTarget instanceof Node && link.contains(event.relatedTarget)) return

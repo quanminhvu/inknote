@@ -95,7 +95,7 @@ export function registerIpc(openNoteWindow: (noteId: string) => void): void {
   ipcMain.handle('file:open', async (_e, id: unknown, name: unknown, bytes: unknown) => {
     if (typeof id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(id) || typeof name !== 'string') return 'Invalid file'
     if (!(bytes instanceof Uint8Array) || bytes.byteLength > MAX_FILE_BYTES) return 'Invalid file'
-    const dir = join(app.getPath('temp'), 'nibmark-open', id)
+    const dir = join(app.getPath('temp'), 'inknote-open', id)
     mkdirSync(dir, { recursive: true })
     const path = join(dir, safeName(name, 'attachment'))
     await writeFile(path, bytes)
@@ -112,7 +112,7 @@ export function registerIpc(openNoteWindow: (noteId: string) => void): void {
     const res = await dialog.showOpenDialog(win(event)!, {
       title: 'Restore from Backup',
       buttonLabel: 'Restore',
-      message: 'Choose a Nibmark backup folder. Notes that are newer here will not be overwritten.',
+      message: 'Choose an Inknote backup folder. Notes that are newer here will not be overwritten.',
       defaultPath: existsSync(backupDir()) ? backupDir() : defaultBackupDir(),
       properties: ['openDirectory']
     })
@@ -137,7 +137,7 @@ export function registerIpc(openNoteWindow: (noteId: string) => void): void {
   ipcMain.handle('web:githubSnippet', (_e, url: unknown) => fetchGithubSnippet(url))
   // Apple Notes: hồ sơ thử nghiệm có thể dùng dữ liệu mẫu thay cho Notes thật
   ipcMain.handle('import:appleNotes', async () => {
-    const fixture = process.env['NIBMARK_USER_DATA'] ? process.env['NIBMARK_APPLE_NOTES_FIXTURE'] : undefined
+    const fixture = process.env['INKNOTE_USER_DATA'] ? process.env['INKNOTE_APPLE_NOTES_FIXTURE'] : undefined
     if (fixture) return scanFromDump(JSON.parse(readFileSync(fixture, 'utf8')) as AppleNotesDump)
     return readAppleNotes()
   })
@@ -212,7 +212,7 @@ export function registerIpc(openNoteWindow: (noteId: string) => void): void {
       properties: ['openDirectory', 'createDirectory']
     })
     if (res.canceled || !res.filePaths[0]) return null
-    const root = freshDir(res.filePaths[0], safeName(`${label} ${today()}`, 'Nibmark Export'))
+    const root = freshDir(res.filePaths[0], safeName(`${label} ${today()}`, 'Inknote Export'))
     const count = writeTree(root, files)
     writeAttachments(root, attachments)
     shell.showItemInFolder(root)

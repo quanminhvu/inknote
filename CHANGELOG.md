@@ -1,10 +1,24 @@
 # Changelog
 
-All notable changes to Nibmark are documented in this file.
+All notable changes to Inknote (named Nibmark until v1.0.2) are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+- Renamed the app from Nibmark to Inknote, with a new Origami Bird icon and logo. On first launch, notes, settings, themes and version history are copied from the old Nibmark data folder, which is kept as a backup.
+- Note and attachment links now use `inknote://`. Existing `nibmark://` links keep working and are rewritten on first launch. Backup folders made by Nibmark can still be restored.
+- The MCP server is now registered as `inknote`, and the bridge lives at `/Applications/Inknote.app/Contents/Resources/mcp.js`.
+
+### Added
+
+- Tab and Shift-Tab move between table cells and Enter moves to the next row, adding rows as needed. Columns are aligned when you leave the table.
+- Quick Note opens a small floating window, like Quick Note in Apple Notes. A quick note is saved only once you start writing.
+- Open a notebook as a workspace, with a breadcrumb of its parent notebooks in the sidebar.
+- Pasting rich text turns it into Markdown, including tables from Google Sheets and Excel. Task due dates with `@YYYY-MM-DD`.
+- Translucent panes, heavier text and lighter line icons.
 
 ## [1.0.2] - 2026-11-14
 

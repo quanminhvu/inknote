@@ -30,7 +30,7 @@ export function plainHeading(text: string): string {
 
 /** Nhảy tới một heading trong ghi chú đang mở (editor và preview tự lắng nghe). */
 export function gotoHeading(line: number, index: number, focusEditor = true): void {
-  window.dispatchEvent(new CustomEvent('nibmark-goto', { detail: { line, index, focusEditor } }))
+  window.dispatchEvent(new CustomEvent('inknote-goto', { detail: { line, index, focusEditor } }))
 }
 
 const KEY = 'nibmark:outline'

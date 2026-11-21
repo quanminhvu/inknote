@@ -36,7 +36,7 @@ import { noteWindowId, openInNewWindow } from './lib/windowMode'
 function NoteWindowTitle(): null {
   const title = useStore((s) => (noteWindowId ? s.notes[noteWindowId]?.title : undefined))
   useEffect(() => {
-    document.title = title ? `${title} — Nibmark` : 'Nibmark'
+    document.title = title ? `${title} — Inknote` : 'Inknote'
   }, [title])
   return null
 }
@@ -67,7 +67,7 @@ export function App(): React.JSX.Element {
           startHistory()
           startSwipeNavigation()
           // Báo cho main là đã sẵn sàng nhận lệnh (ví dụ phím tắt ghi nhanh)
-          window.nibmark?.ready()
+          window.inknote?.ready()
         })
     }
     const flush = (): void => {
@@ -89,7 +89,7 @@ export function App(): React.JSX.Element {
 
   // Lệnh từ menu ứng dụng (File, Preferences)
   useEffect(() => {
-    return window.nibmark?.onMenu((command) => {
+    return window.inknote?.onMenu((command) => {
       const s = useStore.getState()
       if (command === 'preferences') s.setPrefsOpen(true)
       else if (command === 'new-note') s.createNote()

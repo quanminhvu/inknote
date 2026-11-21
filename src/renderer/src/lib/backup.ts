@@ -33,7 +33,7 @@ export function onBackupStatus(listener: Listener): () => void {
 }
 
 async function send(upserts: AnyDoc[], deletes: string[]): Promise<boolean> {
-  const bridge = window.nibmark
+  const bridge = window.inknote
   if (!bridge || (!upserts.length && !deletes.length)) return true
   try {
     const res = await bridge.backup.write(upserts, deletes)
@@ -48,7 +48,7 @@ async function send(upserts: AnyDoc[], deletes: string[]): Promise<boolean> {
 
 /** Sao lưu những file đính kèm mà thư mục sao lưu chưa có (file không bao giờ đổi). */
 async function backupFiles(ids: string[]): Promise<boolean> {
-  const bridge = window.nibmark
+  const bridge = window.inknote
   if (!bridge || !ids.length) return true
   try {
     const missing = await bridge.backup.missingFiles(ids)
@@ -116,7 +116,7 @@ export async function backupEverything(): Promise<boolean> {
 }
 
 export function startBackup(): void {
-  if (started || !window.nibmark) return
+  if (started || !window.inknote) return
   started = true
 
   db.changes({ since: 'now', live: true, include_docs: true }).on('change', (change) => {
@@ -137,7 +137,7 @@ export function startBackup(): void {
 
   // Bù cho những thay đổi có thể chưa kịp sao lưu trước lần thoát app trước
   void backupEverything()
-  void window.nibmark.settings.get().then((s) => emit({ lastBackupAt: s.lastBackupAt }))
+  void window.inknote.settings.get().then((s) => emit({ lastBackupAt: s.lastBackupAt }))
 }
 
 export interface RestoreResult {

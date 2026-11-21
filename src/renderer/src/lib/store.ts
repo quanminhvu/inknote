@@ -262,6 +262,18 @@ export const useStore = create<State>((set, get) => {
         set({ selectedNoteId: note._id, viewMode: 'split' })
       }
 
+      // App đổi tên Nibmark → Inknote: đổi link nibmark://note|file/… cũ trong ghi chú và template
+      // sang inknote://… (một lần; giữ nguyên thời gian sửa). Link cũ vẫn đọc được nếu còn sót.
+      if (!noteWindowId) {
+        const legacy = /nibmark:\/\/(note|file)\//g
+        for (const note of Object.values(get().notes)) {
+          if (note.body.includes('nibmark://')) putNote({ ...note, body: note.body.replace(legacy, 'inknote://$1/') })
+        }
+        for (const t of Object.values(get().templates)) {
+          if (t.body.includes('nibmark://')) putTemplate({ ...t, body: t.body.replace(legacy, 'inknote://$1/') })
+        }
+      }
+
       // Lựa chọn đã lưu có thể trỏ tới thứ không còn tồn tại
       const s = get()
       if (

@@ -7,7 +7,7 @@ import { markdown, markdownLanguage, markdownKeymap } from '@codemirror/lang-mar
 import { languages } from '@codemirror/language-data'
 import { HighlightStyle, syntaxHighlighting, syntaxTree, indentOnInput, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language'
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
-import { followNoteLink, NOTE_LINK_PREFIX, noteLinkCompletions } from '@/lib/noteLinks'
+import { followNoteLink, isNoteLink, noteLinkCompletions } from '@/lib/noteLinks'
 import { noteLinkHover } from '@/lib/noteHover'
 import { setSelectionText } from '@/lib/noteStats'
 import { htmlToMarkdown } from '@/lib/pasteHtml'
@@ -50,7 +50,7 @@ function inCode(view: EditorView, pos: number): boolean {
 
 /** Dán chữ thuần trong clipboard vào chỗ đang chọn */
 async function pastePlain(view: EditorView): Promise<void> {
-  const text = (await window.nibmark?.readClipboardText()) ?? (await navigator.clipboard.readText().catch(() => ''))
+  const text = (await window.inknote?.readClipboardText()) ?? (await navigator.clipboard.readText().catch(() => ''))
   if (!text || !view.dom.isConnected) return
   const { from, to } = view.state.selection.main
   view.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length }, userEvent: 'input.paste', scrollIntoView: true })
@@ -66,8 +66,8 @@ function pasteUrl(view: EditorView, url: string): boolean {
   if (/\]\($|\($|<$|`$/.test(before) || inCodeAt(view, pos)) return false
   const insert = mode === 'url' ? `[${url}](${url})` : url
   view.dispatch({ changes: { from: pos, insert }, selection: { anchor: pos + insert.length }, userEvent: 'input.paste' })
-  if (mode === 'title' && window.nibmark) {
-    void window.nibmark.web.title(url).then((title) => {
+  if (mode === 'title' && window.inknote) {
+    void window.inknote.web.title(url).then((title) => {
       // Chỉ thay khi URL vẫn còn nguyên ở chỗ vừa dán
       if (!title || !view.dom.isConnected || view.state.sliceDoc(pos, pos + url.length) !== url) return
       const label = title.replace(/([[\]\\])/g, '\\$1')
@@ -232,7 +232,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
               const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
               if (pos === null) return false
               const line = view.state.doc.lineAt(pos)
-              const re = /\]\((nibmark:\/\/(?:note|file)\/[A-Za-z0-9_-]+)\)/g
+              const re = /\]\(((?:inknote|nibmark):\/\/(?:note|file)\/[A-Za-z0-9_-]+)\)/g
               for (const m of line.text.matchAll(re)) {
                 const start = line.from + line.text.lastIndexOf('[', m.index)
                 const end = line.from + m.index + m[0].length
@@ -240,7 +240,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
                   event.preventDefault()
                   const fileId = fileIdFromUrl(m[1])
                   if (fileId) void openAttachment(fileId)
-                  else if (m[1].startsWith(NOTE_LINK_PREFIX)) followNoteLink(m[1])
+                  else if (isNoteLink(m[1])) followNoteLink(m[1])
                   return true
                 }
               }
@@ -361,8 +361,8 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
       view.dispatch({ selection: { anchor: pos }, effects: EditorView.scrollIntoView(pos, { y: 'start', yMargin: 40 }) })
       if (focusEditor) view.focus()
     }
-    window.addEventListener('nibmark-goto', onGoto)
-    return () => window.removeEventListener('nibmark-goto', onGoto)
+    window.addEventListener('inknote-goto', onGoto)
+    return () => window.removeEventListener('inknote-goto', onGoto)
   }, [])
 
   // Đổi tùy chọn editor: cấu hình lại ngay, không cần mở lại ghi chú

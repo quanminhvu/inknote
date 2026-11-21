@@ -1,4 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="Nibmark">
-<defs><mask id="text-n-cut"><rect width="400" height="300" fill="white"/><path d="M80 0H145L375 300H310Z" fill="black"/></mask></defs>
-<g mask="url(#text-n-cut)" fill="currentColor"><rect x="14" y="0" width="386" height="82" rx="15"/><rect x="50" y="109" width="350" height="82" rx="15"/><rect x="0" y="218" width="400" height="82" rx="15"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" width="524" height="556" viewBox="250 226 524 556" role="img" aria-label="Inknote">
+<path d="M512 318L512 626L272 470Z" fill="currentColor" stroke="currentColor" stroke-width="36" stroke-linejoin="round"/><path d="M512 318L752 470L512 626Z" fill="currentColor" stroke="currentColor" stroke-width="36" stroke-linejoin="round" opacity=".78"/><path d="M512 626L440 556L512 758Z" fill="currentColor" stroke="currentColor" stroke-width="36" stroke-linejoin="round" opacity=".88"/><path d="M512 626L584 556L512 758Z" fill="currentColor" stroke="currentColor" stroke-width="36" stroke-linejoin="round" opacity=".66"/><path d="M512 318L494 248L530 248Z" fill="currentColor" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/>
 </svg>

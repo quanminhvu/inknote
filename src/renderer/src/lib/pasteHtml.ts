@@ -55,7 +55,7 @@ function service(): TurndownService {
   })
   // Link tương đối (vd "/docs/x" từ trang web) không mở được trong ghi chú: chỉ giữ chữ
   td.addRule('relativeLink', {
-    filter: (node) => node.nodeName === 'A' && !/^(https?:|mailto:|nibmark:)/i.test(node.getAttribute('href') ?? ''),
+    filter: (node) => node.nodeName === 'A' && !/^(https?:|mailto:|inknote:|nibmark:)/i.test(node.getAttribute('href') ?? ''),
     replacement: (content) => content
   })
   // Khối code của GitHub: <div class="highlight highlight-source-ts"><pre>…</pre></div>

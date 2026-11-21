@@ -17,16 +17,16 @@ app.whenReady().then(async () => {
     await win.webContents.executeJavaScript('document.fonts.ready.then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))))');
     return (await win.webContents.capturePage()).toPNG();
   }
-  const icon = await render('assets/icon/nibmark-icon.svg', 1024, 1024);
-  for (const file of ['assets/icon/nibmark-icon-1024.png', 'build/icon.png', 'resources/icon.png']) fs.writeFileSync(path.join(root, file), icon);
-  fs.writeFileSync(path.join(root, 'assets/icon/nibmark-logo-horizontal.png'), await render('assets/icon/nibmark-logo-horizontal.svg', 1500, 420));
+  const icon = await render('assets/icon/inknote-icon.svg', 1024, 1024);
+  for (const file of ['assets/icon/inknote-icon-1024.png', 'build/icon.png', 'resources/icon.png']) fs.writeFileSync(path.join(root, file), icon);
+  fs.writeFileSync(path.join(root, 'assets/icon/inknote-logo-horizontal.png'), await render('assets/icon/inknote-logo-horizontal.svg', 1500, 420));
   if (process.platform === 'darwin') {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nibmark-brand-'));
-    const iconset = path.join(temp, 'Nibmark.iconset');
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'inknote-brand-'));
+    const iconset = path.join(temp, 'Inknote.iconset');
     fs.mkdirSync(iconset);
     for (const size of [16, 32, 128, 256, 512]) {
       for (const scale of [1, 2]) {
-        fs.writeFileSync(path.join(iconset, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`), await render('assets/icon/nibmark-icon.svg', size * scale, size * scale));
+        fs.writeFileSync(path.join(iconset, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`), await render('assets/icon/inknote-icon.svg', size * scale, size * scale));
       }
     }
     execFileSync('iconutil', ['-c', 'icns', iconset, '-o', path.join(root, 'build/icon.icns')]);

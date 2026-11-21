@@ -61,8 +61,8 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
       const gen = ++generation.current
       renderMermaidIn(root, () => generation.current === gen)
     }
-    window.addEventListener('nibmark-theme', onTheme)
-    return () => window.removeEventListener('nibmark-theme', onTheme)
+    window.addEventListener('inknote-theme', onTheme)
+    return () => window.removeEventListener('inknote-theme', onTheme)
   }, [])
 
   useEffect(() => {
@@ -74,8 +74,8 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
       const target = root.querySelector(`:is(h1, h2, h3, h4, h5, h6)[data-source-line="${line}"]`) ?? root.querySelectorAll('h1, h2, h3, h4, h5, h6')[index]
       target?.scrollIntoView({ block: 'start' })
     }
-    window.addEventListener('nibmark-goto', onGoto)
-    return () => window.removeEventListener('nibmark-goto', onGoto)
+    window.addEventListener('inknote-goto', onGoto)
+    return () => window.removeEventListener('inknote-goto', onGoto)
   }, [])
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>): void => {

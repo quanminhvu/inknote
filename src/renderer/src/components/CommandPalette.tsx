@@ -113,7 +113,7 @@ function noteActionItems(id: string, withTargets = false): Item[] {
   const items: Item[] = [
     cmd('pin', note.pinned ? 'Unpin Note' : 'Pin Note to Top', () => s.updateNote(id, { pinned: !note.pinned }), undefined, 'favorite'),
     cmd('duplicate', 'Duplicate Note', () => s.duplicateNote(id), `${mod()}D`, 'copy'),
-    ...(window.nibmark && !noteWindowId ? [cmd('window', 'Open in New Window', () => openInNewWindow(id), `${mod()}${shift()}N`, 'separate window detach')] : []),
+    ...(window.inknote && !noteWindowId ? [cmd('window', 'Open in New Window', () => openInNewWindow(id), `${mod()}${shift()}N`, 'separate window detach')] : []),
     cmd('save-template', 'Save Note as Template', () => {
       if (s.saveTemplate(id)) s.showNotice(`Saved "${note.title || 'Untitled'}" as a template.`)
     }),
@@ -122,7 +122,7 @@ function noteActionItems(id: string, withTargets = false): Item[] {
     cmd('present', 'Start Presentation', () => presentNote(id), undefined, 'slides slideshow present deck'),
     cmd('export-note', 'Export Note as Markdown…', () => void exportNote(id)),
     cmd('export-html', 'Export Note as HTML…', () => void exportNoteHtml(id), undefined, 'web page save share'),
-    ...(window.nibmark ? [cmd('export-pdf', 'Export Note as PDF…', () => void exportNotePdf(id), undefined, 'print document share')] : []),
+    ...(window.inknote ? [cmd('export-pdf', 'Export Note as PDF…', () => void exportNotePdf(id), undefined, 'print document share')] : []),
     cmd('copy-link', 'Copy Note Link', () => copyNoteLink(id), undefined, 'markdown reference'),
     cmd('copy-id', 'Copy Note ID', () => copyId(id)),
     cmd('history', 'Show Version History…', () => openHistory(id), undefined, 'revisions versions restore undo diff'),
@@ -190,7 +190,7 @@ function commandItems(): Item[] {
     cmd('tasks', 'Show Open Tasks…', () => s.setPalette('tasks'), undefined, 'todo to-do checklist checkbox'),
     cmd('prefs', 'Open Preferences', () => s.setPrefsOpen(true), `${mod()},`, 'settings options'),
     cmd('import', 'Import Notes…', () => void runImport(), undefined, 'markdown html evernote enex notion bear obsidian'),
-    ...(window.nibmark?.platform === 'darwin' ? [cmd('import-apple', 'Import from Apple Notes…', () => void runAppleNotesImport(), undefined, 'icloud notes')] : []),
+    ...(window.inknote?.platform === 'darwin' ? [cmd('import-apple', 'Import from Apple Notes…', () => void runAppleNotesImport(), undefined, 'icloud notes')] : []),
     cmd('import-kindle', 'Import Kindle Highlights…', () => void runKindleImport(), undefined, 'my clippings books reading'),
     cmd('export-all', 'Export All Notes as Markdown…', () => void exportNotes(null), undefined, 'save download'),
     cmd('backup', 'Back Up Now', () => void backupNow(), undefined, 'save'),

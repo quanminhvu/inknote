@@ -44,4 +44,4 @@ export function snippet(body: string, max = 140): string {
   return out.length > max ? out.slice(0, max).trimEnd() + '…' : out
 }
 
-export const isMac = (): boolean => window.nibmark?.platform === 'darwin'
+export const isMac = (): boolean => window.inknote?.platform === 'darwin'

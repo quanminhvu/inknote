@@ -2,6 +2,7 @@ import katex from 'katex'
 import { renderMarkdown } from './markdown'
 import { renderMermaidIn } from './mermaid'
 import { fileIdFromUrl, readFile } from './attachments'
+import { isNoteLink } from './noteLinks'
 import { useStore } from './store'
 
 // Export một ghi chú thành một file HTML tự chứa: ảnh đính kèm được nhúng (data URL),
@@ -47,7 +48,7 @@ export async function noteToHtml(title: string, body: string, forPrint = false):
         const file = await readFile(fileId)
         if (file) el.setAttribute(attr, await blobToDataUrl(file.blob))
         if (attr === 'href' && file) el.setAttribute('download', file.doc.name)
-      } else if (url.startsWith('nibmark://note/')) {
+      } else if (isNoteLink(url)) {
         // Link tới ghi chú khác: không mở được ngoài app, giữ lại chữ
         el.removeAttribute('href')
         el.classList.add('note-link')
@@ -60,7 +61,7 @@ export async function noteToHtml(title: string, body: string, forPrint = false):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="generator" content="Nibmark">
+<meta name="generator" content="Inknote">
 <title>${escapeHtml(title || 'Untitled')}</title>
 ${css}<style>${forPrint ? EXPORT_CSS + PRINT_CSS : EXPORT_CSS + DARK_CSS}</style>
 </head>
@@ -80,9 +81,9 @@ ${host.innerHTML}
 export async function exportNoteHtml(noteId: string | null = useStore.getState().selectedNoteId): Promise<void> {
   const s = useStore.getState()
   const note = noteId ? s.notes[noteId] : undefined
-  if (!note || !window.nibmark) return
+  if (!note || !window.inknote) return
   const html = await noteToHtml(note.title, note.body)
-  const path = await window.nibmark.exporter.html(note.title || 'Untitled', html)
+  const path = await window.inknote.exporter.html(note.title || 'Untitled', html)
   if (path) s.showNotice(`Exported “${note.title || 'Untitled'}” as HTML.`)
 }
 
@@ -90,10 +91,10 @@ export async function exportNoteHtml(noteId: string | null = useStore.getState()
 export async function exportNotePdf(noteId: string | null = useStore.getState().selectedNoteId): Promise<void> {
   const s = useStore.getState()
   const note = noteId ? s.notes[noteId] : undefined
-  if (!note || !window.nibmark) return
+  if (!note || !window.inknote) return
   const html = await noteToHtml(note.title, note.body, true)
   try {
-    const path = await window.nibmark.exporter.pdf(note.title || 'Untitled', html)
+    const path = await window.inknote.exporter.pdf(note.title || 'Untitled', html)
     if (path) s.showNotice(`Exported “${note.title || 'Untitled'}” as PDF.`)
   } catch {
     s.showNotice('Could not export the note as PDF.', 'error')

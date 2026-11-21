@@ -18,13 +18,13 @@ function findBinary() {
   const arg = process.argv[2]
   if (arg) return resolve(arg)
   const candidates = [
-    'dist/mac-arm64/Nibmark.app/Contents/MacOS/Nibmark',
-    'dist/mac/Nibmark.app/Contents/MacOS/Nibmark',
-    'dist/mac-universal/Nibmark.app/Contents/MacOS/Nibmark',
-    'dist/linux-unpacked/nibmark',
-    'dist/linux-arm64-unpacked/nibmark',
-    'dist/win-unpacked/Nibmark.exe',
-    'dist/win-arm64-unpacked/Nibmark.exe'
+    'dist/mac-arm64/Inknote.app/Contents/MacOS/Inknote',
+    'dist/mac/Inknote.app/Contents/MacOS/Inknote',
+    'dist/mac-universal/Inknote.app/Contents/MacOS/Inknote',
+    'dist/linux-unpacked/inknote',
+    'dist/linux-arm64-unpacked/inknote',
+    'dist/win-unpacked/Inknote.exe',
+    'dist/win-arm64-unpacked/Inknote.exe'
   ]
   return candidates.map((c) => resolve(c)).find(existsSync)
 }
@@ -35,12 +35,12 @@ if (!binary || !existsSync(binary)) {
   process.exit(1)
 }
 
-const profile = mkdtempSync(join(tmpdir(), 'nibmark-smoke-'))
+const profile = mkdtempSync(join(tmpdir(), 'inknote-smoke-'))
 const output = []
 const args = [`--remote-debugging-port=${PORT}`]
 if (process.platform === 'linux') args.push('--no-sandbox')
 const app = spawn(binary, args, {
-  env: { ...process.env, NIBMARK_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' },
+  env: { ...process.env, INKNOTE_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' },
   stdio: ['ignore', 'pipe', 'pipe']
 })
 app.stdout.on('data', (d) => output.push(String(d)))
@@ -99,9 +99,9 @@ await call('Runtime.enable')
 
 const checks = [
   ['window shows the app', `new Promise(r => { const t = Date.now(); (function poll() { if (document.querySelector('.app .sidebar')) return r(true); if (Date.now() - t > 15000) return r(false); setTimeout(poll, 200) })() })`],
-  ['preload bridge is available', `typeof window.nibmark?.settings?.get === 'function'`],
-  ['main process answers IPC (settings)', `window.nibmark.settings.get().then(s => typeof s.backupEnabled === 'boolean')`],
-  ['main process answers IPC (themes)', `window.nibmark.themes.list().then(t => Array.isArray(t))`],
+  ['preload bridge is available', `typeof window.inknote?.settings?.get === 'function'`],
+  ['main process answers IPC (settings)', `window.inknote.settings.get().then(s => typeof s.backupEnabled === 'boolean')`],
+  ['main process answers IPC (themes)', `window.inknote.themes.list().then(t => Array.isArray(t))`],
   ['welcome note is created', `new Promise(r => setTimeout(() => r(document.querySelectorAll('.note-item').length > 0), 800))`],
   ['editor is mounted', `!!document.querySelector('.cm-content')`]
 ]

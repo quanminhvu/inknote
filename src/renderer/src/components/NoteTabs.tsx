@@ -7,7 +7,7 @@ import { cx, isMac } from '@/lib/util'
 import { openInNewWindow } from '@/lib/windowMode'
 import { openMenu } from './ContextMenu'
 
-const TAB_MIME = 'application/x-nibmark-tab'
+const TAB_MIME = 'application/x-inknote-tab'
 
 /** Hàng tab phía trên khung ghi chú */
 export function NoteTabs(): React.JSX.Element | null {
@@ -97,7 +97,7 @@ export function NoteTabs(): React.JSX.Element | null {
                 { label: 'Close Others', onClick: () => closeOtherTabs(tab.id) },
                 { label: 'Close Tabs to the Right', onClick: () => closeTabsToRight(tab.id) },
                 { separator: true },
-                ...(window.nibmark ? [{ label: 'Open in New Window', onClick: () => openInNewWindow(tab.id) }] : [])
+                ...(window.inknote ? [{ label: 'Open in New Window', onClick: () => openInNewWindow(tab.id) }] : [])
               ])
             }
           >

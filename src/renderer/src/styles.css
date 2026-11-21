@@ -1481,11 +1481,13 @@ mark {
 }
 
 /* Link tới ghi chú khác trong preview */
+.markdown-body a[href^='inknote://note/'],
 .markdown-body a[href^='nibmark://note/'] {
   color: var(--accent);
   text-decoration-style: dotted;
   text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
+.markdown-body a[href^='inknote://note/']::before,
 .markdown-body a[href^='nibmark://note/']::before {
   content: '↗ ';
   font-size: 0.85em;
@@ -1958,6 +1960,7 @@ mark {
   border-radius: 6px;
   background: var(--code-bg);
 }
+.markdown-body a[href^='inknote://file/'],
 .markdown-body a[href^='nibmark://file/'] {
   color: var(--syn-link);
 }

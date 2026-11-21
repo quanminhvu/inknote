@@ -24,7 +24,7 @@ declare module 'markdown-it-sup' {
   export default plugin
 }
 
-interface NibmarkSettings {
+interface InknoteSettings {
   backupEnabled: boolean
   backupDir: string
   isDefaultDir: boolean
@@ -37,7 +37,7 @@ interface NibmarkSettings {
   mcpCommand: { command: string; args: string[]; env: Record<string, string> }
 }
 
-interface NibmarkImportScan {
+interface InknoteImportScan {
   label: string
   docs: {
     folders: string[]
@@ -51,22 +51,22 @@ interface NibmarkImportScan {
   skipped: { path: string; reason: string }[]
 }
 
-interface NibmarkShortcutStatus {
+interface InknoteShortcutStatus {
   accelerator: string
   registered: boolean
   error: string | null
   disabledForTesting: boolean
 }
 
-interface NibmarkBridge {
+interface InknoteBridge {
   platform: string
   settings: {
-    get(): Promise<NibmarkSettings>
-    setBackupEnabled(enabled: boolean): Promise<NibmarkSettings>
-    chooseBackupDir(): Promise<NibmarkSettings>
-    resetBackupDir(): Promise<NibmarkSettings>
-    setTray(enabled: boolean): Promise<NibmarkSettings>
-    setMcp(patch: { enabled?: boolean; allowEdits?: boolean }): Promise<NibmarkSettings>
+    get(): Promise<InknoteSettings>
+    setBackupEnabled(enabled: boolean): Promise<InknoteSettings>
+    chooseBackupDir(): Promise<InknoteSettings>
+    resetBackupDir(): Promise<InknoteSettings>
+    setTray(enabled: boolean): Promise<InknoteSettings>
+    setMcp(patch: { enabled?: boolean; allowEdits?: boolean }): Promise<InknoteSettings>
   }
   mcp: {
     /** Nhận yêu cầu của AI agent; trả về hàm hủy đăng ký */
@@ -113,8 +113,8 @@ interface NibmarkBridge {
     openUserStyles(): Promise<string | null>
   }
   shortcuts: {
-    get(kind?: 'quickNote' | 'toggleWindow'): Promise<NibmarkShortcutStatus>
-    set(accelerator: string, kind?: 'quickNote' | 'toggleWindow'): Promise<NibmarkShortcutStatus>
+    get(kind?: 'quickNote' | 'toggleWindow'): Promise<InknoteShortcutStatus>
+    set(accelerator: string, kind?: 'quickNote' | 'toggleWindow'): Promise<InknoteShortcutStatus>
   }
   ready(): void
   /** Mở thư mục dữ liệu của app; trả về thông báo lỗi hoặc null */
@@ -123,9 +123,9 @@ interface NibmarkBridge {
   openDataFolder(): Promise<string | null>
   importer: {
     /** null = người dùng hủy */
-    pick(): Promise<NibmarkImportScan | null>
+    pick(): Promise<InknoteImportScan | null>
     /** Đọc Apple Notes (macOS sẽ hỏi quyền ở lần đầu) */
-    appleNotes(): Promise<NibmarkImportScan | { error: string }>
+    appleNotes(): Promise<InknoteImportScan | { error: string }>
     /** Chọn và đọc file "My Clippings.txt" */
     kindlePick(): Promise<{ text: string } | { error: string } | null>
   }
@@ -134,7 +134,7 @@ interface NibmarkBridge {
 
 interface Window {
   /** Không có khi chạy giao diện ngoài Electron (ví dụ bản xem thử trên trình duyệt) */
-  nibmark?: NibmarkBridge
+  inknote?: InknoteBridge
 }
 
 declare module 'turndown-plugin-gfm' {

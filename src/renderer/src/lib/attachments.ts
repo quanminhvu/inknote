@@ -4,16 +4,19 @@ import { useStore } from './store'
 import type { FileDoc } from './types'
 
 // File đính kèm: lưu trong PouchDB dưới dạng document "file:<id>" có _attachments.data,
-// nên sau này đồng bộ CouchDB được luôn. Ghi chú tham chiếu bằng nibmark://file/<id>.
+// nên sau này đồng bộ CouchDB được luôn. Ghi chú tham chiếu bằng inknote://file/<id>
+// (ghi chú cũ có thể còn nibmark://file/<id>: vẫn đọc được).
 
-export const FILE_PREFIX = 'nibmark://file/'
+export const FILE_PREFIX = 'inknote://file/'
+const LEGACY_FILE_PREFIX = 'nibmark://file/'
 export const MAX_FILE_BYTES = 100 * 1024 * 1024
 
 export const fileUrl = (fileId: string): string => FILE_PREFIX + fileId.slice('file:'.length)
 
 export function fileIdFromUrl(url: string): string | null {
-  if (!url.startsWith(FILE_PREFIX)) return null
-  const hex = url.slice(FILE_PREFIX.length).replace(/[/?#].*$/, '')
+  const prefix = url.startsWith(FILE_PREFIX) ? FILE_PREFIX : url.startsWith(LEGACY_FILE_PREFIX) ? LEGACY_FILE_PREFIX : null
+  if (!prefix) return null
+  const hex = url.slice(prefix.length).replace(/[/?#].*$/, '')
   return /^[A-Za-z0-9_-]{1,64}$/.test(hex) ? `file:${hex}` : null
 }
 
@@ -70,7 +73,7 @@ export async function readFile(fileId: string): Promise<{ doc: FileDoc; blob: Bl
   }
 }
 
-// ── Hiển thị trong preview: đổi nibmark://file/… thành blob URL ──
+// ── Hiển thị trong preview: đổi inknote://file/… thành blob URL ──
 
 const MAX_URLS = 150
 const urls = new Map<string, string>() // fileId → blob URL (thứ tự = mới dùng gần nhất)
@@ -103,7 +106,7 @@ function load(id: string): void {
 
 /** Thay link file trong HTML đã làm sạch bằng blob URL (nạp dần những file chưa có). */
 export function resolveFileUrls(html: string): string {
-  return html.replace(/(<img\b[^>]*?\bsrc=")nibmark:\/\/file\/([A-Za-z0-9_-]{1,64})"/g, (all, head: string, hex: string) => {
+  return html.replace(/(<img\b[^>]*?\bsrc=")(?:inknote|nibmark):\/\/file\/([A-Za-z0-9_-]{1,64})"/g, (all, head: string, hex: string) => {
     const id = `file:${hex}`
     const url = urls.get(id)
     if (url) {
@@ -123,9 +126,9 @@ export async function openAttachment(fileId: string): Promise<void> {
     s.showNotice('That attachment no longer exists.', 'error')
     return
   }
-  if (!window.nibmark) return
+  if (!window.inknote) return
   const bytes = new Uint8Array(await res.blob.arrayBuffer())
-  const error = await window.nibmark.files.open(fileId.slice('file:'.length), res.doc.name, bytes)
+  const error = await window.inknote.files.open(fileId.slice('file:'.length), res.doc.name, bytes)
   if (error) s.showNotice(error, 'error')
 }
 

@@ -115,7 +115,7 @@ export function mergeClippings(clips: Clipping[]): KindleReport {
 }
 
 export async function runKindleImport(): Promise<KindleReport | null> {
-  const bridge = window.nibmark
+  const bridge = window.inknote
   const s = useStore.getState()
   if (!bridge) return null
   const res = await bridge.importer.kindlePick()

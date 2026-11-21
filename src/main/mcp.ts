@@ -22,10 +22,10 @@ const CALL_TIMEOUT_MS = 20_000
 /** Đường dẫn socket; cầu nối mcp.js tính y hệt từ thư mục dữ liệu */
 export function mcpSocketPath(userData: string): string {
   const hash = createHash('sha1').update(userData).digest('hex').slice(0, 12)
-  if (process.platform === 'win32') return `\\\\.\\pipe\\nibmark-${hash}`
+  if (process.platform === 'win32') return `\\\\.\\pipe\\inknote-${hash}`
   // Socket Unix giới hạn ~104 byte: thư mục dữ liệu quá dài thì dùng thư mục tạm của người dùng
   const inData = join(userData, 'mcp.sock')
-  return Buffer.byteLength(inData) < 100 ? inData : join(tmpdir(), `nibmark-${hash}.sock`)
+  return Buffer.byteLength(inData) < 100 ? inData : join(tmpdir(), `inknote-${hash}.sock`)
 }
 
 let server: Server | null = null
@@ -58,7 +58,7 @@ async function readyWindow(getWindow: () => BrowserWindow): Promise<WebContents>
   for (;;) {
     const win = getWindow()
     if (readyContents.has(win.webContents.id)) return win.webContents
-    if (Date.now() > deadline) throw new Error('Nibmark is still starting. Try again in a moment.')
+    if (Date.now() > deadline) throw new Error('Inknote is still starting. Try again in a moment.')
     await new Promise<void>((resolve) => {
       waiting.push(resolve)
       setTimeout(resolve, 500)
@@ -72,7 +72,7 @@ async function forward(getWindow: () => BrowserWindow, op: string, tool: unknown
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       pending.delete(id)
-      reject(new Error('Nibmark did not answer in time.'))
+      reject(new Error('Inknote did not answer in time.'))
     }, CALL_TIMEOUT_MS)
     pending.set(id, { resolve, reject, timer })
     contents.send('mcp:call', id, op, tool, args ?? {}, getSettings().mcpAllowEdits, typeof client === 'string' ? client.slice(0, 80) : '')
@@ -109,7 +109,7 @@ function serve(socket: Socket, getWindow: () => BrowserWindow): void {
         continue
       }
       if (!getSettings().mcpEnabled) {
-        reply({ id: req.id ?? null, ok: false, error: 'MCP is turned off. Turn it on in Nibmark → Preferences → AI Agents (MCP).' })
+        reply({ id: req.id ?? null, ok: false, error: 'MCP is turned off. Turn it on in Inknote → Preferences → AI Agents (MCP).' })
         continue
       }
       forward(getWindow, op, req.tool, req.args, req.client).then(
@@ -164,6 +164,6 @@ export function stopMcp(): void {
 export function mcpCommand(): { command: string; args: string[]; env: Record<string, string> } {
   const script = app.isPackaged ? join(process.resourcesPath, 'mcp.js') : join(app.getAppPath(), 'resources', 'mcp.js')
   const env: Record<string, string> = { ELECTRON_RUN_AS_NODE: '1' }
-  if (process.env['NIBMARK_USER_DATA']) env['NIBMARK_USER_DATA'] = app.getPath('userData')
+  if (process.env['INKNOTE_USER_DATA']) env['INKNOTE_USER_DATA'] = app.getPath('userData')
   return { command: process.execPath, args: [script], env }
 }

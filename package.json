@@ -1,6 +1,6 @@
 {
-  "name": "nibmark",
-  "productName": "Nibmark",
+  "name": "inknote",
+  "productName": "Inknote",
   "version": "1.0.2",
   "description": "Markdown note-taking app for developers",
   "author": "Vu Minh Quan",
@@ -76,8 +76,8 @@
     "zustand": "^5.1.0"
   },
   "build": {
-    "appId": "dev.nibmark.app",
-    "productName": "Nibmark",
+    "appId": "dev.inknote.app",
+    "productName": "Inknote",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -109,7 +109,7 @@
       "identity": "-",
       "hardenedRuntime": false,
       "extendInfo": {
-        "NSAppleEventsUsageDescription": "Nibmark reads your notes from Apple Notes only when you choose File → Import from Apple Notes."
+        "NSAppleEventsUsageDescription": "Inknote reads your notes from Apple Notes only when you choose File → Import from Apple Notes."
       }
     },
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",

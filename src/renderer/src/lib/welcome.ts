@@ -1,8 +1,8 @@
-export const WELCOME_TITLE = 'Welcome to Nibmark'
+export const WELCOME_TITLE = 'Welcome to Inknote'
 
-export const WELCOME_BODY = `# Welcome to Nibmark
+export const WELCOME_BODY = `# Welcome to Inknote
 
-Nibmark is a Markdown notebook for developers. Everything is stored **locally** on this machine.
+Inknote is a Markdown notebook for developers. Everything is stored **locally** on this machine.
 
 ## The basics
 
@@ -21,7 +21,7 @@ Nibmark is a Markdown notebook for developers. Everything is stored **locally** 
 
 ## Tasks
 
-- [x] Install Nibmark
+- [x] Install Inknote
 - [ ] Write the first note
 - [ ] Click a checkbox in the preview to toggle it
 
@@ -39,5 +39,5 @@ Type in the search box above the note list. Qualifiers narrow things down:
 
 \`book:inbox\` \`tag:idea\` \`status:active\` \`title:welcome\` \`body:markdown\` \`"exact phrase"\` \`-exclude\`
 
-> Tip: set a note's status to *Active*, *On Hold*, *Completed* or *Dropped* to use Nibmark as a light task board.
+> Tip: set a note's status to *Active*, *On Hold*, *Completed* or *Dropped* to use Inknote as a light task board.
 `

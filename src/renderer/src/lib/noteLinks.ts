@@ -6,15 +6,21 @@ import { useStore } from './store'
 import type { Note } from './types'
 import { relativeTime } from './util'
 
-// Liên kết nội bộ dạng [Tiêu đề](nibmark://note/<hex>). Id trong DB là "note:<hex>",
+// Liên kết nội bộ dạng [Tiêu đề](inknote://note/<hex>). Id trong DB là "note:<hex>",
 // nhưng dấu ":" không hợp trong URL nên chỉ giữ phần sau.
-export const NOTE_LINK_PREFIX = 'nibmark://note/'
+// Ghi chú cũ (từ thời app tên Nibmark) có thể còn link nibmark://note/…: vẫn đọc được.
+export const NOTE_LINK_PREFIX = 'inknote://note/'
+const LEGACY_NOTE_LINK_PREFIX = 'nibmark://note/'
+
+/** Link tới ghi chú khác (kể cả dạng cũ nibmark://) */
+export const isNoteLink = (url: string): boolean => url.startsWith(NOTE_LINK_PREFIX) || url.startsWith(LEGACY_NOTE_LINK_PREFIX)
 
 export const noteLinkUrl = (noteId: string): string => NOTE_LINK_PREFIX + noteId.slice('note:'.length)
 
 export function noteIdFromUrl(url: string): string | null {
-  if (!url.startsWith(NOTE_LINK_PREFIX)) return null
-  const hex = url.slice(NOTE_LINK_PREFIX.length).replace(/[/?#].*$/, '')
+  const prefix = url.startsWith(NOTE_LINK_PREFIX) ? NOTE_LINK_PREFIX : url.startsWith(LEGACY_NOTE_LINK_PREFIX) ? LEGACY_NOTE_LINK_PREFIX : null
+  if (!prefix) return null
+  const hex = url.slice(prefix.length).replace(/[/?#].*$/, '')
   return /^[A-Za-z0-9_-]{1,64}$/.test(hex) ? `note:${hex}` : null
 }
 
