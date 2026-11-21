@@ -43,7 +43,7 @@ jobs:
         run: xvfb-run --auto-servernum npm run test:smoke
       - uses: actions/upload-artifact@v7
         with:
-          name: nibmark-${{ runner.os }}
+          name: inknote-${{ runner.os }}
           if-no-files-found: error
           path: |
             dist/*.dmg
@@ -76,5 +76,5 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" artifacts/* \
             --draft \
-            --title "Nibmark ${GITHUB_REF_NAME#v}" \
+            --title "Inknote ${GITHUB_REF_NAME#v}" \
             --notes-file notes.md

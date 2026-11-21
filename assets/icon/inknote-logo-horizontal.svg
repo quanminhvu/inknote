@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="420" viewBox="0 0 1500 420" role="img" aria-label="Inknote">
+<rect width="1500" height="420" fill="#FFF6EE"/>
+<g transform="translate(80 50) scale(.575) translate(-250 -226)"><path d="M512 318L512 626L272 470Z" fill="#E8634B" stroke="#E8634B" stroke-width="36" stroke-linejoin="round"/><path d="M512 318L752 470L512 626Z" fill="#C84A35" stroke="#C84A35" stroke-width="36" stroke-linejoin="round"/><path d="M512 626L440 556L512 758Z" fill="#D95842" stroke="#D95842" stroke-width="36" stroke-linejoin="round"/><path d="M512 626L584 556L512 758Z" fill="#AD3B2B" stroke="#AD3B2B" stroke-width="36" stroke-linejoin="round"/><path d="M512 318L494 248L530 248Z" fill="#3A3532" stroke="#3A3532" stroke-width="18" stroke-linejoin="round"/></g>
+<text x="440" y="285" font-family="Arial Black, Helvetica Neue, Arial, sans-serif" font-size="210" font-weight="900" letter-spacing="-9" fill="#3A3532">Inknote</text>
+</svg>

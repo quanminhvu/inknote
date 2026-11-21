@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { linkedNoteIds } from './markdown'
 import type { Note } from './types'
 
-// Đồ thị liên kết: mỗi ghi chú là một nút, mỗi link [Tiêu đề](nibmark://note/…) là một cạnh.
+// Đồ thị liên kết: mỗi ghi chú là một nút, mỗi link [Tiêu đề](inknote://note/…) là một cạnh.
 // Tự bố trí bằng mô phỏng lực đơn giản (đẩy nhau, lò xo theo cạnh, hút nhẹ về giữa).
 
 export interface GraphNode {

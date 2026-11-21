@@ -18,6 +18,8 @@ interface Prefs {
   lastBookId: string | null
   /** Ẩn cột sidebar để có thêm chỗ */
   sidebarHidden: boolean
+  /** Notebook đang mở như một không gian riêng (sidebar chỉ hiện nội dung của nó), null = toàn bộ */
+  workspace: string | null
 }
 
 const defaultPrefs: Prefs = {
@@ -27,7 +29,8 @@ const defaultPrefs: Prefs = {
   selection: { kind: 'all' },
   selectedNoteId: null,
   lastBookId: null,
-  sidebarHidden: false
+  sidebarHidden: false,
+  workspace: null
 }
 
 function readPrefs(): Prefs {
@@ -39,6 +42,9 @@ function readPrefs(): Prefs {
 }
 
 const newId = (prefix: string): string => `${prefix}:${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`
+
+/** Id cho một ghi chú sắp tạo (Quick Note: chỉ lưu khi người dùng thật sự viết gì đó) */
+export const newNoteId = (): string => newId('note')
 
 function persist(doc: AnyDoc): void {
   putDoc(doc).catch((err) => console.error('Failed to save', doc._id, err))
@@ -88,10 +94,19 @@ export interface State extends Prefs {
   openNote: (id: string) => boolean
   showNotice: (text: string, tone?: 'info' | 'error') => void
   toggleBookCollapsed: (id: string) => void
+  /** Mở notebook như một không gian riêng (null = quay về toàn bộ) */
+  setWorkspace: (id: string | null) => void
 
   createNote: () => string
   /** Tạo ghi chú mà không chuyển sang nó (dùng cho liên kết [[ ]]) */
   createNoteSilently: (title: string) => string
+  /** Notebook cho ghi chú mới tạo ở nơi khác (Quick Note): notebook của ghi chú đang mở, hoặc mặc định */
+  bookForNewNote: () => string
+  /**
+   * Ghi chú nháp chỉ nằm trong bộ nhớ, chưa lưu: lần sửa đầu tiên (gõ chữ, đổi notebook…) mới lưu nó.
+   * Dùng cho Quick Note, để mở rồi đóng ngay mà không viết gì thì không sinh ghi chú rỗng.
+   */
+  addDraftNote: (id: string, bookId: string | null) => void
   updateNote: (id: string, patch: Partial<Omit<Note, '_id' | 'type'>>) => void
   duplicateNote: (id: string) => void
   trashNote: (id: string) => void
@@ -262,6 +277,18 @@ export const useStore = create<State>((set, get) => {
         set({ selectedNoteId: note._id, viewMode: 'split' })
       }
 
+      // App đổi tên Nibmark → Inknote: đổi link nibmark://note|file/… cũ trong ghi chú và template
+      // sang inknote://… (một lần; giữ nguyên thời gian sửa). Link cũ vẫn đọc được nếu còn sót.
+      if (!noteWindowId) {
+        const legacy = /nibmark:\/\/(note|file)\//g
+        for (const note of Object.values(get().notes)) {
+          if (note.body.includes('nibmark://')) putNote({ ...note, body: note.body.replace(legacy, 'inknote://$1/') })
+        }
+        for (const t of Object.values(get().templates)) {
+          if (t.body.includes('nibmark://')) putTemplate({ ...t, body: t.body.replace(legacy, 'inknote://$1/') })
+        }
+      }
+
       // Lựa chọn đã lưu có thể trỏ tới thứ không còn tồn tại
       const s = get()
       if (
@@ -270,6 +297,7 @@ export const useStore = create<State>((set, get) => {
       ) {
         set({ selection: { kind: 'all' } })
       }
+      if (s.workspace && !s.books[s.workspace]) set({ workspace: null })
 
       watchChanges(applyRemote)
       set({ ready: true })
@@ -280,6 +308,13 @@ export const useStore = create<State>((set, get) => {
     },
 
     select: (selection) => set({ selection, query: '', multi: [] }),
+    setWorkspace: (id) =>
+      set((s) => {
+        const workspace = id && s.books[id] ? id : null
+        // Rời không gian: chọn lại chính notebook vừa rời, để danh sách không nhảy sang chỗ khác
+        const selection: Selection = workspace ? { kind: 'all' } : s.workspace && s.books[s.workspace] ? { kind: 'book', id: s.workspace } : { kind: 'all' }
+        return { workspace, selection, query: '', multi: [] }
+      }),
     selectNote: (id) => set({ selectedNoteId: id }),
     setQuery: (query) => set({ query, multi: [] }),
     setSort: (sort) => set({ sort }),
@@ -299,7 +334,13 @@ export const useStore = create<State>((set, get) => {
       }
       // Giữ nguyên sidebar nếu ghi chú vẫn hiện trong đó; nếu không thì về All Notes
       const visible = visibleNotes({ ...s, query: '' }).some((n) => n._id === id)
-      set({ selection: visible && s.selection.kind !== 'trash' ? s.selection : { kind: 'all' }, query: '', selectedNoteId: id })
+      if (visible && s.selection.kind !== 'trash') {
+        set({ query: '', selectedNoteId: id })
+        return true
+      }
+      // Về All Notes; nếu ghi chú nằm ngoài không gian đang mở thì rời không gian
+      const inWorkspace = visibleNotes({ ...s, selection: { kind: 'all' }, query: '' }).some((n) => n._id === id)
+      set({ selection: { kind: 'all' }, workspace: inWorkspace ? s.workspace : null, query: '', selectedNoteId: id })
       return true
     },
     showNotice: (text, tone = 'info') => set({ notice: { text, tone, id: Date.now() } }),
@@ -312,8 +353,8 @@ export const useStore = create<State>((set, get) => {
       }),
 
     createNote: () => {
-      const { selection } = get()
-      const bookId = selection.kind === 'book' ? selection.id : ensureDefaultBook()
+      const { selection, workspace, books } = get()
+      const bookId = selection.kind === 'book' ? selection.id : workspace && books[workspace] ? workspace : ensureDefaultBook()
       const now = Date.now()
       const note: Note = {
         _id: newId('note'),
@@ -337,6 +378,30 @@ export const useStore = create<State>((set, get) => {
         viewMode: s.viewMode === 'preview' ? 'edit' : s.viewMode
       }))
       return note._id
+    },
+
+    bookForNewNote: () => {
+      const current = get().selectedNoteId ? get().notes[get().selectedNoteId!] : undefined
+      return current && get().books[current.bookId] ? current.bookId : ensureDefaultBook()
+    },
+
+    addDraftNote: (id, bookId) => {
+      if (get().notes[id]) return
+      const now = Date.now()
+      const note: Note = {
+        _id: id,
+        type: 'note',
+        title: '',
+        body: '',
+        bookId: bookId && get().books[bookId] ? bookId : ensureDefaultBook(),
+        tags: [],
+        status: 'none',
+        pinned: false,
+        trashed: false,
+        createdAt: now,
+        updatedAt: now
+      }
+      set((s) => ({ notes: { ...s.notes, [id]: note } }))
     },
 
     createNoteSilently: (title) => {
@@ -488,6 +553,7 @@ export const useStore = create<State>((set, get) => {
         return {
           books,
           selection: selectionGone ? { kind: 'all' } : s.selection,
+          workspace: s.workspace && ids.has(s.workspace) ? null : s.workspace,
           lastBookId: s.lastBookId && ids.has(s.lastBookId) ? null : s.lastBookId
         }
       })
@@ -677,7 +743,8 @@ useStore.subscribe((s) => {
     selection: s.selection,
     selectedNoteId: s.selectedNoteId,
     lastBookId: s.lastBookId,
-    sidebarHidden: s.sidebarHidden
+    sidebarHidden: s.sidebarHidden,
+    workspace: s.workspace
   }
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))

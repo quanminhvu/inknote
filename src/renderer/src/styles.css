@@ -1481,11 +1481,13 @@ mark {
 }
 
 /* Link tới ghi chú khác trong preview */
+.markdown-body a[href^='inknote://note/'],
 .markdown-body a[href^='nibmark://note/'] {
   color: var(--accent);
   text-decoration-style: dotted;
   text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
+.markdown-body a[href^='inknote://note/']::before,
 .markdown-body a[href^='nibmark://note/']::before {
   content: '↗ ';
   font-size: 0.85em;
@@ -1958,6 +1960,7 @@ mark {
   border-radius: 6px;
   background: var(--code-bg);
 }
+.markdown-body a[href^='inknote://file/'],
 .markdown-body a[href^='nibmark://file/'] {
   color: var(--syn-link);
 }
@@ -4637,4 +4640,487 @@ html.resizing-panes, html.resizing-panes * {
   white-space: pre-wrap;
   word-break: break-all;
   user-select: text;
+}
+
+/* ── Hạn chót của task (@2026-11-20) ── */
+.cm-due {
+  border-radius: 4px;
+  padding: 0 3px;
+  font-weight: 550;
+}
+.cm-due-overdue { color: #d93f3f; background: rgba(217, 63, 63, 0.12); }
+.cm-due-today { color: #c26a00; background: rgba(240, 140, 26, 0.16); }
+.cm-due-soon { color: var(--accent); background: var(--accent-soft); }
+.cm-due-later { color: var(--ink-3); background: var(--hover); }
+.cm-due-done { color: var(--ink-3); background: none; text-decoration: line-through; font-weight: 400; }
+.due {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.due-overdue { color: #fff; background: #e0484e; }
+.due-today { color: #fff; background: #f08c1a; }
+.due-soon { color: var(--accent); background: var(--accent-soft); }
+.due-later { color: var(--ink-2); background: var(--hover); }
+.due-done { color: var(--ink-3); background: var(--hover); text-decoration: line-through; font-weight: 500; }
+.pal-item .due { flex: none; font-size: 11px; margin: 0 6px 0 0; }
+.side-count.due-count { color: #c26a00; font-weight: 600; }
+.side-count.due-count.overdue { color: #fff; background: #e0484e; border-radius: 999px; padding: 0 6px; min-width: 18px; text-align: center; }
+
+/* ── Giao diện trong mờ, chữ đậm và dịu mắt hơn ──
+   - chữ: để macOS tự làm mịn (đậm, rõ hơn kiểu "antialiased" mảnh), màu chữ pha độ trong
+   - macOS: cả ba cột đều trong mờ, sidebar gần như trong suốt để thấy hình nền phía sau */
+body {
+  -webkit-font-smoothing: auto;
+}
+.app {
+  --ink-soft: color-mix(in srgb, var(--ink) 86%, transparent);
+  --ink-dim: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+html.vibrant .sidebar {
+  background: color-mix(in srgb, var(--paper) 12%, transparent);
+}
+html.vibrant .notelist {
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+html.vibrant .notepane,
+html.vibrant .app.note-window,
+html.vibrant .app.note-window .notepane,
+html.vibrant .app.distraction-free {
+  background: color-mix(in srgb, var(--surface-2) 74%, transparent);
+}
+html.vibrant .mermaid-block {
+  background: transparent;
+}
+.side-row {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+.side-heading {
+  color: var(--ink-dim);
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-weight: 650;
+}
+
+/* Danh sách ghi chú: dòng phẳng tràn hết bề ngang, dòng đang chọn tô xám xanh */
+.notelist-header {
+  border-bottom: 0;
+}
+.notelist-items {
+  padding: 0 0 12px;
+}
+.note-item {
+  border-radius: 0;
+  padding: 10px 16px 11px;
+}
+.note-item::after {
+  left: 16px;
+  right: 16px;
+}
+.note-item.selected {
+  background: color-mix(in srgb, #8796ad 38%, transparent);
+}
+.note-item-title {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.note-item-snippet {
+  color: color-mix(in srgb, var(--ink) 78%, transparent);
+}
+
+/* Icon nét mảnh, nhỏ gọn, màu dịu (kiểu icon line mảnh); icon trạng thái tô đặc giữ nét đậm */
+svg.lucide {
+  stroke-width: 1.6;
+}
+.status-icon svg.lucide {
+  stroke-width: 2.4;
+}
+.side-icon {
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+}
+.side-row.selected .side-icon {
+  color: var(--ink-soft);
+}
+.icon-btn {
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+/* Tag: chấm tròn tô đặc */
+.tag-dot.ring {
+  width: 10px;
+  height: 10px;
+  background: var(--tag);
+  border: 0;
+}
+
+/* ── Notebook mở như không gian riêng: đường dẫn notebook cha + tên notebook ── */
+.workspace-header {
+  flex: none;
+  margin-top: -6px;
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.workspace-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-height: 28px;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+}
+.workspace-crumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.workspace-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 150px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 6px;
+  color: inherit;
+  font-size: 13.5px;
+}
+.workspace-crumb span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-crumb:hover {
+  background: var(--hover);
+  color: var(--ink-soft);
+}
+.workspace-sep {
+  flex: none;
+  opacity: 0.55;
+}
+.workspace-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 6px 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.workspace-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-header + .sidebar-scroll {
+  padding-top: 8px;
+}
+
+/* ── Quick Note: cửa sổ nhỏ nổi (kiểu Apple Notes) — chỉ giữ tiêu đề, notebook/status/tag và nội dung ── */
+.app.quick-note .notepane-header > :not(.flex-1):not(:last-child),
+.app.quick-note .template-hint,
+.app.quick-note .note-updated,
+.app.quick-note .cm-gutters {
+  display: none;
+}
+.app.quick-note .notepane-header {
+  min-height: 38px;
+}
+.app.quick-note .note-title-row {
+  padding-top: 0;
+}
+.app.quick-note .editor-host .cm-content {
+  padding-left: 26px;
+}
+.app.quick-note .note-meta > :not(.nbp):not(.stp):not(.tag-input) {
+  display: none;
+}
+
+/* ── Preferences: cửa sổ cài đặt kiểu macOS — thanh bên chia mục, nội dung là các nhóm thẻ ── */
+.settings {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  width: min(840px, calc(100vw - 48px));
+  height: min(620px, calc(100vh - 64px));
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 18px 10px;
+  background: color-mix(in srgb, var(--paper) 70%, var(--surface-2));
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+.settings-nav-title {
+  padding: 2px 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-dim, var(--ink-3));
+}
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-soft, var(--ink));
+  text-align: left;
+}
+.settings-nav-item svg {
+  flex: none;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.settings-nav-item:hover {
+  background: var(--hover);
+}
+.settings-nav-item.selected {
+  background: var(--selection-row);
+  font-weight: 600;
+  color: var(--ink);
+}
+.settings-nav-item.selected svg {
+  color: var(--accent);
+}
+.settings-nav-item:focus-visible,
+.switch:focus-visible,
+.shortcut-key:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.settings-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  height: 58px;
+  padding: 0 14px 0 32px;
+}
+.settings-header h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 2px 32px 32px;
+}
+.settings-group-title {
+  margin: 0 0 8px 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  overflow: hidden;
+}
+.settings-group-note {
+  margin: 8px 4px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  min-height: 48px;
+  padding: 9px 14px;
+}
+.settings-row + .settings-row,
+.settings-snippet + .settings-row,
+.settings-themes + .settings-row {
+  border-top: 1px solid var(--line);
+}
+.settings-row.disabled .settings-row-text {
+  opacity: 0.45;
+}
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.settings-row-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-soft, var(--ink));
+}
+.settings-row-detail {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.settings-row-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  margin-left: auto;
+}
+.settings-row.stack .settings-row-text {
+  flex-basis: 100%;
+}
+.settings-row.stack .settings-row-control {
+  margin-left: 0;
+}
+.settings-path {
+  font: 11.5px/1.5 var(--font-mono);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.settings-error {
+  color: var(--status-dropped);
+}
+.settings-select {
+  height: 28px;
+  max-width: 260px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.settings-themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 14px 12px;
+  padding: 16px;
+}
+.settings-themes .theme-grid {
+  margin: 0;
+}
+.settings-snippet {
+  margin: 0 14px 14px;
+  padding: 10px 12px;
+  max-height: 150px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--code-bg);
+  font: 11.5px/1.55 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.settings-card .pref-templates {
+  margin: 0;
+  padding: 4px 14px;
+}
+.settings .btn {
+  height: 28px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Công tắc bật/tắt */
+.switch {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 21px;
+  padding: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  transition: background 0.16s ease;
+}
+.switch.on {
+  background: var(--accent);
+}
+.switch:disabled {
+  opacity: 0.4;
+}
+.switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.16s ease;
+}
+.switch.on .switch-knob {
+  transform: translateX(15px);
+}
+
+/* Ô phím tắt: bấm vào rồi nhấn tổ hợp phím mới */
+.shortcut-key {
+  min-width: 96px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-2);
+  font: 600 13px/1 var(--font-ui);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.shortcut-key.off {
+  color: var(--ink-3);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.shortcut-key.recording {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch-knob {
+    transition: none;
+  }
+}
+.settings-card .pref-templates li {
+  min-height: 46px;
+  padding: 7px 0;
+}
+.settings-card .pref-templates li + li {
+  border-top: 1px solid var(--line);
 }

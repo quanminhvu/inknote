@@ -17,12 +17,12 @@ if (!binary || !existsSync(binary)) {
 }
 
 // Always use a disposable profile; never read or mutate the installed app's data.
-const profile = mkdtempSync(join(tmpdir(), 'nibmark-smoke-'))
+const profile = mkdtempSync(join(tmpdir(), 'inknote-smoke-'))
 const output = []
 const args = [process.cwd(), `--remote-debugging-port=${PORT}`]
 if (process.platform === 'linux') args.push('--no-sandbox')
 const app = spawn(binary, args, {
-  env: { ...process.env, NIBMARK_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' },
+  env: { ...process.env, INKNOTE_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' },
   stdio: ['ignore', 'pipe', 'pipe']
 })
 app.stdout.on('data', (d) => output.push(String(d)))
@@ -93,9 +93,9 @@ await call('Emulation.setFocusEmulationEnabled',{enabled:true})
 
 const checks = [
   ['window shows the app', `new Promise(r => { const t = Date.now(); (function poll() { if (document.querySelector('.app .sidebar')) return r(true); if (Date.now() - t > 15000) return r(false); setTimeout(poll, 200) })() })`],
-  ['preload bridge is available', `typeof window.nibmark?.settings?.get === 'function'`],
-  ['main process answers IPC (settings)', `window.nibmark.settings.get().then(s => typeof s.backupEnabled === 'boolean')`],
-  ['main process answers IPC (themes)', `window.nibmark.themes.list().then(t => Array.isArray(t))`],
+  ['preload bridge is available', `typeof window.inknote?.settings?.get === 'function'`],
+  ['main process answers IPC (settings)', `window.inknote.settings.get().then(s => typeof s.backupEnabled === 'boolean')`],
+  ['main process answers IPC (themes)', `window.inknote.themes.list().then(t => Array.isArray(t))`],
   ['welcome note is created', `new Promise(r => setTimeout(() => r(document.querySelectorAll('.note-item').length > 0), 800))`],
   ['editor is mounted', `!!document.querySelector('.cm-content')`]
 ]
@@ -169,7 +169,7 @@ await evaluate(`Array.from(document.querySelectorAll('.note-item-name')).find(e=
 await check('backlinks list source note', `document.querySelector('.backlinks-list').textContent.includes('Source note') && document.querySelector('.backlinks-count').textContent==='1'`)
 await evaluate(`document.querySelector('.backlinks-list button').click()`);await sleep(200)
 await check('backlink opens source', `document.querySelector('.note-title').value==='Source note'`)
-const href = await evaluate(`document.querySelector('.cm-content').textContent.match(/nibmark:\\/\\/note\\/[A-Za-z0-9_-]+/)[0]`)
+const href = await evaluate(`document.querySelector('.cm-content').textContent.match(/inknote:\\/\\/note\\/[A-Za-z0-9_-]+/)[0]`)
 await newNote('Code only','```markdown\n[ignored]('+href+')\n```\n\n`[ignored]('+href+')`\n\n<!-- <a href="'+href+'">ignored</a> -->')
 await evaluate(`Array.from(document.querySelectorAll('.note-item-name')).find(e=>e.textContent==='Target note').click()`);await sleep(200)
 await check('backlinks ignore code and commented links', `document.querySelector('.backlinks-count').textContent==='1'`)

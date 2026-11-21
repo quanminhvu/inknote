@@ -3,9 +3,9 @@ import { getSettings, updateSettings } from './settings'
 import type { Settings } from './settings'
 
 // Phím tắt toàn cục:
-// - "Quick Note": bấm ở bất cứ đâu để mở Nibmark với một ghi chú mới, kể cả khi app
+// - "Quick Note": bấm ở bất cứ đâu để mở Inknote với một ghi chú mới, kể cả khi app
 //   đang chạy nền và không còn cửa sổ nào.
-// - "Show/Hide": đưa Nibmark lên trước, hoặc ẩn đi nếu đang ở trước (mặc định tắt).
+// - "Show/Hide": đưa Inknote lên trước, hoặc ẩn đi nếu đang ở trước (mặc định tắt).
 
 export const DEFAULT_QUICK_NOTE = 'CommandOrControl+Alt+N'
 
@@ -16,7 +16,7 @@ export interface ShortcutStatus {
   accelerator: string
   registered: boolean
   error: string | null
-  /** Bản thử nghiệm (NIBMARK_USER_DATA) không đăng ký phím tắt toàn cục */
+  /** Bản thử nghiệm (INKNOTE_USER_DATA) không đăng ký phím tắt toàn cục */
   disabledForTesting: boolean
 }
 
@@ -31,7 +31,7 @@ const readyContents = new Set<number>()
 const pending = new Map<number, string[]>()
 
 // Một hồ sơ thử nghiệm không được tranh phím tắt với app thật đang chạy
-const testing = !!process.env['NIBMARK_USER_DATA'] && process.env['NIBMARK_ALLOW_GLOBAL_SHORTCUT'] !== '1'
+const testing = !!process.env['INKNOTE_USER_DATA'] && process.env['INKNOTE_ALLOW_GLOBAL_SHORTCUT'] !== '1'
 
 /** Gửi lệnh cho renderer, chờ tới khi renderer báo sẵn sàng nếu cửa sổ vừa được mở */
 export function sendWhenReady(win: BrowserWindow, command: string): void {
@@ -47,7 +47,10 @@ function bringToFront(win: BrowserWindow): void {
   win.focus()
 }
 
-export function registerShortcuts(getOrCreateWindow: () => BrowserWindow): { quickNote: () => void; toggleWindow: () => void } {
+export function registerShortcuts(
+  getOrCreateWindow: () => BrowserWindow,
+  getOrCreateHiddenWindow: () => BrowserWindow = getOrCreateWindow
+): { quickNote: () => void; toggleWindow: () => void } {
   ipcMain.on('renderer:ready', (event) => {
     const id = event.sender.id
     readyContents.add(id)
@@ -56,10 +59,9 @@ export function registerShortcuts(getOrCreateWindow: () => BrowserWindow): { qui
     pending.delete(id)
   })
 
+  // Cửa sổ chính (có thể đang ẩn, hoặc được tạo ẩn) mở cửa sổ Quick Note nhỏ; nó không tự hiện lên
   const quickNote = (): void => {
-    const win = getOrCreateWindow()
-    bringToFront(win)
-    sendWhenReady(win, 'quick-note')
+    sendWhenReady(getOrCreateHiddenWindow(), 'quick-note')
   }
 
   const toggleWindow = (): void => {
@@ -72,7 +74,7 @@ export function registerShortcuts(getOrCreateWindow: () => BrowserWindow): { qui
   }
 
   // Hồ sơ thử nghiệm: cho phép kịch bản kiểm thử gọi thẳng các hành động
-  if (testing) Object.assign(globalThis, { __nibmarkQuickNote: quickNote, __nibmarkToggleWindow: toggleWindow })
+  if (testing) Object.assign(globalThis, { __inknoteQuickNote: quickNote, __inknoteToggleWindow: toggleWindow })
 
   const handlers: Record<ShortcutKind, () => void> = { quickNote, toggleWindow }
 
@@ -84,7 +86,7 @@ export function registerShortcuts(getOrCreateWindow: () => BrowserWindow): { qui
     if (!accelerator || testing) return true
     const other = kind === 'quickNote' ? current.toggleWindow : current.quickNote
     if (other === accelerator) {
-      lastError[kind] = 'This shortcut is already used by another Nibmark shortcut.'
+      lastError[kind] = 'This shortcut is already used by another Inknote shortcut.'
       return false
     }
     try {

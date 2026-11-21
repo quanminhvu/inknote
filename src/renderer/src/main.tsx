@@ -10,7 +10,7 @@ import './styles.css'
 initTheme()
 
 // macOS: cửa sổ dùng vibrancy, sidebar trong mờ
-if (window.nibmark?.platform === 'darwin') document.documentElement.classList.add('vibrant')
+if (window.inknote?.platform === 'darwin') document.documentElement.classList.add('vibrant')
 
 // Gạch ngang task đã xong trong preview theo tùy chọn editor
 const syncStrike = (on: boolean): void => void document.documentElement.classList.toggle('strike-done', on)

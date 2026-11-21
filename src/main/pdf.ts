@@ -14,7 +14,7 @@ const FOOTER = `<div style="width:100%;font:8px -apple-system,'Segoe UI',sans-se
  */
 export async function htmlToPdf(html: string): Promise<Buffer> {
   // Ghi ra file tạm: ảnh nhúng có thể làm HTML lớn hơn giới hạn của data URL
-  const dir = await mkdtemp(join(tmpdir(), 'nibmark-pdf-'))
+  const dir = await mkdtemp(join(tmpdir(), 'inknote-pdf-'))
   const file = join(dir, 'note.html')
   const win = new BrowserWindow({
     show: false,

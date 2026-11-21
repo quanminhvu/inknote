@@ -13,7 +13,7 @@ let counter = 0
 
 const themeKey = (): string => document.documentElement.dataset.themeId ?? document.documentElement.dataset.theme ?? 'paper'
 
-window.addEventListener('nibmark-theme', () => cache.clear())
+window.addEventListener('inknote-theme', () => cache.clear())
 
 function cssVar(name: string, fallback: string): string {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
@@ -81,12 +81,12 @@ export function renderMermaidIn(root: HTMLElement, isCurrent: () => boolean): vo
       let entry: { svg?: string; error?: string }
       try {
         const mermaid = await getMermaid()
-        const { svg } = await mermaid.render(`nibmark-mermaid-${++counter}`, source)
+        const { svg } = await mermaid.render(`inknote-mermaid-${++counter}`, source)
         entry = { svg }
       } catch (err) {
         entry = { error: (err as Error).message?.split('\n')[0] }
         // Mermaid có thể để lại phần tử tạm khi lỗi
-        document.querySelectorAll('[id^="dnibmark-mermaid-"]').forEach((el) => el.remove())
+        document.querySelectorAll('[id^="dinknote-mermaid-"]').forEach((el) => el.remove())
       }
       cache.set(key, entry)
       if (cache.size > 200) cache.delete(cache.keys().next().value!)

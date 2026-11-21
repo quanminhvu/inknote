@@ -35,7 +35,7 @@ export class NameAllocator {
   }
 }
 
-/** Tạo thư mục con chưa tồn tại, ví dụ "Nibmark Export 2026-11-11 2". */
+/** Tạo thư mục con chưa tồn tại, ví dụ "Inknote Export 2026-11-11 2". */
 export function freshDir(parent: string, base: string): string {
   let dir = join(parent, base)
   for (let i = 2; existsSync(dir); i++) dir = join(parent, `${base} ${i}`)

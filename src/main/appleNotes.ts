@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process'
 import type { ImportAsset, ImportDoc, ImportScan } from './importer'
 
 // Import từ Apple Notes (chỉ macOS). Đọc qua JXA (osascript): macOS sẽ hỏi người dùng
-// cho phép Nibmark điều khiển ứng dụng Notes ở lần đầu. Không đọc ghi chú có khóa
+// cho phép Inknote điều khiển ứng dụng Notes ở lần đầu. Không đọc ghi chú có khóa
 // và bỏ qua thư mục "Recently Deleted".
 
 const SCRIPT = `
@@ -99,7 +99,7 @@ export async function readAppleNotes(): Promise<ImportScan | { error: string }> 
     return {
       error:
         message === 'not-allowed'
-          ? 'Nibmark is not allowed to read Notes. Allow it in System Settings → Privacy & Security → Automation, then try again.'
+          ? 'Inknote is not allowed to read Notes. Allow it in System Settings → Privacy & Security → Automation, then try again.'
           : `Could not read Apple Notes: ${message}`
     }
   }

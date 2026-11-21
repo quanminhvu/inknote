@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Nibmark">
-<rect x="100" y="100" width="824" height="824" rx="185" fill="#252422"/>
-<g transform="translate(234 302) scale(1.39)"><defs><mask id="text-n-cut"><rect width="400" height="300" fill="white"/><path d="M80 0H145L375 300H310Z" fill="black"/></mask></defs>
-<g mask="url(#text-n-cut)" fill="#B65A46"><rect x="14" y="0" width="386" height="82" rx="15"/><rect x="50" y="109" width="350" height="82" rx="15"/><rect x="0" y="218" width="400" height="82" rx="15"/></g></g>
-</svg>

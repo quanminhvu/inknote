@@ -79,7 +79,7 @@ export function buildExport(
 
 // ── File đính kèm khi export ──
 
-const FILE_LINK = /nibmark:\/\/file\/([A-Za-z0-9_-]{1,64})/g
+const FILE_LINK = /(?:inknote|nibmark):\/\/file\/([A-Za-z0-9_-]{1,64})/g
 
 /** Các file đính kèm (phần hex của id) mà một đoạn Markdown tham chiếu tới */
 export function attachmentHexes(text: string): string[] {
@@ -96,7 +96,7 @@ export function exportName(hex: string, name: string): string {
   return `${hex.slice(0, 8)}-${clean || 'attachment'}`
 }
 
-/** Đổi nibmark://file/<hex> thành đường dẫn tương đối tới thư mục attachments/ */
+/** Đổi inknote://file/<hex> thành đường dẫn tương đối tới thư mục attachments/ */
 export function rewriteAttachmentLinks(text: string, names: Map<string, string>, prefix: string): string {
   return text.replace(FILE_LINK, (all, hex: string) => {
     const name = names.get(hex)

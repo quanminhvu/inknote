@@ -58,13 +58,13 @@ export function noteMenu(note: Note): MenuItem[] {
     { label: note.pinned ? 'Unpin from Top' : 'Pin to Top', onClick: () => a.updateNote(note._id, { pinned: !note.pinned }) },
     { label: 'Duplicate', onClick: () => a.duplicateNote(note._id) },
     ...(tabsEnabled() ? [{ label: 'Open in New Tab', onClick: () => openInTab(note._id) }] : []),
-    ...(window.nibmark ? [{ label: 'Open in New Window', onClick: () => openInNewWindow(note._id) }] : []),
+    ...(window.inknote ? [{ label: 'Open in New Window', onClick: () => openInNewWindow(note._id) }] : []),
     { label: 'Format Document', hint: isMac() ? '⌥⇧F' : 'Alt+Shift+F', onClick: () => void formatNote(note._id) },
     { label: 'Present', onClick: () => presentNote(note._id) },
     { label: 'Show in Graph', onClick: () => openGraph('local', note._id) },
     { label: 'Export as Markdown…', onClick: () => void exportNote(note._id) },
     { label: 'Export as HTML…', onClick: () => void exportNoteHtml(note._id) },
-    ...(window.nibmark ? [{ label: 'Export as PDF…', onClick: () => void exportNotePdf(note._id) }] : []),
+    ...(window.inknote ? [{ label: 'Export as PDF…', onClick: () => void exportNotePdf(note._id) }] : []),
     { label: 'Version History…', onClick: () => openHistory(note._id) },
     { label: 'Copy Link', onClick: () => copyNoteLink(note._id) },
     { label: 'Copy Note ID', onClick: () => copyId(note._id) },
@@ -90,13 +90,14 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
   const query = useStore((s) => s.query)
   const sort = useStore((s) => s.sort)
   const collapsedBooks = useStore((s) => s.collapsedBooks)
+  const workspace = useStore((s) => s.workspace)
   const selectedNoteId = useStore((s) => s.selectedNoteId)
   const { selectNote, setQuery, setSort, createNote, emptyTrash } = useStore.getState()
   const listRef = useRef<HTMLDivElement>(null)
 
   const list = useMemo(
-    () => visibleNotes({ notes, books, tags, selection, query, sort, collapsedBooks }),
-    [notes, books, tags, selection, query, sort, collapsedBooks]
+    () => visibleNotes({ notes, books, tags, selection, query, sort, collapsedBooks, workspace }),
+    [notes, books, tags, selection, query, sort, collapsedBooks, workspace]
   )
   const words = useMemo(() => highlightWords(parseQuery(query)), [query])
 
@@ -148,7 +149,9 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
 
   const heading =
     selection.kind === 'all'
-      ? 'All Notes'
+      ? workspace && books[workspace]
+        ? books[workspace].name
+        : 'All Notes'
       : selection.kind === 'trash'
         ? 'Trash'
         : selection.kind === 'book'

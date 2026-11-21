@@ -21,8 +21,8 @@ import type { AnyDoc } from './types'
 // Các thao tác liên quan tới file (export, sao lưu, khôi phục), dùng chung cho
 // menu ứng dụng, menu chuột phải và cửa sổ Preferences.
 
-const bridge = (): NibmarkBridge | null => {
-  if (window.nibmark) return window.nibmark
+const bridge = (): InknoteBridge | null => {
+  if (window.inknote) return window.inknote
   useStore.getState().showNotice('This action is only available in the desktop app.', 'error')
   return null
 }
@@ -51,7 +51,7 @@ export async function exportNotes(bookId: string | null): Promise<void> {
     s.showNotice('There are no notes to export.')
     return
   }
-  const label = bookId ? (s.books[bookId]?.name ?? 'Notebook') : 'Nibmark Export'
+  const label = bookId ? (s.books[bookId]?.name ?? 'Notebook') : 'Inknote Export'
   // Đính kèm nằm chung trong <thư mục export>/attachments; link tương đối theo độ sâu thư mục
   const { names, list } = await loadAttachments(files.map((f) => f.content))
   const rewritten = files.map((f) => ({ ...f, content: rewriteAttachmentLinks(f.content, names, '../'.repeat(f.folders.length)) }))
@@ -91,6 +91,6 @@ export async function restoreFromBackup(): Promise<void> {
   s.showNotice(
     restored
       ? `Restored ${plural(restored, 'item')}${skipped ? ` (${skipped} already up to date)` : ''}.`
-      : 'Nothing to restore: everything in this backup is already in Nibmark.'
+      : 'Nothing to restore: everything in this backup is already in Inknote.'
   )
 }

@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 // Renderer chỉ gửi dữ liệu; mọi đường dẫn file đều do main process quyết định
 // (thư mục sao lưu đã cấu hình, hoặc đường dẫn người dùng chọn qua hộp thoại).
-contextBridge.exposeInMainWorld('nibmark', {
+contextBridge.exposeInMainWorld('inknote', {
   platform: process.platform,
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
@@ -47,7 +47,9 @@ contextBridge.exposeInMainWorld('nibmark', {
     githubSnippet: (url: string) => ipcRenderer.invoke('web:githubSnippet', url)
   },
   openDataFolder: () => ipcRenderer.invoke('app:openDataFolder'),
+  readClipboardText: () => ipcRenderer.invoke('clipboard:readText'),
   openNoteWindow: (id: string) => ipcRenderer.send('window:openNote', id),
+  openQuickNote: (id: string, bookId: string) => ipcRenderer.send('window:openQuickNote', id, bookId),
   importer: {
     pick: () => ipcRenderer.invoke('import:pick'),
     appleNotes: () => ipcRenderer.invoke('import:appleNotes'),

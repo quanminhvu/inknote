@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="assets/icon/nibmark-logo-horizontal.png" width="600" alt="Nibmark — Text N logo" />
+  <img src="assets/icon/inknote-logo-horizontal.png" width="600" alt="Inknote — Origami Bird logo" />
 </p>
 
-<h1 align="center">Nibmark</h1>
+<h1 align="center">Inknote</h1>
 
 <p align="center">A calm, local-first Markdown notebook for developers.</p>
 
 ---
 
-Nibmark keeps your notes as plain Markdown, organized in nested notebooks, tags and statuses, and stored on your own machine. It is a desktop app built with Electron, React and CodeMirror 6.
+Inknote keeps your notes as plain Markdown, organized in nested notebooks, tags and statuses, and stored on your own machine. It is a desktop app built with Electron, React and CodeMirror 6.
 
-> **Status:** v1.0.2, in active development. macOS is the primary target; Windows and Linux installers are built for every release but get less testing. Sync and mobile apps are on the [roadmap](#roadmap). Download the latest build from [Releases](https://github.com/quanminhvu/nibmark/releases).
+> **Status:** v1.1.0, in active development. macOS is the primary target; Windows and Linux installers are built for every release but get less testing. Sync and mobile apps are on the [roadmap](#roadmap). Download the latest build from [Releases](https://github.com/quanminhvu/inknote/releases).
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Nibmark with the Mist theme: notebooks and tags in the sidebar, the note list with task progress, and a note in side-by-side editor and preview" />
+  <img src="docs/screenshot.png" alt="Inknote with the Mist theme: notebooks and tags in the sidebar, the note list with task progress, and a note in side-by-side editor and preview" />
 </p>
 
 ## Features
@@ -93,7 +93,7 @@ Nibmark keeps your notes as plain Markdown, organized in nested notebooks, tags 
 
 - Command palette (`⌘K`) for notes, commands, notebooks, tags, headings, tasks and themes, and a note actions menu (`⌘J`)
 - Six built-in themes: Mist and Night (the defaults for light and dark), Paper, Stone, Ink and Indigo
-- Global shortcuts for a quick note and for showing or hiding Nibmark; on Windows and Linux, an optional system tray icon
+- Global shortcuts for a quick note and for showing or hiding Inknote; on Windows and Linux, an optional system tray icon
 - Write your own themes as CSS files, and tweak anything with a personal `styles.css`
 
 ## Keyboard shortcuts
@@ -143,7 +143,7 @@ Other scripts:
 | `npm run start` | Run the built app |
 | `npm run typecheck` | Type-check the whole project |
 | `npm run verify` | Typecheck, build and check that main/preload bundle all their dependencies |
-| `npm run pack` | Package an unpacked app into `dist/` (on macOS: `dist/mac-arm64/Nibmark.app`) |
+| `npm run pack` | Package an unpacked app into `dist/` (on macOS: `dist/mac-arm64/Inknote.app`) |
 | `npm run test:smoke` | Launch the packaged app on a temporary profile and check that it starts |
 | `npm run test:desktop` | Drive the built app on a temporary profile through statuses, tags, ordering, backlinks and scrolling |
 | `npm run test:scroll` | Check the editor/preview scroll mapping |
@@ -154,23 +154,23 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, CI and the 
 To run against a throwaway profile (useful when testing, so your real notes are never touched):
 
 ```bash
-NIBMARK_USER_DATA="$PWD/.tmp-profile" npm run dev
+INKNOTE_USER_DATA="$PWD/.tmp-profile" npm run dev
 ```
 
 ## Use your notes from AI agents (MCP)
 
-Nibmark can act as an [MCP](https://modelcontextprotocol.io) server, so Claude Code, Claude Desktop, Cursor and other agents can search, read, create, edit and delete your notes.
+Inknote can act as an [MCP](https://modelcontextprotocol.io) server, so Claude Code, Claude Desktop, Cursor and other agents can search, read, create, edit and delete your notes.
 
 1. Turn it on in **Preferences → AI Agents (MCP)**. It is off by default. A second switch limits agents to reading.
 2. Copy the command shown there. For Claude Code on macOS it looks like this:
 
    ```bash
-   claude mcp add nibmark -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Nibmark.app/Contents/MacOS/Nibmark /Applications/Nibmark.app/Contents/Resources/mcp.js
+   claude mcp add inknote -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Inknote.app/Contents/MacOS/Inknote /Applications/Inknote.app/Contents/Resources/mcp.js
    ```
 
    For Claude Desktop or Cursor, use **Copy JSON** and paste it into the client's MCP config file.
 
-The bridge (`resources/mcp.js`) runs with the Node that ships inside Nibmark and talks to the running app over a local socket that only your user account can open. No network port is opened. If Nibmark is not running, the bridge starts it.
+The bridge (`resources/mcp.js`) runs with the Node that ships inside Inknote and talks to the running app over a local socket that only your user account can open. No network port is opened. If Inknote is not running, the bridge starts it.
 
 | Tool | What it does |
 | --- | --- |
@@ -185,7 +185,9 @@ Every change goes through the app, so it shows up immediately and is kept in the
 
 ## Where your data lives
 
-Everything is stored in the app's user data folder (`~/Library/Application Support/Nibmark` on macOS):
+> Inknote was called **Nibmark** until v1.0.2. On first launch, Inknote copies your notes, settings, themes and version history from the old `Nibmark` data folder and leaves that folder in place as a backup. Note links written as `nibmark://note/…` keep working and are rewritten to `inknote://note/…`.
+
+Everything is stored in the app's user data folder (`~/Library/Application Support/Inknote` on macOS):
 
 | Path | Contents |
 | --- | --- |
@@ -262,8 +264,8 @@ The detailed roadmap is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## License
 
-Nibmark is released under the [MIT License](LICENSE).
+Inknote is released under the [MIT License](LICENSE).
 
 The [Text N brand assets](assets/icon/README.md) include the app icon, horizontal logo and monochrome mark.
 
-The Nibmark name, icon and logo identify this project; please don't use them in a way that suggests your fork is the official app.
+The Inknote name, icon and logo identify this project; please don't use them in a way that suggests your fork is the official app.

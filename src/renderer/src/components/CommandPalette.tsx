@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { FileText, Hash, Heading, LayoutTemplate, ListChecks, Notebook, Palette, Search, Square, TerminalSquare } from 'lucide-react'
 import { collectTasks } from '@/lib/tasks'
+import { dueLabel, dueState, withoutDue } from '@/lib/dueDates'
+import type { DueState } from '@/lib/dueDates'
 import { toggleTask } from '@/lib/markdown'
 import { backupNow, exportNote, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { runAppleNotesImport, runImport } from '@/lib/importer'
@@ -60,18 +62,24 @@ interface Item {
   altRun?: () => void
   /** Nội dung xem trước bên phải (template) */
   template?: { title: string; body: string; book?: string }
+  /** Nhãn hạn chót của task */
+  due?: { text: string; state: DueState }
 }
 
 function taskItems(): Item[] {
   const s = useStore.getState()
+  // Task có hạn lên đầu, hạn sớm nhất trước (quá hạn → hôm nay → sắp tới); task không hạn giữ thứ tự cũ
   return collectTasks(s.notes)
     .filter((t) => !t.done)
-    .map<Item>((t) => ({
+    .map((t, order) => ({ t, order }))
+    .sort((a, b) => (a.t.due && b.t.due ? a.t.due.localeCompare(b.t.due) : a.t.due ? -1 : b.t.due ? 1 : 0) || a.order - b.order)
+    .map<Item>(({ t }) => ({
       id: `task:${t.noteId}:${t.line}`,
       section: 'Open Tasks',
-      label: t.text,
+      label: t.due ? withoutDue(t.text) || t.text : t.text,
       detail: t.noteTitle,
-      keywords: t.noteTitle,
+      keywords: t.due ? `${t.noteTitle} ${t.due} ${dueLabel(t.due)} ${dueState(t.due)} due` : t.noteTitle,
+      ...(t.due ? { due: { text: dueLabel(t.due), state: dueState(t.due) } } : {}),
       icon: <Square size={15} />,
       run: () => {
         if (!s.openNote(t.noteId)) return
@@ -105,7 +113,7 @@ function noteActionItems(id: string, withTargets = false): Item[] {
   const items: Item[] = [
     cmd('pin', note.pinned ? 'Unpin Note' : 'Pin Note to Top', () => s.updateNote(id, { pinned: !note.pinned }), undefined, 'favorite'),
     cmd('duplicate', 'Duplicate Note', () => s.duplicateNote(id), `${mod()}D`, 'copy'),
-    ...(window.nibmark && !noteWindowId ? [cmd('window', 'Open in New Window', () => openInNewWindow(id), `${mod()}${shift()}N`, 'separate window detach')] : []),
+    ...(window.inknote && !noteWindowId ? [cmd('window', 'Open in New Window', () => openInNewWindow(id), `${mod()}${shift()}N`, 'separate window detach')] : []),
     cmd('save-template', 'Save Note as Template', () => {
       if (s.saveTemplate(id)) s.showNotice(`Saved "${note.title || 'Untitled'}" as a template.`)
     }),
@@ -114,7 +122,7 @@ function noteActionItems(id: string, withTargets = false): Item[] {
     cmd('present', 'Start Presentation', () => presentNote(id), undefined, 'slides slideshow present deck'),
     cmd('export-note', 'Export Note as Markdown…', () => void exportNote(id)),
     cmd('export-html', 'Export Note as HTML…', () => void exportNoteHtml(id), undefined, 'web page save share'),
-    ...(window.nibmark ? [cmd('export-pdf', 'Export Note as PDF…', () => void exportNotePdf(id), undefined, 'print document share')] : []),
+    ...(window.inknote ? [cmd('export-pdf', 'Export Note as PDF…', () => void exportNotePdf(id), undefined, 'print document share')] : []),
     cmd('copy-link', 'Copy Note Link', () => copyNoteLink(id), undefined, 'markdown reference'),
     cmd('copy-id', 'Copy Note ID', () => copyId(id)),
     cmd('history', 'Show Version History…', () => openHistory(id), undefined, 'revisions versions restore undo diff'),
@@ -182,7 +190,7 @@ function commandItems(): Item[] {
     cmd('tasks', 'Show Open Tasks…', () => s.setPalette('tasks'), undefined, 'todo to-do checklist checkbox'),
     cmd('prefs', 'Open Preferences', () => s.setPrefsOpen(true), `${mod()},`, 'settings options'),
     cmd('import', 'Import Notes…', () => void runImport(), undefined, 'markdown html evernote enex notion bear obsidian'),
-    ...(window.nibmark?.platform === 'darwin' ? [cmd('import-apple', 'Import from Apple Notes…', () => void runAppleNotesImport(), undefined, 'icloud notes')] : []),
+    ...(window.inknote?.platform === 'darwin' ? [cmd('import-apple', 'Import from Apple Notes…', () => void runAppleNotesImport(), undefined, 'icloud notes')] : []),
     cmd('import-kindle', 'Import Kindle Highlights…', () => void runKindleImport(), undefined, 'my clippings books reading'),
     cmd('export-all', 'Export All Notes as Markdown…', () => void exportNotes(null), undefined, 'save download'),
     cmd('backup', 'Back Up Now', () => void backupNow(), undefined, 'save'),
@@ -474,6 +482,7 @@ function PaletteBody({ mode }: { mode: 'commands' | 'templates' | 'actions' | 't
                   <span className="pal-label">
                     <Highlighted text={item.label} indices={indices} />
                   </span>
+                  {item.due && <span className={cx('due', `due-${item.due.state}`)}>{item.due.text}</span>}
                   {item.detail && <span className="pal-detail">{item.detail}</span>}
                   {item.shortcut && <kbd className="pal-kbd">{item.shortcut}</kbd>}
                 </div>

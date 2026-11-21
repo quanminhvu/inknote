@@ -1,4 +1,5 @@
 import type { Note } from './types'
+import { dueOf } from './dueDates'
 
 export interface TaskItem {
   noteId: string
@@ -9,6 +10,8 @@ export interface TaskItem {
   index: number
   text: string
   done: boolean
+  /** Hạn chót "YYYY-MM-DD" (viết @2026-11-20 trong task), nếu có */
+  due: string | null
   updatedAt: number
 }
 
@@ -33,8 +36,20 @@ export function collectTasks(notes: Record<string, Note>): TaskItem[] {
       const m = TASK.exec(raw)
       if (!m) return
       index++
-      out.push({ noteId: note._id, noteTitle: note.title || 'Untitled', line, index, text: m[2].trim() || '(empty task)', done: m[1] !== ' ', updatedAt: note.updatedAt })
+      out.push({ noteId: note._id, noteTitle: note.title || 'Untitled', line, index, text: m[2].trim() || '(empty task)', done: m[1] !== ' ', due: dueOf(m[2]), updatedAt: note.updatedAt })
     })
   }
   return out
+}
+
+/** Số task chưa xong đến hạn hôm nay và đã quá hạn */
+export function dueCounts(tasks: TaskItem[], today: string): { today: number; overdue: number } {
+  let dueToday = 0
+  let overdue = 0
+  for (const t of tasks) {
+    if (t.done || !t.due) continue
+    if (t.due === today) dueToday++
+    else if (t.due < today) overdue++
+  }
+  return { today: dueToday, overdue }
 }

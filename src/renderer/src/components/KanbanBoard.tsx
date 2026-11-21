@@ -15,7 +15,7 @@ interface Props {
 }
 
 /** Kiểu dữ liệu riêng khi kéo thẻ, để sidebar và các vùng thả khác không nhận nhầm */
-const DRAG_TYPE = 'application/x-nibmark-kanban-card'
+const DRAG_TYPE = 'application/x-inknote-kanban-card'
 const TAG = /(^|\s)#([\p{L}\p{N}_][\p{L}\p{N}_/-]*)/gu
 
 /** Tách `#tag` khỏi tiêu đề thẻ để hiện thành viên tag riêng */

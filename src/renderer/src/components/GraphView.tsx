@@ -267,7 +267,7 @@ function GraphPanel(): React.JSX.Element {
     }
 
     // Cho kiểm thử tự động biết vị trí các nút (canvas không có phần tử để bấm)
-    ;(canvas as HTMLCanvasElement & { nibmarkGraph?: unknown }).nibmarkGraph = { nodes, view }
+    ;(canvas as HTMLCanvasElement & { inknoteGraph?: unknown }).inknoteGraph = { nodes, view }
     const observer = new ResizeObserver(() => {
       resize()
     })
@@ -281,8 +281,8 @@ function GraphPanel(): React.JSX.Element {
     window.addEventListener('mouseup', onUp)
     canvas.addEventListener('wheel', onWheel, { passive: false })
     canvas.addEventListener('mouseleave', onLeave)
-    window.addEventListener('nibmark-theme', onTheme)
-    host.addEventListener('nibmark-graph-fit', recenter)
+    window.addEventListener('inknote-theme', onTheme)
+    host.addEventListener('inknote-graph-fit', recenter)
     return () => {
       observer.disconnect()
       if (frame) cancelAnimationFrame(frame)
@@ -291,8 +291,8 @@ function GraphPanel(): React.JSX.Element {
       window.removeEventListener('mouseup', onUp)
       canvas.removeEventListener('wheel', onWheel)
       canvas.removeEventListener('mouseleave', onLeave)
-      window.removeEventListener('nibmark-theme', onTheme)
-      host.removeEventListener('nibmark-graph-fit', recenter)
+      window.removeEventListener('inknote-theme', onTheme)
+      host.removeEventListener('inknote-graph-fit', recenter)
     }
   }, [graph, center])
 
@@ -322,7 +322,7 @@ function GraphPanel(): React.JSX.Element {
             {graph.nodes.length} {graph.nodes.length === 1 ? 'note' : 'notes'} · {linkCount} {linkCount === 1 ? 'link' : 'links'}
           </span>
           <span className="flex-1" />
-          <button className="icon-btn" title="Fit to view" onClick={() => hostRef.current?.dispatchEvent(new Event('nibmark-graph-fit'))}>
+          <button className="icon-btn" title="Fit to view" onClick={() => hostRef.current?.dispatchEvent(new Event('inknote-graph-fit'))}>
             <Crosshair size={16} />
           </button>
           <button className="icon-btn" title="Close (Esc)" onClick={closeGraph}>

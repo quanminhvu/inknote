@@ -3,7 +3,7 @@ import type { EditorView } from '@codemirror/view'
 import { diffLines } from 'diff'
 
 // "Format Document": dọn trình bày Markdown bằng Prettier (nạp khi dùng lần đầu, không làm chậm
-// lúc mở app), cộng vài bước trước/sau để hợp với cách viết trong Nibmark:
+// lúc mở app), cộng vài bước trước/sau để hợp với cách viết trong Inknote:
 // - trước: "#Tiêu đề" → "# Tiêu đề"; ký hiệu danh sách * và + → - (không thì Prettier tách
 //   thành nhiều danh sách)
 // - sau: đánh số danh sách tăng dần, giữ số bắt đầu (Prettier đổi "3. 5." thành "1. 1.")

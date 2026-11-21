@@ -55,7 +55,7 @@ let lastAppearance = ''
 function syncAppearance(mode: 'light' | 'dark' | 'system'): void {
   if (mode === lastAppearance) return
   lastAppearance = mode
-  window.nibmark?.themes.setAppearance(mode)
+  window.inknote?.themes.setAppearance(mode)
 }
 
 /** followSystem: theme đang theo macOS, để cửa sổ cũng theo macOS (giữ cho media query còn đúng) */
@@ -69,7 +69,7 @@ function apply(theme: ThemeInfo, followSystem: boolean): void {
   root.dataset.theme = theme.base
   if (theme.id.startsWith('user:')) root.dataset.userTheme = theme.id.slice(5)
   else delete root.dataset.userTheme
-  window.dispatchEvent(new CustomEvent('nibmark-theme', { detail: theme.id }))
+  window.dispatchEvent(new CustomEvent('inknote-theme', { detail: theme.id }))
 }
 
 function setStyle(id: string, css: string): void {
@@ -106,7 +106,7 @@ export const useTheme = create<ThemeState>((set, get) => {
     },
 
     reloadUserFiles: async () => {
-      const bridge = window.nibmark
+      const bridge = window.inknote
       if (!bridge) return
       const [themes, userCss] = await Promise.all([bridge.themes.list(), bridge.themes.getUserStyles()])
       const userThemes: ThemeInfo[] = themes.map((t) => ({
@@ -118,7 +118,7 @@ export const useTheme = create<ThemeState>((set, get) => {
       }))
       // CSS lồng (nesting) để giới hạn biến của theme trong đúng theme đó
       setStyle(
-        'nibmark-user-themes',
+        'inknote-user-themes',
         userThemes
           .map((t) => {
             const slug = t.id.slice(5)
@@ -126,7 +126,7 @@ export const useTheme = create<ThemeState>((set, get) => {
           })
           .join('\n')
       )
-      setStyle('nibmark-user-styles', userCss)
+      setStyle('inknote-user-styles', userCss)
       const active = resolve(get().choice, userThemes)
       set({ userThemes, active })
       apply(active, get().choice === 'system')
