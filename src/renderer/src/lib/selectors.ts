@@ -36,7 +36,12 @@ export function descendantIds(children: Map<string | null, Book[]>, id: string):
   return out
 }
 
-type Slice = Pick<State, 'notes' | 'books' | 'tags' | 'selection' | 'query' | 'sort' | 'collapsedBooks'>
+type Slice = Pick<State, 'notes' | 'books' | 'tags' | 'selection' | 'query' | 'sort' | 'collapsedBooks'> & { workspace?: string | null }
+
+/** Id của notebook và mọi notebook con của nó */
+export function bookTree(books: State['books'], id: string): Set<string> {
+  return new Set([id, ...descendantIds(childrenByParent(books), id)])
+}
 
 /** Danh sách ghi chú đang hiển thị ở cột giữa, đã lọc và sắp xếp. */
 export function visibleNotes(s: Slice): Note[] {
@@ -47,6 +52,11 @@ export function visibleNotes(s: Slice): Note[] {
     list = list.filter((n) => n.trashed)
   } else {
     list = list.filter((n) => !n.trashed)
+    // Đang mở một notebook như không gian riêng: chỉ ghi chú trong notebook đó và các notebook con
+    if (s.workspace && s.books[s.workspace]) {
+      const scope = bookTree(s.books, s.workspace)
+      list = list.filter((n) => scope.has(n.bookId))
+    }
     if (selection.kind === 'book') {
       const ids = new Set([selection.id])
       // Notebook đang thu gọn thì hiện cả ghi chú của notebook con

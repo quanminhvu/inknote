@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { Bot, HardDrive, Keyboard, LayoutTemplate, Palette, SquarePen, X } from 'lucide-react'
 import { backupNow, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { onBackupStatus } from '@/lib/backup'
 import type { BackupStatus } from '@/lib/backup'
@@ -13,18 +13,41 @@ import { useEditorPrefs } from '@/lib/editorPrefs'
 import { NotebookPicker } from './NotebookPicker'
 import type { PasteLink, WrapMode } from '@/lib/editorPrefs'
 
+type PageId = 'appearance' | 'editor' | 'shortcuts' | 'templates' | 'agents' | 'data'
+
+const PAGES: { id: PageId; label: string; icon: React.ComponentType<{ size?: number }>; desktopOnly?: boolean }[] = [
+  { id: 'appearance', label: 'Appearance', icon: Palette },
+  { id: 'editor', label: 'Editor', icon: SquarePen },
+  { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard, desktopOnly: true },
+  { id: 'templates', label: 'Templates', icon: LayoutTemplate },
+  { id: 'agents', label: 'AI Agents', icon: Bot, desktopOnly: true },
+  { id: 'data', label: 'Backup & Data', icon: HardDrive, desktopOnly: true }
+]
+const PAGE_KEY = 'nibmark:prefs-page'
+
+function readPage(): PageId {
+  try {
+    const saved = localStorage.getItem(PAGE_KEY) as PageId | null
+    return saved && PAGES.some((p) => p.id === saved) ? saved : 'appearance'
+  } catch {
+    return 'appearance'
+  }
+}
+
 export function Preferences(): React.JSX.Element | null {
   const open = useStore((s) => s.prefsOpen)
   const setOpen = useStore((s) => s.setPrefsOpen)
-  const [settings, setSettings] = useState<InknoteSettings | null>(null)
-  const [status, setStatus] = useState<BackupStatus>({ lastBackupAt: null, error: null })
+  const [page, setPageState] = useState<PageId>(readPage)
   const bridge = window.inknote
-
-  useEffect(() => {
-    if (!open || !bridge) return
-    void bridge.settings.get().then(setSettings)
-    return onBackupStatus(setStatus)
-  }, [open, bridge])
+  const pages = PAGES.filter((p) => !p.desktopOnly || bridge)
+  const setPage = (id: PageId): void => {
+    setPageState(id)
+    try {
+      localStorage.setItem(PAGE_KEY, id)
+    } catch {
+      // chỉ là tiện ích
+    }
+  }
 
   useEffect(() => {
     if (!open) return
@@ -39,130 +62,162 @@ export function Preferences(): React.JSX.Element | null {
   }, [open, setOpen])
 
   if (!open) return null
-
-  const lastBackup = status.lastBackupAt ?? settings?.lastBackupAt ?? null
+  const current = pages.find((p) => p.id === page) ?? pages[0]
 
   return (
     <div className="modal-backdrop" onMouseDown={() => setOpen(false)}>
-      <div className="modal" role="dialog" aria-label="Preferences" onMouseDown={(e) => e.stopPropagation()}>
-        <header className="modal-header">
-          <h2>Preferences</h2>
-          <button className="icon-btn" title="Close (Esc)" onClick={() => setOpen(false)}>
-            <X size={16} />
-          </button>
-        </header>
-
-        <Appearance />
-        <EditorSection />
-        <QuickNote />
-        <AgentsSection />
-        <Templates />
-
-        {!bridge ? (
-          <p className="pref-note">Backup and export are only available in the desktop app.</p>
-        ) : (
-          <>
-            <section className="pref-section">
-              <h3>Backup</h3>
-              <label className="pref-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings?.backupEnabled ?? false}
-                  onChange={async (e) => setSettings(await bridge.settings.setBackupEnabled(e.target.checked))}
-                />
-                <span>Continuously back up notes to a folder</span>
-              </label>
-              <p className="pref-note">
-                Every note, notebook and tag is saved as a JSON file while you work. Deleted items are moved to a
-                &ldquo;deleted&rdquo; subfolder, never removed.
-              </p>
-
-              <div className="pref-row">
-                <span className="pref-label">Folder</span>
-                <code className="pref-path" title={settings?.backupDir}>
-                  {settings?.backupDir ?? '…'}
-                </code>
-              </div>
-              <div className="pref-actions">
-                <button className="btn" onClick={async () => setSettings(await bridge.settings.chooseBackupDir())}>
-                  Change…
-                </button>
-                {settings && !settings.isDefaultDir && (
-                  <button className="btn" onClick={async () => setSettings(await bridge.settings.resetBackupDir())}>
-                    Use Default
-                  </button>
-                )}
-                <button
-                  className="btn"
-                  onClick={async () => {
-                    const error = await bridge.backup.open()
-                    if (error) useStore.getState().showNotice(error, 'error')
-                  }}
-                >
-                  Show in Finder
-                </button>
-                <span className="flex-1" />
-                <button className="btn primary" disabled={!settings?.backupEnabled} onClick={() => void backupNow()}>
-                  Back Up Now
-                </button>
-              </div>
-              <p className={status.error ? 'pref-status error' : 'pref-status'}>
-                {status.error
-                  ? `Last backup failed: ${status.error}`
-                  : lastBackup
-                    ? `Last backup ${relativeTime(lastBackup)}`
-                    : 'No backup yet'}
-              </p>
-            </section>
-
-            <section className="pref-section">
-              <h3>Restore</h3>
-              <p className="pref-note">
-                Bring notes back from a backup folder. Notes that are newer in Inknote are kept as they are.
-              </p>
-              <div className="pref-actions">
-                <button className="btn" onClick={() => void restoreFromBackup()}>
-                  Restore from Backup…
-                </button>
-              </div>
-            </section>
-
-            <section className="pref-section">
-              <h3>Data</h3>
-              <p className="pref-note">
-                The note database, version history, themes and settings live in Inknote&rsquo;s data folder.
-              </p>
-              <div className="pref-actions">
-                <button
-                  className="btn"
-                  onClick={async () => {
-                    const error = await bridge.openDataFolder()
-                    if (error) useStore.getState().showNotice(error, 'error')
-                  }}
-                >
-                  Open Data Folder
-                </button>
-                <button className="btn" onClick={() => void runImport()}>
-                  Import Notes…
-                </button>
-              </div>
-            </section>
-
-            <section className="pref-section">
-              <h3>Export</h3>
-              <p className="pref-note">
-                Save all notes as Markdown files, in folders that mirror your notebooks. Notes in the Trash are left out.
-              </p>
-              <div className="pref-actions">
-                <button className="btn" onClick={() => void exportNotes(null)}>
-                  Export All Notes…
-                </button>
-              </div>
-            </section>
-          </>
-        )}
+      <div className="settings" role="dialog" aria-label="Preferences" onMouseDown={(e) => e.stopPropagation()}>
+        <nav className="settings-nav" aria-label="Preference sections">
+          <div className="settings-nav-title">Preferences</div>
+          {pages.map((p) => (
+            <button
+              key={p.id}
+              className={cx('settings-nav-item', p.id === current.id && 'selected')}
+              aria-current={p.id === current.id ? 'page' : undefined}
+              onClick={() => setPage(p.id)}
+            >
+              <p.icon size={16} />
+              <span>{p.label}</span>
+            </button>
+          ))}
+        </nav>
+        <section className="settings-main">
+          <header className="settings-header">
+            <h2>{current.label}</h2>
+            <button className="icon-btn" title="Close (Esc)" aria-label="Close preferences" onClick={() => setOpen(false)}>
+              <X size={16} />
+            </button>
+          </header>
+          <div className="settings-body" key={current.id}>
+            {current.id === 'appearance' && <Appearance />}
+            {current.id === 'editor' && <EditorSection />}
+            {current.id === 'shortcuts' && <QuickNote />}
+            {current.id === 'templates' && <Templates />}
+            {current.id === 'agents' && <AgentsSection />}
+            {current.id === 'data' && <DataSection />}
+          </div>
+        </section>
       </div>
     </div>
+  )
+}
+
+// ── Khối dựng giao diện: nhóm thẻ, dòng cài đặt, công tắc ──
+
+function Group({ title, note, children }: { title?: string; note?: React.ReactNode; children: React.ReactNode }): React.JSX.Element {
+  return (
+    <div className="settings-group">
+      {title && <h3 className="settings-group-title">{title}</h3>}
+      <div className="settings-card">{children}</div>
+      {note && <p className="settings-group-note">{note}</p>}
+    </div>
+  )
+}
+
+function Row({ label, detail, children, disabled, stack }: { label: React.ReactNode; detail?: React.ReactNode; children?: React.ReactNode; disabled?: boolean; stack?: boolean }): React.JSX.Element {
+  return (
+    <div className={cx('settings-row', disabled && 'disabled', stack && 'stack')}>
+      <div className="settings-row-text">
+        <span className="settings-row-label">{label}</span>
+        {detail && <span className="settings-row-detail">{detail}</span>}
+      </div>
+      {children && <div className="settings-row-control">{children}</div>}
+    </div>
+  )
+}
+
+function Switch({ checked, onChange, disabled, label }: { checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; label: string }): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      className={cx('switch', checked && 'on')}
+      onClick={() => onChange(!checked)}
+    >
+      <span className="switch-knob" />
+    </button>
+  )
+}
+
+function DataSection(): React.JSX.Element | null {
+  const bridge = window.inknote
+  const [settings, setSettings] = useState<InknoteSettings | null>(null)
+  const [status, setStatus] = useState<BackupStatus>({ lastBackupAt: null, error: null })
+  useEffect(() => {
+    if (!bridge) return
+    void bridge.settings.get().then(setSettings)
+    return onBackupStatus(setStatus)
+  }, [bridge])
+  if (!bridge) return null
+  const report = (error: string | null): void => {
+    if (error) useStore.getState().showNotice(error, 'error')
+  }
+  const lastBackup = status.lastBackupAt ?? settings?.lastBackupAt ?? null
+  return (
+    <>
+      <Group
+        title="Backup"
+        note={<>Every note, notebook and tag is saved as a JSON file while you work. Deleted items are moved to a &ldquo;deleted&rdquo; subfolder, never removed.</>}
+      >
+        <Row label="Back up continuously" detail="Keep a copy of every change in the backup folder">
+          <Switch label="Back up continuously" checked={settings?.backupEnabled ?? false} onChange={async (v) => setSettings(await bridge.settings.setBackupEnabled(v))} />
+        </Row>
+        <Row label="Folder" detail={<code className="settings-path" title={settings?.backupDir}>{settings?.backupDir ?? '…'}</code>} stack>
+          <button className="btn" onClick={async () => setSettings(await bridge.settings.chooseBackupDir())}>
+            Change…
+          </button>
+          {settings && !settings.isDefaultDir && (
+            <button className="btn" onClick={async () => setSettings(await bridge.settings.resetBackupDir())}>
+              Use Default
+            </button>
+          )}
+          <button className="btn" onClick={async () => report(await bridge.backup.open())}>
+            Show in Finder
+          </button>
+        </Row>
+        <Row
+          label="Last backup"
+          detail={
+            <span className={status.error ? 'settings-error' : undefined}>
+              {status.error ? `Failed: ${status.error}` : lastBackup ? relativeTime(lastBackup) : 'No backup yet'}
+            </span>
+          }
+        >
+          <button className="btn primary" disabled={!settings?.backupEnabled} onClick={() => void backupNow()}>
+            Back Up Now
+          </button>
+        </Row>
+      </Group>
+
+      <Group title="Restore and move notes">
+        <Row label="Restore from a backup" detail="Notes that are newer in Inknote are kept as they are">
+          <button className="btn" onClick={() => void restoreFromBackup()}>
+            Restore…
+          </button>
+        </Row>
+        <Row label="Import notes" detail="Markdown, HTML and Evernote files, or a folder of them">
+          <button className="btn" onClick={() => void runImport()}>
+            Import…
+          </button>
+        </Row>
+        <Row label="Export all notes" detail="Markdown files in folders that mirror your notebooks; the Trash is left out">
+          <button className="btn" onClick={() => void exportNotes(null)}>
+            Export…
+          </button>
+        </Row>
+      </Group>
+
+      <Group title="Data folder">
+        <Row label="Database, version history, themes and settings" detail="Stored only on this computer">
+          <button className="btn" onClick={async () => report(await bridge.openDataFolder())}>
+            Open Folder
+          </button>
+        </Row>
+      </Group>
+    </>
   )
 }
 
@@ -205,75 +260,72 @@ function Appearance(): React.JSX.Element {
     if (error) useStore.getState().showNotice(error, 'error')
   }
   return (
-    <section className="pref-section">
-      <h3>Appearance</h3>
-      <div className="theme-grid">
-        <ThemeSwatch theme={null} selected={choice === 'system'} onPick={() => setChoice('system')} />
-        {[...BUILTIN_THEMES, ...userThemes].map((t) => (
-          <ThemeSwatch key={t.id} theme={t} selected={choice === t.id} onPick={() => setChoice(t.id)} />
-        ))}
-      </div>
+    <>
+      <Group title="Theme">
+        <div className="settings-themes">
+          <ThemeSwatch theme={null} selected={choice === 'system'} onPick={() => setChoice('system')} />
+          {[...BUILTIN_THEMES, ...userThemes].map((t) => (
+            <ThemeSwatch key={t.id} theme={t} selected={choice === t.id} onPick={() => setChoice(t.id)} />
+          ))}
+        </div>
+      </Group>
       {bridge && (
-        <>
-          <p className="pref-note">
-            Add your own themes as .css files in the themes folder, or tweak any theme with your own styles.css. Changes
-            show up when you come back to Inknote.
-          </p>
-          <div className="pref-actions">
+        <Group title="Customize" note="Changes to theme files and styles.css show up when you come back to Inknote.">
+          <Row label="Your own themes" detail="Add .css files to the themes folder">
             <button className="btn" onClick={async () => report(await bridge.themes.openFolder())}>
-              Open Themes Folder
+              Open Folder
             </button>
+          </Row>
+          <Row label="Custom styles" detail="Tweak any theme with your own styles.css">
             <button className="btn" onClick={async () => report(await bridge.themes.openUserStyles())}>
               Edit styles.css
             </button>
             <button className="btn" onClick={() => void useTheme.getState().reloadUserFiles()}>
               Reload
             </button>
-          </div>
-        </>
+          </Row>
+        </Group>
       )}
-    </section>
+    </>
   )
 }
 
 function EditorSection(): React.JSX.Element {
   const p = useEditorPrefs()
-  const toggle = (key: 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave', label: string): React.JSX.Element => (
-    <label className="pref-toggle">
-      <input type="checkbox" checked={p[key]} onChange={(e) => p.set({ [key]: e.target.checked })} />
-      <span>{label}</span>
-    </label>
+  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave'
+  const toggle = (key: Key, label: string, detail?: string): React.JSX.Element => (
+    <Row label={label} detail={detail}>
+      <Switch label={label} checked={p[key]} onChange={(v) => p.set({ [key]: v })} />
+    </Row>
   )
   return (
-    <section className="pref-section">
-      <h3>Editor</h3>
-      {toggle('lineNumbers', 'Show line numbers')}
-      {toggle('readableWidth', 'Limit line width for easier reading')}
-      {toggle('spellcheck', 'Check spelling')}
-      {toggle('strikeDone', 'Strike through completed tasks')}
-      {toggle('codeLineNumbers', 'Show line numbers in preview code blocks')}
-      {toggle('tabs', 'Open notes in tabs')}
-      {toggle('formatOnLeave', `Format Markdown when leaving a note you edited (${isMacFormat()})`)}
-      <div className="pref-row">
-        <span className="pref-label">Line wrapping</span>
-        <select className="pref-select" value={p.wrap} onChange={(e) => p.set({ wrap: e.target.value as WrapMode })}>
-          <option value="all">Wrap all lines</option>
-          <option value="prose">Wrap text, not code blocks or tables</option>
-          <option value="none">Don&rsquo;t wrap</option>
-        </select>
-      </div>
-      <div className="pref-row">
-        <span className="pref-label">Pasting a URL</span>
-        <select className="pref-select" value={p.pasteLink} onChange={(e) => p.set({ pasteLink: e.target.value as PasteLink })}>
-          <option value="title">Make a link with the page title</option>
-          <option value="url">Make a link with the URL as text</option>
-          <option value="plain">Paste the URL as is</option>
-        </select>
-      </div>
-      {p.pasteLink === 'title' && (
-        <p className="pref-note">Inknote fetches the page once to read its title. Pasting onto selected text always links that text.</p>
-      )}
-    </section>
+    <>
+      <Group title="Display">
+        {toggle('lineNumbers', 'Line numbers')}
+        {toggle('readableWidth', 'Readable line width', 'Keep lines short enough to read comfortably')}
+        <Row label="Line wrapping">
+          <select className="settings-select" value={p.wrap} onChange={(e) => p.set({ wrap: e.target.value as WrapMode })}>
+            <option value="all">Wrap all lines</option>
+            <option value="prose">Wrap text, not code or tables</option>
+            <option value="none">Don&rsquo;t wrap</option>
+          </select>
+        </Row>
+        {toggle('codeLineNumbers', 'Line numbers in preview code blocks')}
+        {toggle('tabs', 'Open notes in tabs', 'Double-click a note in the list to keep it open in a tab')}
+      </Group>
+      <Group title="Writing">
+        {toggle('spellcheck', 'Check spelling')}
+        {toggle('strikeDone', 'Strike through completed tasks')}
+        {toggle('formatOnLeave', 'Format when leaving a note', `Tidy the Markdown of a note you edited. ${isMacFormat()}.`)}
+        <Row label="Pasting a URL" detail={p.pasteLink === 'title' ? 'Inknote fetches the page once to read its title' : undefined}>
+          <select className="settings-select" value={p.pasteLink} onChange={(e) => p.set({ pasteLink: e.target.value as PasteLink })}>
+            <option value="title">Link with the page title</option>
+            <option value="url">Link with the URL as text</option>
+            <option value="plain">Paste the URL as is</option>
+          </select>
+        </Row>
+      </Group>
+    </>
   )
 }
 
@@ -283,15 +335,17 @@ function Templates(): React.JSX.Element {
   const books = useStore((s) => s.books)
   const list = Object.values(templates).sort((a, b) => a.name.localeCompare(b.name))
   return (
-    <section className="pref-section">
-      <h3>Templates</h3>
-      <p className="pref-note">
-        Press {isMacKey()}T to start a note from a template. Save any note as a template from the command palette
-        ({isMacKey()}K, &ldquo;Save Note as Template&rdquo;). Use {'{{date}}'}, {'{{time}}'} or {'{{weekday}}'} in a
-        template&rsquo;s title or body.
-      </p>
+    <Group
+      title="Your templates"
+      note={
+        <>
+          Press {isMacKey()}T to start a note from a template. Save any note as a template from the command palette ({isMacKey()}K, &ldquo;Save
+          Note as Template&rdquo;). Use {'{{date}}'}, {'{{time}}'} or {'{{weekday}}'} in a template&rsquo;s title or body.
+        </>
+      }
+    >
       {list.length === 0 ? (
-        <p className="pref-status">You have no templates of your own yet. Five built-in templates are always available.</p>
+        <Row label="No templates of your own yet" detail="Five built-in templates are always available" />
       ) : (
         <ul className="pref-templates">
           {list.map((t) => (
@@ -326,7 +380,7 @@ function Templates(): React.JSX.Element {
           ))}
         </ul>
       )}
-    </section>
+    </Group>
   )
 }
 
@@ -372,22 +426,15 @@ function QuickNote(): React.JSX.Element | null {
   }, [bridge])
   if (!bridge) return null
   return (
-    <section className="pref-section">
-      <h3>Shortcuts</h3>
-      <ShortcutField
-        kind="quickNote"
-        label="Quick Note"
-        note="Brings Inknote to the front with a new note, even when the app is in the background."
-        fallback="CommandOrControl+Alt+N"
-      />
-      <ShortcutField kind="toggleWindow" label="Show or hide Inknote" note="Brings Inknote to the front, or hides it when it is already in front." />
+    <Group title="Global shortcuts" note="These work from any app while Inknote is running, even with its window closed. Click a shortcut, then press the new keys.">
+      <ShortcutField kind="quickNote" label="Quick Note" note="Opens a small floating window for a new note" fallback="CommandOrControl+Alt+N" />
+      <ShortcutField kind="toggleWindow" label="Show or hide Inknote" note="Brings Inknote to the front, or hides it when it is in front" />
       {settings?.traySupported && (
-        <label className="pref-toggle tray-toggle">
-          <input type="checkbox" checked={settings.trayEnabled} onChange={async (e) => setSettings(await bridge.settings.setTray(e.target.checked))} />
-          <span>Keep running in the system tray when the window is closed</span>
-        </label>
+        <Row label="Keep running in the system tray" detail="Closing the window leaves Inknote in the tray">
+          <Switch label="Keep running in the system tray" checked={settings.trayEnabled} onChange={async (v) => setSettings(await bridge.settings.setTray(v))} />
+        </Row>
       )}
-    </section>
+    </Group>
   )
 }
 
@@ -417,15 +464,25 @@ function ShortcutField({
     setStatus(await bridge.shortcuts.set(acc, kind))
   }
 
+  const state = status?.disabledForTesting
+    ? 'Off in this test profile'
+    : status?.error
+      ? `${prettyAccelerator(status.accelerator)}: ${status.error}`
+      : null
   return (
-    <div className="pref-shortcut">
-      <div className="pref-shortcut-text">
-        <span className="pref-shortcut-label">{label}</span>
-        <span className="pref-note">{note}</span>
-      </div>
-      <div className="pref-actions">
+    <Row label={label} detail={state ? <span className={status?.error ? 'settings-error' : undefined}>{state}</span> : note}>
+        {fallback && status?.accelerator !== fallback && (
+          <button className="text-btn" onClick={() => void save(fallback)}>
+            Use Default
+          </button>
+        )}
+        {status?.accelerator && (
+          <button className="text-btn" onClick={() => void save('')}>
+            Turn Off
+          </button>
+        )}
         <button
-          className={recording ? 'btn shortcut-field recording' : 'btn shortcut-field'}
+          className={cx('shortcut-key', recording && 'recording', !status?.accelerator && !recording && 'off')}
           onClick={() => setRecording(true)}
           onBlur={() => setRecording(false)}
           onKeyDown={(e) => {
@@ -440,29 +497,9 @@ function ShortcutField({
             if (acc) void save(acc)
           }}
         >
-          {recording ? 'Press a shortcut…' : prettyAccelerator(status?.accelerator ?? '')}
+          {recording ? 'Press keys…' : prettyAccelerator(status?.accelerator ?? '')}
         </button>
-        {status?.accelerator && (
-          <button className="btn" onClick={() => void save('')}>
-            Turn Off
-          </button>
-        )}
-        {fallback && status?.accelerator !== fallback && (
-          <button className="btn" onClick={() => void save(fallback)}>
-            Use Default
-          </button>
-        )}
-        <span className={status?.error ? 'pref-status error' : 'pref-status'}>
-          {status?.disabledForTesting
-            ? 'Off in this test profile'
-            : status?.error
-              ? `${prettyAccelerator(status.accelerator)}: ${status.error}`
-              : status?.registered
-                ? 'Active'
-                : 'Off'}
-        </span>
-      </div>
-    </div>
+    </Row>
   )
 }
 
@@ -487,44 +524,40 @@ function AgentsSection(): React.JSX.Element | null {
     })
   }
   return (
-    <section className="pref-section">
-      <h3>AI Agents (MCP)</h3>
-      <label className="pref-toggle">
-        <input type="checkbox" checked={settings.mcpEnabled} onChange={async (e) => setSettings(await bridge.settings.setMcp({ enabled: e.target.checked }))} />
-        <span>Let AI agents use your notes (Claude Code, Claude Desktop, Cursor…)</span>
-      </label>
-      <label className={cx('pref-toggle', !settings.mcpEnabled && 'disabled')}>
-        <input
-          type="checkbox"
-          disabled={!settings.mcpEnabled}
-          checked={settings.mcpAllowEdits}
-          onChange={async (e) => setSettings(await bridge.settings.setMcp({ allowEdits: e.target.checked }))}
-        />
-        <span>Allow agents to create, edit and delete notes</span>
-      </label>
-      <p className="pref-note">
-        Agents can only reach Inknote from this computer and this user account. Deleted notes go to the Trash, and every edit is
-        kept in the note&apos;s version history, so you can always undo.
-      </p>
+    <>
+      <Group
+        title="Model Context Protocol (MCP)"
+        note={<>Agents can only reach Inknote from this computer and this user account. Deleted notes go to the Trash, and every edit is kept in the note&apos;s version history, so you can always undo.</>}
+      >
+        <Row label="Let AI agents use your notes" detail="Claude Code, Claude Desktop, Cursor and other MCP clients">
+          <Switch label="Let AI agents use your notes" checked={settings.mcpEnabled} onChange={async (v) => setSettings(await bridge.settings.setMcp({ enabled: v }))} />
+        </Row>
+        <Row label="Allow changes" detail="Agents may create, edit and delete notes" disabled={!settings.mcpEnabled}>
+          <Switch
+            label="Allow changes"
+            disabled={!settings.mcpEnabled}
+            checked={settings.mcpAllowEdits}
+            onChange={async (v) => setSettings(await bridge.settings.setMcp({ allowEdits: v }))}
+          />
+        </Row>
+      </Group>
       {settings.mcpEnabled && (
-        <div className="mcp-setup">
-          <div className="mcp-setup-row">
-            <span className="pref-label">Claude Code: run in a terminal</span>
+        <Group title="Connect an agent">
+          <Row label="Claude Code" detail="Run this in a terminal">
             <button className="text-btn" onClick={() => copy('code', claudeCode)}>
-              {copied === 'code' ? 'Copied' : 'Copy command'}
+              {copied === 'code' ? 'Copied' : 'Copy'}
             </button>
-          </div>
-          <pre className="mcp-snippet">{claudeCode}</pre>
-          <div className="mcp-setup-row">
-            <span className="pref-label">Claude Desktop, Cursor: add to the MCP config file</span>
+          </Row>
+          <pre className="settings-snippet">{claudeCode}</pre>
+          <Row label="Claude Desktop, Cursor" detail="Add this to the MCP config file">
             <button className="text-btn" onClick={() => copy('json', desktopJson)}>
-              {copied === 'json' ? 'Copied' : 'Copy JSON'}
+              {copied === 'json' ? 'Copied' : 'Copy'}
             </button>
-          </div>
-          <pre className="mcp-snippet">{desktopJson}</pre>
-        </div>
+          </Row>
+          <pre className="settings-snippet">{desktopJson}</pre>
+        </Group>
       )}
-    </section>
+    </>
   )
 }
 

@@ -47,7 +47,10 @@ function bringToFront(win: BrowserWindow): void {
   win.focus()
 }
 
-export function registerShortcuts(getOrCreateWindow: () => BrowserWindow): { quickNote: () => void; toggleWindow: () => void } {
+export function registerShortcuts(
+  getOrCreateWindow: () => BrowserWindow,
+  getOrCreateHiddenWindow: () => BrowserWindow = getOrCreateWindow
+): { quickNote: () => void; toggleWindow: () => void } {
   ipcMain.on('renderer:ready', (event) => {
     const id = event.sender.id
     readyContents.add(id)
@@ -56,10 +59,9 @@ export function registerShortcuts(getOrCreateWindow: () => BrowserWindow): { qui
     pending.delete(id)
   })
 
+  // Cửa sổ chính (có thể đang ẩn, hoặc được tạo ẩn) mở cửa sổ Quick Note nhỏ; nó không tự hiện lên
   const quickNote = (): void => {
-    const win = getOrCreateWindow()
-    bringToFront(win)
-    sendWhenReady(win, 'quick-note')
+    sendWhenReady(getOrCreateHiddenWindow(), 'quick-note')
   }
 
   const toggleWindow = (): void => {

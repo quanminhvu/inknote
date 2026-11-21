@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeImage, screen, shell } from 'electron'
 import { isAbsolute, join, resolve } from 'node:path'
 import { registerIpc, settingsView } from './ipc'
 import { getMainWindow, setMainWindow } from './windows'
@@ -30,30 +30,46 @@ if (!app.requestSingleInstanceLock()) {
 /** Cửa sổ của từng ghi chú mở riêng (⌘⇧N), theo id ghi chú */
 const noteWindows = new Map<string, BrowserWindow>()
 
-export function openNoteWindow(noteId: string): void {
+export function openNoteWindow(noteId: string, quick?: { bookId?: string }): void {
   const existing = noteWindows.get(noteId)
   if (existing && !existing.isDestroyed()) {
     existing.show()
     existing.focus()
     return
   }
-  const win = createWindow(noteId)
+  const win = createWindow(noteId, quick)
   noteWindows.set(noteId, win)
-  win.on('closed', () => noteWindows.delete(noteId))
+  win.on('closed', () => {
+    noteWindows.delete(noteId)
+    // Quick Note đóng mà chưa viết gì thì cửa sổ chính xóa ghi chú rỗng đó (như Apple Notes)
+    if (quick) getMainWindow()?.webContents.send('menu', `quick-note-closed:${noteId}`)
+  })
 }
 
-function createWindow(noteId?: string): BrowserWindow {
+/** Vị trí Quick Note: góc dưới bên phải của màn hình đang có con trỏ chuột */
+function quickNoteBounds(): Electron.Rectangle {
+  const { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
+  const width = 420
+  const height = 460
+  return { x: workArea.x + workArea.width - width - 24, y: workArea.y + workArea.height - height - 24, width, height }
+}
+
+function createWindow(noteId?: string, quick?: { bookId?: string }, hidden = false): BrowserWindow {
   const win = new BrowserWindow({
     width: noteId ? 820 : 1280,
     height: noteId ? 760 : 800,
     minWidth: noteId ? 420 : 880,
     minHeight: noteId ? 360 : 520,
+    ...(quick ? { ...quickNoteBounds(), minWidth: 320, minHeight: 260, alwaysOnTop: true, fullscreenable: false, minimizable: false } : {}),
+    // macOS: Quick Note là một panel, như Quick Note của Apple Notes: nhận bàn phím ngay
+    // mà không kích hoạt cả app, nên cửa sổ chính (nếu đang nằm sau app khác) không bị kéo lên
+    ...(quick && process.platform === 'darwin' ? { type: 'panel' } : {}),
     show: false,
     title: 'Inknote',
     icon: app.isPackaged ? join(process.resourcesPath, 'icon.png') : join(__dirname, '../../resources/icon.png'),
     // macOS: sidebar trong mờ (vibrancy) cần nền cửa sổ trong suốt
     ...(process.platform === 'darwin'
-      ? { vibrancy: 'sidebar' as const, visualEffectState: 'followWindow' as const, backgroundColor: '#00000000' }
+      ? { vibrancy: 'sidebar' as const, visualEffectState: 'active' as const, backgroundColor: '#00000000' }
       : { backgroundColor: '#F4EFE6' }),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 16, y: 16 },
@@ -66,7 +82,19 @@ function createWindow(noteId?: string): BrowserWindow {
     }
   })
 
-  win.once('ready-to-show', () => win.show())
+  win.once('ready-to-show', () => {
+    if (quick) {
+      // Nổi trên mọi app và mọi Space, kể cả app đang toàn màn hình
+      win.setAlwaysOnTop(true, 'floating')
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+      // Windows/Linux không có panel: phải đưa app lên trước để gõ được ngay
+      if (process.platform !== 'darwin') app.focus({ steal: true })
+      win.show()
+      win.focus()
+      return
+    }
+    if (!hidden) win.show()
+  })
 
   // Link ngoài mở bằng trình duyệt mặc định, không mở trong app
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -83,9 +111,11 @@ function createWindow(noteId?: string): BrowserWindow {
   if (isDev) {
     const url = new URL(process.env['ELECTRON_RENDERER_URL'] as string)
     if (noteId) url.searchParams.set('note', noteId)
+    if (quick) url.searchParams.set('quick', '1')
+    if (quick?.bookId) url.searchParams.set('book', quick.bookId)
     void win.loadURL(url.toString())
   } else {
-    void win.loadFile(join(__dirname, '../renderer/index.html'), noteId ? { query: { note: noteId } } : undefined)
+    void win.loadFile(join(__dirname, '../renderer/index.html'), noteId ? { query: { note: noteId, ...(quick ? { quick: '1', ...(quick.bookId ? { book: quick.bookId } : {}) } : {}) } } : undefined)
   }
   if (!noteId) {
     setMainWindow(win)
@@ -103,6 +133,11 @@ function getOrCreateWindow(): BrowserWindow {
   return getMainWindow() ?? createWindow()
 }
 
+/** Cửa sổ chính để làm việc ngầm (Quick Note): nếu chưa có thì tạo mà không hiện lên */
+function getOrCreateHiddenWindow(): BrowserWindow {
+  return getMainWindow() ?? createWindow(undefined, undefined, true)
+}
+
 app.whenReady().then(() => {
   // Bản đóng gói đã có icon .icns; chỉ cần đặt icon Dock khi chạy dev
   if (process.platform === 'darwin' && app.dock && !app.isPackaged) {
@@ -113,7 +148,7 @@ app.whenReady().then(() => {
   registerIpc(openNoteWindow)
   buildMenu()
   createWindow()
-  const shortcutActions = registerShortcuts(getOrCreateWindow)
+  const shortcutActions = registerShortcuts(getOrCreateWindow, getOrCreateHiddenWindow)
   const trayActions = {
     show: () => {
       const win = getOrCreateWindow()

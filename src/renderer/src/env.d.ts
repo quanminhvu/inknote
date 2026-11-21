@@ -97,6 +97,8 @@ interface InknoteBridge {
   }
   /** Mở một ghi chú trong cửa sổ riêng */
   openNoteWindow(id: string): void
+  /** Mở ghi chú trong cửa sổ Quick Note nhỏ, nổi trên mọi app */
+  openQuickNote(id: string, bookId: string): void
   web: {
     /** Tiêu đề trang web (og:title hoặc <title>), null nếu không lấy được */
     title(url: string): Promise<string | null>

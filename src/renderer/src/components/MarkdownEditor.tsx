@@ -19,7 +19,7 @@ import { attachFiles, fileIdFromUrl, openAttachment } from '@/lib/attachments'
 import { extraSlashItems } from '@/lib/completions'
 import { setActiveEditor } from '@/lib/editorCommands'
 import { listRenumber } from '@/lib/listRenumber'
-import { tableToolbar } from '@/lib/tableTools'
+import { tableAutoFormat, tableKeymap, tableToolbar } from '@/lib/tableTools'
 import { imageToolbar } from '@/lib/imageTools'
 import { alertBlocks, noWrapBlocks, strikeDoneTasks } from '@/lib/editorDecorations'
 import { useEditorPrefs } from '@/lib/editorPrefs'
@@ -46,6 +46,32 @@ function inCode(view: EditorView, pos: number): boolean {
     if (/^(FencedCode|CodeBlock|InlineCode|CodeText)$/.test(node.name)) return true
   }
   return false
+}
+
+/** Nội dung dán có khối (heading, danh sách, bảng, code, trích dẫn, nhiều đoạn) chứ không chỉ chữ trong dòng */
+const isBlockMarkdown = (md: string): boolean => md.includes('\n') || /^(#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\||```|~~~)/.test(md)
+
+/**
+ * Dán khối vào giữa một dòng có chữ: tách thành đoạn riêng, có dòng trống trước và sau,
+ * để heading/danh sách/bảng không dính vào câu đang viết. Chữ trong dòng thì chèn nguyên.
+ */
+function blockAware(view: EditorView, from: number, to: number, md: string): { insert: string; anchor: number } {
+  if (!isBlockMarkdown(md)) return { insert: md, anchor: from + md.length }
+  const doc = view.state.doc
+  const startLine = doc.lineAt(from)
+  const endLine = doc.lineAt(to)
+  const before = startLine.text.slice(0, from - startLine.from)
+  const after = endLine.text.slice(to - endLine.from)
+  // Phía trước: chữ trên cùng dòng → xuống 2 dòng; đầu dòng nhưng dòng trên có chữ → thêm 1 dòng trống
+  let prefix = ''
+  if (before.trim()) prefix = '\n\n'
+  else if (startLine.number > 1 && doc.line(startLine.number - 1).text.trim()) prefix = '\n'
+  // Phía sau: chữ còn lại trên dòng → xuống 2 dòng; cuối dòng nhưng dòng dưới có chữ → thêm 1 dòng trống
+  let suffix = ''
+  if (after.trim()) suffix = '\n\n'
+  else if (endLine.number < doc.lines && doc.line(endLine.number + 1).text.trim()) suffix = '\n'
+  const insert = prefix + md + suffix
+  return { insert, anchor: from + prefix.length + md.length }
 }
 
 /** Dán chữ thuần trong clipboard vào chỗ đang chọn */
@@ -196,6 +222,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
           highlightActiveLine(),
           formatToolbar(),
           tableToolbar(),
+          tableAutoFormat,
           imageToolbar(),
           noteLinkHover,
           dueDateHighlight,
@@ -214,6 +241,8 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
             { key: 'Mod-b', run: toggleWrap('**') },
             { key: 'Mod-i', run: toggleWrap('*') },
             ...completionKeymap,
+            // Trong bảng: Tab/⇧Tab/Enter đi giữa các ô (trước phím Tab thụt lề, Enter tiếp danh sách)
+            ...tableKeymap,
             ...foldKeymap,
             ...markdownKeymap,
             ...closeBracketsKeymap,
@@ -270,12 +299,13 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
                 // trừ khi đang ở trong khối code hay code trong dòng
                 const html = event.clipboardData?.getData('text/html') ?? ''
                 if (!html || inCode(view, main.from)) return false
-                const markdown = htmlToMarkdown(html)
+                const markdown = htmlToMarkdown(html, event.clipboardData?.getData('text/plain') ?? '')
                 if (!markdown) return false
                 event.preventDefault()
+                const { insert, anchor } = blockAware(view, main.from, main.to, markdown)
                 view.dispatch({
-                  changes: { from: main.from, to: main.to, insert: markdown },
-                  selection: { anchor: main.from + markdown.length },
+                  changes: { from: main.from, to: main.to, insert },
+                  selection: { anchor },
                   userEvent: 'input.paste',
                   scrollIntoView: true
                 })

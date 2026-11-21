@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('inknote', {
   openDataFolder: () => ipcRenderer.invoke('app:openDataFolder'),
   readClipboardText: () => ipcRenderer.invoke('clipboard:readText'),
   openNoteWindow: (id: string) => ipcRenderer.send('window:openNote', id),
+  openQuickNote: (id: string, bookId: string) => ipcRenderer.send('window:openQuickNote', id, bookId),
   importer: {
     pick: () => ipcRenderer.invoke('import:pick'),
     appleNotes: () => ipcRenderer.invoke('import:appleNotes'),

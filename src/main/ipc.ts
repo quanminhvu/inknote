@@ -54,9 +54,14 @@ function isExportFiles(value: unknown): value is ExportFile[] {
 
 export { view as settingsView }
 
-export function registerIpc(openNoteWindow: (noteId: string) => void): void {
+export function registerIpc(openNoteWindow: (noteId: string, quick?: { bookId?: string }) => void): void {
   ipcMain.on('window:openNote', (_e, id: unknown) => {
     if (typeof id === 'string' && /^note:[A-Za-z0-9_-]{1,64}$/.test(id)) openNoteWindow(id)
+  })
+  // Quick Note: cửa sổ nhỏ nổi trên mọi app, kiểu Quick Note của Apple Notes
+  ipcMain.on('window:openQuickNote', (_e, id: unknown, bookId: unknown) => {
+    if (typeof id !== 'string' || !/^note:[A-Za-z0-9_-]{1,64}$/.test(id)) return
+    openNoteWindow(id, { bookId: typeof bookId === 'string' && /^book:[A-Za-z0-9_-]{1,64}$/.test(bookId) ? bookId : undefined })
   })
   const win = (event: Electron.IpcMainInvokeEvent): BrowserWindow | undefined =>
     BrowserWindow.fromWebContents(event.sender) ?? undefined

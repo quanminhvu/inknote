@@ -2,9 +2,9 @@ import { AppearancePicker } from './AppearancePicker'
 import type { AppearanceTarget } from './AppearancePicker'
 import { useMemo, useState } from 'react'
 import { openActivity } from './ActivityPanel'
-import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, Files, FolderPlus, LayoutTemplate, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, Trash2, Upload, Waypoints, X } from 'lucide-react'
+import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, FileText, FolderPlus, LayoutTemplate, LibraryBig, LogIn, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, Trash2, Upload, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { childrenByParent, descendantIds } from '@/lib/selectors'
+import { bookTree, childrenByParent, descendantIds } from '@/lib/selectors'
 import { getStatuses } from '@/lib/statuses'
 import type { Book, NoteStatus, Selection } from '@/lib/types'
 import { cx, isMac } from '@/lib/util'
@@ -244,12 +244,46 @@ function FilterInput({ value, onChange, onClose }: { value: string; onChange: (v
   )
 }
 
+/**
+ * Đầu sidebar khi đang mở một notebook như không gian riêng:
+ * đường dẫn các notebook cha (bấm để lùi lên), rồi tên notebook đang mở.
+ */
+function WorkspaceHeader({ id, books, onOpen }: { id: string; books: Record<string, Book>; onOpen: (id: string | null) => void }): React.JSX.Element {
+  const path: Book[] = []
+  for (let b: Book | undefined = books[books[id]?.parentId ?? '']; b && path.length < 20; b = b.parentId ? books[b.parentId] : undefined) path.unshift(b)
+  const book = books[id]
+  return (
+    <div className="workspace-header">
+      <nav className="workspace-crumbs" aria-label="Notebook path">
+        <button className="workspace-crumb" title="All notebooks" aria-label="Back to all notebooks" onClick={() => onOpen(null)}>
+          <LibraryBig size={17} />
+        </button>
+        {path.map((b) => (
+          <span key={b._id} className="workspace-crumb-item">
+            <ChevronRight size={13} className="workspace-sep" />
+            <button className="workspace-crumb" title={`Open ${b.name}`} onClick={() => onOpen(b._id)}>
+              <BookIcon name={b.icon} />
+              <span>{b.name}</span>
+            </button>
+          </span>
+        ))}
+        <ChevronRight size={13} className="workspace-sep" />
+      </nav>
+      <div className="workspace-title" title={book.name}>
+        <BookIcon name={book.icon} size={18} />
+        <span>{book.name}</span>
+      </div>
+    </div>
+  )
+}
+
 export function Sidebar(): React.JSX.Element {
   useStore((s) => s.statuses)
   const notes = useStore((s) => s.notes)
   const books = useStore((s) => s.books)
   const tags = useStore((s) => s.tags)
   const collapsed = useStore((s) => s.collapsedBooks)
+  const workspace = useStore((s) => (s.workspace && s.books[s.workspace] ? s.workspace : null))
   const actions = useStore.getState()
   const [appearance, setAppearance] = useState<AppearanceTarget | null>(null)
   const [editing, setEditing] = useState<Editing>(null)
@@ -271,6 +305,8 @@ export function Sidebar(): React.JSX.Element {
   // Số task đến hạn hôm nay / quá hạn, hiện cạnh dòng Today
   const due = useMemo(() => dueCounts(collectTasks(notes), dayKey(new Date())), [notes])
 
+  // Đang mở một notebook như không gian riêng: đếm và liệt kê chỉ trong notebook đó
+  const scope = useMemo(() => (workspace ? bookTree(books, workspace) : null), [books, workspace])
   const counts = useMemo(() => {
     const byBook = new Map<string, number>()
     const byStatus = new Map<NoteStatus, number>()
@@ -282,13 +318,14 @@ export function Sidebar(): React.JSX.Element {
         trash++
         continue
       }
+      if (scope && !scope.has(note.bookId)) continue
       all++
       byBook.set(note.bookId, (byBook.get(note.bookId) ?? 0) + 1)
       byStatus.set(note.status, (byStatus.get(note.status) ?? 0) + 1)
       for (const tag of note.tags) byTag.set(tag, (byTag.get(tag) ?? 0) + 1)
     }
     return { byBook, byStatus, byTag, all, trash }
-  }, [notes])
+  }, [notes, scope])
 
   const moveNoteTo = (data: string, patch: Parameters<typeof actions.updateNote>[1]): void => {
     for (const id of noteIdsFromDrag(data)) actions.updateNote(id, { trashed: false, ...patch })
@@ -296,6 +333,9 @@ export function Sidebar(): React.JSX.Element {
 
   const bookMenu = (book: Book) => (e: React.MouseEvent) =>
     openMenu(e, [
+      ...(book._id !== workspace
+        ? [{ label: 'Open as Workspace', icon: <LogIn size={14} />, onClick: () => actions.setWorkspace(book._id) }, { separator: true as const }]
+        : []),
       { label: 'New Sub-notebook', icon: <FolderPlus size={14} />, onClick: () => setEditing({ kind: 'new', parentId: book._id }) },
       { label: 'Rename', icon: <Pencil size={14} />, hint: 'Double-click', onClick: () => setEditing({ kind: 'rename', id: book._id }) },
       { label: 'Change Icon…', icon: <Smile size={14} />, onClick: () => openIconPicker(book._id) },
@@ -411,8 +451,10 @@ export function Sidebar(): React.JSX.Element {
           <Settings size={16} />
         </button>
       </div>
+      {workspace && <WorkspaceHeader id={workspace} books={books} onOpen={actions.setWorkspace} />}
       <div className="sidebar-scroll">
-        <Row selection={{ kind: 'all' }} icon={<Files size={15} />} label="All Notes" count={counts.all} />
+        <Row selection={{ kind: 'all' }} icon={<FileText size={15} />} label="All Notes" count={counts.all} />
+        {!workspace && (<>
         <div className="side-row" style={{ paddingLeft: 10 }} onClick={() => actions.setPalette('templates')}>
           <span className="side-icon">
             <LayoutTemplate size={15} />
@@ -439,7 +481,9 @@ export function Sidebar(): React.JSX.Element {
           </span>
           <span className="side-label">Graph</span>
         </div>
+        </>)}
 
+        {(!workspace || (children.get(workspace) ?? []).length > 0 || (editing?.kind === 'new' && editing.parentId === workspace)) && (<>
         <SectionHeading
           title="Notebooks"
           collapsed={!!sections.books}
@@ -447,16 +491,17 @@ export function Sidebar(): React.JSX.Element {
           onSearch={() => setBookFilter(bookFilter === null ? '' : null)}
           onAdd={() => {
             if (sections.books) toggleSection('books')
-            setEditing({ kind: 'new', parentId: null })
+            setEditing({ kind: 'new', parentId: workspace })
           }}
           addTitle="New notebook"
-          dropProps={rootDrop.props}
+          dropProps={workspace ? undefined : rootDrop.props}
           dropOver={rootDrop.over}
         />
         {!sections.books && bookFilter !== null && <FilterInput value={bookFilter} onChange={setBookFilter} onClose={() => setBookFilter(null)} />}
         {!sections.books &&
           (bookFilter
             ? Object.values(books)
+                .filter((b) => !scope || (scope.has(b._id) && b._id !== workspace))
                 .map((b) => ({ b, m: fuzzyMatch(bookFilter, b.name) }))
                 .filter((x) => x.m)
                 .sort((a, z) => z.m!.score - a.m!.score)
@@ -470,18 +515,19 @@ export function Sidebar(): React.JSX.Element {
                     onContextMenu={bookMenu(b)}
                   />
                 ))
-            : renderBooks(null, 0))}
-        {editing?.kind === 'new' && editing.parentId === null && (
+            : renderBooks(workspace, 0))}
+        {editing?.kind === 'new' && editing.parentId === workspace && (
           <div className="side-row editing" style={{ paddingLeft: 10 }}>
             <NameInput
               initial=""
               onDone={(name) => {
-                if (name) actions.select({ kind: 'book', id: actions.createBook(name, null) })
+                if (name) actions.select({ kind: 'book', id: actions.createBook(name, workspace) })
                 setEditing(null)
               }}
             />
           </div>
         )}
+        </>)}
 
         <SectionHeading title="Status" collapsed={!!sections.status} onToggle={() => toggleSection('status')}
           addTitle="New status" onAdd={() => { setSections((s) => ({ ...s, status: false })); setEditing({ kind: 'newStatus' }) }} />
@@ -566,6 +612,8 @@ export function Sidebar(): React.JSX.Element {
         {!sections.tags &&
           sortedTags
             .filter((tag) => !tagFilter || fuzzyMatch(tagFilter, tag.name))
+            // Trong không gian riêng chỉ hiện tag có dùng trong đó
+            .filter((tag) => !workspace || (counts.byTag.get(tag._id) ?? 0) > 0)
             .map((tag) =>
           editing?.kind === 'renameTag' && editing.id === tag._id ? (
             <div key={tag._id} className="side-row editing" style={{ paddingLeft: 10 }}>

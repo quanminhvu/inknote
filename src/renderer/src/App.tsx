@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { ResizeHandle, usePaneSize } from './components/ResizeHandle'
 import { useEffect, useRef } from 'react'
-import { useStore } from '@/lib/store'
+import { newNoteId, useStore } from '@/lib/store'
 import { cx, isMac } from '@/lib/util'
 import { backupNow, exportNote, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { flushBackup, startBackup } from '@/lib/backup'
@@ -30,7 +30,7 @@ import { NotePane } from './components/NotePane'
 import { Notice } from './components/Notice'
 import { Preferences } from './components/Preferences'
 import { Sidebar } from './components/Sidebar'
-import { noteWindowId, openInNewWindow } from './lib/windowMode'
+import { isQuickNoteWindow, noteWindowId, openInNewWindow } from './lib/windowMode'
 
 /** Tiêu đề cửa sổ ghi chú riêng = tiêu đề ghi chú */
 function NoteWindowTitle(): null {
@@ -38,6 +38,26 @@ function NoteWindowTitle(): null {
   useEffect(() => {
     document.title = title ? `${title} — Inknote` : 'Inknote'
   }, [title])
+  return null
+}
+
+/** Quick Note vừa mở: đặt con trỏ vào ô tiêu đề để gõ ngay */
+function QuickNoteFocus(): null {
+  useEffect(() => {
+    const t = setTimeout(() => document.querySelector<HTMLInputElement>('.note-title')?.focus(), 50)
+    // Quick Note là panel, app có thể không ở trước nên menu không nhận ⌘W: tự đóng cửa sổ
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.code === 'KeyW') {
+        e.preventDefault()
+        window.close()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('keydown', onKey, true)
+    }
+  }, [])
   return null
 }
 
@@ -60,6 +80,8 @@ export function App(): React.JSX.Element {
         .init()
         .then(() => {
           if (noteWindowId) {
+            // Quick Note: ghi chú chưa có trong dữ liệu, chỉ tạo bản nháp (lưu khi bắt đầu viết)
+            if (isQuickNoteWindow) useStore.getState().addDraftNote(noteWindowId, new URLSearchParams(location.search).get('book'))
             useStore.setState({ selectedNoteId: noteWindowId, distractionFree: false })
             return
           }
@@ -94,11 +116,17 @@ export function App(): React.JSX.Element {
       if (command === 'preferences') s.setPrefsOpen(true)
       else if (command === 'new-note') s.createNote()
       else if (command === 'quick-note') {
-        s.setPrefsOpen(false)
-        s.setPalette(null)
-        if (s.distractionFree) s.toggleDistractionFree()
-        s.createNote()
-        setTimeout(() => document.querySelector<HTMLInputElement>('.note-title')?.focus(), 0)
+        // Ghi chú mới mở trong cửa sổ Quick Note nhỏ, nổi trên app đang dùng (kiểu Apple Notes).
+        // Chưa tạo ghi chú ở đây: cửa sổ Quick Note chỉ lưu khi người dùng bắt đầu viết.
+        window.inknote?.openQuickNote(newNoteId(), s.bookForNewNote())
+      } else if (command.startsWith('quick-note-closed:')) {
+        // Đóng Quick Note mà chưa viết gì: xóa luôn ghi chú rỗng. Chờ một chút để
+        // nội dung vừa gõ trong cửa sổ đó kịp lưu và đồng bộ sang đây.
+        const id = command.slice('quick-note-closed:'.length)
+        setTimeout(() => {
+          const note = useStore.getState().notes[id]
+          if (note && !note.title.trim() && !note.body.trim()) useStore.getState().deleteNoteForever(id)
+        }, 1500)
       }
       else if (command === 'import') void runImport()
       else if (command === 'export-note') void exportNote()
@@ -242,8 +270,9 @@ export function App(): React.JSX.Element {
 
   if (noteWindowId) {
     return (
-      <div className={cx('app', 'note-window', isMac() && 'mac')}>
+      <div className={cx('app', 'note-window', isQuickNoteWindow && 'quick-note', isMac() && 'mac')}>
         <NoteWindowTitle />
+        {isQuickNoteWindow && <QuickNoteFocus />}
         <NotePane />
         <ContextMenuHost />
         <CommandPalette />

@@ -1,8 +1,8 @@
 import { syntaxTree } from '@codemirror/language'
 import { EditorSelection, StateField } from '@codemirror/state'
 import type { EditorState, Extension } from '@codemirror/state'
-import { EditorView, showTooltip } from '@codemirror/view'
-import type { Tooltip } from '@codemirror/view'
+import { EditorView, showTooltip, ViewPlugin } from '@codemirror/view'
+import type { KeyBinding, Tooltip, ViewUpdate } from '@codemirror/view'
 
 // Chỉnh bảng Markdown: thêm/xóa/di chuyển hàng và cột, căn lề cột, căn thẳng các cột.
 // Bảng được tìm bằng cây cú pháp (node "Table") nên bảng nằm trong khối code bị bỏ qua.
@@ -114,8 +114,8 @@ function delimiter(align: Align, width: number): string {
   return '-'.repeat(w)
 }
 
-/** Dựng lại bảng với các cột thẳng hàng; trả về văn bản và vị trí đầu mỗi ô */
-function render(t: Table): { text: string; cellStart: (row: number, col: number) => number } {
+/** Dựng lại bảng với các cột thẳng hàng; trả về văn bản, vị trí đầu mỗi ô và vùng chữ trong ô */
+function render(t: Table): { text: string; cellStart: (row: number, col: number) => number; cellText: (row: number, col: number) => [number, number] } {
   const cols = Math.max(t.header.length, t.aligns.length, ...t.body.map((r) => r.length), 1)
   const norm = (row: string[]): string[] => Array.from({ length: cols }, (_, i) => row[i] ?? '')
   const header = norm(t.header)
@@ -123,14 +123,21 @@ function render(t: Table): { text: string; cellStart: (row: number, col: number)
   const aligns = Array.from({ length: cols }, (_, i) => t.aligns[i] ?? null)
   const widths = Array.from({ length: cols }, (_, i) => Math.max(3, displayWidth(header[i]), ...body.map((r) => displayWidth(r[i]))))
   const offsets: number[][] = []
+  const texts: [number, number][][] = []
   const line = (cells: string[], rowIndex: number, base: number): string => {
     const starts: number[] = []
+    const spans: [number, number][] = []
     let out = '|'
-    cells.forEach((c, i) => {
-      starts.push(base + out.length + 1)
+    cells.forEach((c) => {
+      const start = base + out.length + 1
+      starts.push(start)
+      // Ô rỗng: chỉ đặt con trỏ ở đầu ô (đừng chọn các dấu cách đệm)
+      const lead = c.trim() ? c.length - c.trimStart().length : 0
+      spans.push([start + lead, c.trim() ? start + c.trimEnd().length : start])
       out += ` ${c} |`
     })
     offsets[rowIndex] = starts
+    texts[rowIndex] = spans
     return out
   }
   const lines: string[] = []
@@ -148,6 +155,11 @@ function render(t: Table): { text: string; cellStart: (row: number, col: number)
       const r = Math.max(0, Math.min(offsets.length - 1, row < 0 ? 0 : row + 2))
       const starts = offsets[r]
       return starts[Math.max(0, Math.min(starts.length - 1, col))]
+    },
+    cellText: (row, col) => {
+      const r = Math.max(0, Math.min(texts.length - 1, row < 0 ? 0 : row + 2))
+      const spans = texts[r]
+      return spans[Math.max(0, Math.min(spans.length - 1, col))]
     }
   }
 }
@@ -298,3 +310,122 @@ const tableToolbarField = StateField.define<Tooltip | null>({
 export function tableToolbar(): Extension {
   return [tableToolbarField]
 }
+
+// ── Phím tắt trong bảng: Tab/⇧Tab sang ô kế/trước, Enter xuống hàng dưới; mỗi lần đều căn thẳng cột ──
+
+/** Căn lại bảng rồi chọn chữ trong ô (row, col) — ô rỗng thì đặt con trỏ vào đó */
+function moveTo(view: EditorView, table: Table, row: number, col: number): void {
+  const { text, cellText } = render(table)
+  const [from, to] = cellText(row, col)
+  view.dispatch({
+    changes: { from: table.from, to: table.to, insert: text },
+    selection: EditorSelection.range(table.from + from, table.from + to),
+    userEvent: 'input',
+    scrollIntoView: true
+  })
+}
+
+/** Có đang đứng trong bảng không (chỉ một con trỏ, không ở chế độ chỉ đọc) */
+function tableHere(view: EditorView): { table: Table; cursor: Cursor } | null {
+  const { state } = view
+  if (state.readOnly || state.selection.ranges.length > 1) return null
+  const pos = state.selection.main.head
+  const table = findTable(state, pos)
+  return table ? { table, cursor: cursorIn(state, table, pos) } : null
+}
+
+function nextCell(view: EditorView): boolean {
+  const here = tableHere(view)
+  if (!here) return false
+  const { table, cursor } = here
+  const n = cols(table)
+  let { row, col } = cursor
+  if (col < n - 1) col++
+  else {
+    row++
+    col = 0
+    // Ô cuối của hàng cuối: thêm hàng mới
+    if (row >= table.body.length) table.body.push(Array(n).fill(''))
+  }
+  moveTo(view, table, row, col)
+  return true
+}
+
+function prevCell(view: EditorView): boolean {
+  const here = tableHere(view)
+  if (!here) return false
+  const { table, cursor } = here
+  let { row, col } = cursor
+  if (col > 0) col--
+  else if (row >= 0) {
+    row--
+    col = cols(table) - 1
+  }
+  moveTo(view, table, row, col)
+  return true
+}
+
+function nextRow(view: EditorView): boolean {
+  const here = tableHere(view)
+  if (!here) return false
+  const { table, cursor } = here
+  const n = cols(table)
+  const row = cursor.row + 1
+  const last = table.body[table.body.length - 1]
+  // Enter ở hàng cuối đang trống: bỏ hàng đó và ra khỏi bảng
+  if (cursor.row === table.body.length - 1 && last && last.every((c) => !c.trim())) {
+    table.body.pop()
+    const { text } = render(table)
+    const doc = view.state.doc
+    const after = table.from + text.length
+    // Sau bảng đã có dòng trống thì đặt con trỏ vào đó; không thì chèn một đoạn mới, cách bảng một dòng trống
+    const blankAfter = table.to < doc.length && !doc.lineAt(table.to + 1).text.trim()
+    const insert = blankAfter ? text : text + (table.to < doc.length ? '\n\n\n' : '\n\n')
+    view.dispatch({
+      changes: { from: table.from, to: table.to, insert },
+      selection: EditorSelection.cursor(after + (blankAfter ? 1 : 2)),
+      userEvent: 'input',
+      scrollIntoView: true
+    })
+    return true
+  }
+  if (row >= table.body.length) table.body.push(Array(n).fill(''))
+  moveTo(view, table, row, cursor.col)
+  return true
+}
+
+export const tableKeymap: readonly KeyBinding[] = [
+  { key: 'Tab', run: nextCell },
+  { key: 'Shift-Tab', run: prevCell },
+  { key: 'Enter', run: nextRow }
+]
+
+/** Rời khỏi một bảng (con trỏ đi chỗ khác) thì tự căn thẳng các cột của bảng đó */
+export const tableAutoFormat = ViewPlugin.fromClass(
+  class {
+    /** Vị trí trong bảng mà con trỏ vừa đứng, null = không ở trong bảng */
+    last: number | null = null
+    update(u: ViewUpdate): void {
+      let last = this.last
+      if (last !== null && u.docChanged) last = u.changes.mapPos(last)
+      const head = u.state.selection.main.head
+      const now = findTable(u.state, head)
+      if (last !== null && (u.selectionSet || u.docChanged)) {
+        const old = findTable(u.state, last)
+        if (old && (!now || now.from !== old.from)) {
+          const view = u.view
+          const at = old.from
+          // Không sửa văn bản ngay trong lúc cập nhật: chờ xong lượt này
+          queueMicrotask(() => {
+            if (view.composing || view.state.readOnly) return
+            const t = findTable(view.state, at + 1)
+            if (!t) return
+            const { text } = render(t)
+            if (view.state.sliceDoc(t.from, t.to) !== text) view.dispatch({ changes: { from: t.from, to: t.to, insert: text }, userEvent: 'input.format' })
+          })
+        }
+      }
+      this.last = now ? head : null
+    }
+  }
+)

@@ -90,13 +90,14 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
   const query = useStore((s) => s.query)
   const sort = useStore((s) => s.sort)
   const collapsedBooks = useStore((s) => s.collapsedBooks)
+  const workspace = useStore((s) => s.workspace)
   const selectedNoteId = useStore((s) => s.selectedNoteId)
   const { selectNote, setQuery, setSort, createNote, emptyTrash } = useStore.getState()
   const listRef = useRef<HTMLDivElement>(null)
 
   const list = useMemo(
-    () => visibleNotes({ notes, books, tags, selection, query, sort, collapsedBooks }),
-    [notes, books, tags, selection, query, sort, collapsedBooks]
+    () => visibleNotes({ notes, books, tags, selection, query, sort, collapsedBooks, workspace }),
+    [notes, books, tags, selection, query, sort, collapsedBooks, workspace]
   )
   const words = useMemo(() => highlightWords(parseQuery(query)), [query])
 
@@ -148,7 +149,9 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
 
   const heading =
     selection.kind === 'all'
-      ? 'All Notes'
+      ? workspace && books[workspace]
+        ? books[workspace].name
+        : 'All Notes'
       : selection.kind === 'trash'
         ? 'Trash'
         : selection.kind === 'book'
