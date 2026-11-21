@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-21
+
 ### Changed
 
 - Renamed the app from Nibmark to Inknote, with a new Origami Bird icon and logo. On first launch, notes, settings, themes and version history are copied from the old Nibmark data folder, which is kept as a backup.
@@ -15,7 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Tab and Shift-Tab move between table cells and Enter moves to the next row, adding rows as needed. Columns are aligned when you leave the table.
-- Quick Note opens a small floating window, like Quick Note in Apple Notes. A quick note is saved only once you start writing.
+- Quick Note opens a small floating panel, like Quick Note in Apple Notes, without bringing the main window forward. A quick note is saved only once you start writing, and ⌘W closes it.
+- Preferences is a settings window with a sidebar (Appearance, Editor, Shortcuts, Templates, AI Agents, Backup & Data), grouped settings and switches.
 - Open a notebook as a workspace, with a breadcrumb of its parent notebooks in the sidebar.
 - Pasting rich text turns it into Markdown, including tables from Google Sheets and Excel. Task due dates with `@YYYY-MM-DD`.
 - Translucent panes, heavier text and lighter line icons.
