@@ -33,6 +33,7 @@ import { Sidebar } from './components/Sidebar'
 import { isQuickNoteWindow, noteWindowId, openInNewWindow } from './lib/windowMode'
 import { QuickNoteFooter } from './components/QuickNoteFooter'
 import { TodayView } from './components/TodayView'
+import { usePaneSlide } from './lib/paneSlide'
 
 /** Tiêu đề cửa sổ ghi chú riêng = tiêu đề ghi chú */
 function NoteWindowTitle(): null {
@@ -72,6 +73,9 @@ export function App(): React.JSX.Element {
   const distractionFree = useStore((s) => s.distractionFree)
   const sidebarHidden = useStore((s) => s.sidebarHidden)
   const selection = useStore((s) => s.selection)
+  // Đóng/mở sidebar, chế độ tập trung: các cột trượt mượt (chỉ dịch vị trí, không tính lại bố cục)
+  const appRef = useRef<HTMLDivElement>(null)
+  usePaneSlide(appRef, sidebarHidden, distractionFree)
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -290,7 +294,7 @@ export function App(): React.JSX.Element {
   }
 
   return (
-    <div style={{ '--sidebar-size': `${sidebarWidth}px`, '--list-size': `${listWidth}px` } as CSSProperties} className={cx('app', isMac() && 'mac', distractionFree && 'distraction-free', sidebarHidden && 'sidebar-hidden')}>
+    <div ref={appRef} style={{ '--sidebar-size': `${sidebarWidth}px`, '--list-size': `${listWidth}px` } as CSSProperties} className={cx('app', isMac() && 'mac', distractionFree && 'distraction-free', sidebarHidden && 'sidebar-hidden')}>
       <Sidebar />
       {!distractionFree && !sidebarHidden && <ResizeHandle className="resize-sidebar" label="Sidebar width" value={sidebarWidth} min={160} max={420} reset={228} onChange={setSidebarWidth} />}
       {selection.kind === 'today' && !distractionFree ? (

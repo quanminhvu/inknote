@@ -6753,23 +6753,14 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
   --slide: 0.36s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Các cột trượt */
-.app:not(.note-window) {
-  transition: grid-template-columns var(--slide);
-}
-html.resizing-panes .app {
-  transition: none !important;
-}
+/* Các cột: trượt bằng JS (lib/paneSlide.ts, chỉ dịch vị trí). Ở đây chỉ giữ trạng thái cuối. */
 .app:not(.note-window) .sidebar,
 .app:not(.note-window) .notelist {
   min-width: 0;
   overflow: hidden;
-  transition: transform var(--slide), visibility 0s;
 }
 .app.sidebar-hidden .sidebar {
-  transform: translateX(-100%);
   visibility: hidden;
-  transition: transform var(--slide), visibility 0s 0.36s;
 }
 /* Chế độ tập trung: sidebar và danh sách vẫn nằm trong bố cục (cột rộng 0) để trượt ra được */
 .app.distraction-free:not(.note-window),
@@ -6779,10 +6770,13 @@ html.resizing-panes .app {
 .app.distraction-free:not(.note-window) .sidebar,
 .app.distraction-free:not(.note-window) .notelist {
   display: flex !important;
-  transform: translateX(-100%);
   visibility: hidden;
   pointer-events: none;
-  transition: transform var(--slide), visibility 0s 0.36s;
+}
+.app:not(.note-window) .notepane,
+.app:not(.note-window) .today {
+  position: relative;
+  z-index: 1;
 }
 
 /* Rê chuột, chọn: màu nền đổi nhanh (danh sách ghi chú đổi ngay) */
@@ -6940,4 +6934,8 @@ html.resizing-panes .app {
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
   }
+}
+.app:not(.note-window) .notelist {
+  position: relative;
+  z-index: 1;
 }
