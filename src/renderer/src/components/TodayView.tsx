@@ -126,8 +126,6 @@ export function TodayView(): React.JSX.Element {
     if (note) useStore.getState().updateNote(t.noteId, { body: toggleTask(note.body, t.index) })
   }
 
-  const hour = now.getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
   const summary =
     overdue || dueToday
       ? [dueToday && `${dueToday} due today`, overdue && `${overdue} overdue`].filter(Boolean).join(', ')
@@ -148,8 +146,9 @@ export function TodayView(): React.JSX.Element {
     <section className="today" aria-label="Today">
       <header className="today-header">
         <div className="today-heading">
-          <span className="today-date">{now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-          <h1>{greeting}</h1>
+          <h1>
+            Today <span className="today-date">{now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+          </h1>
           <p>{summary}</p>
         </div>
         <button className="btn today-open" onClick={() => {
@@ -171,7 +170,7 @@ export function TodayView(): React.JSX.Element {
         <input
           aria-label="Add a task to today's note"
           value={capture}
-          placeholder="Add a task to today’s note… use @tomorrow, @fri or @2026-12-01 for a due date"
+          placeholder="Add a task to today’s note (@tomorrow, @fri, @2026-12-01 for a due date)"
           onChange={(e) => setCapture(e.target.value)}
         />
         {parsed.due && <span className={cx('due', `due-${dueState(parsed.due, false, now)}`)}>{dueLabel(parsed.due, now)}</span>}

@@ -102,13 +102,12 @@ export function NotePane(): React.JSX.Element {
           {distractionFree ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         </button>
         <NavButtons />
-        <Breadcrumb bookId={note.bookId} title={note.title} />
         <span className="flex-1" />
         {!readOnly && (
-          <div className="segmented view-modes" role="group" aria-label="View mode">
+          <div className="segmented" role="group" aria-label="View mode">
             {VIEW_MODES.map((v) => (
-              <button key={v.mode} title={v.title} aria-pressed={mode === v.mode} className={cx(mode === v.mode && 'on')} onClick={() => setViewMode(v.mode)}>
-                {v.label}
+              <button key={v.mode} title={v.title} aria-label={v.label} aria-pressed={mode === v.mode} className={cx(mode === v.mode && 'on')} onClick={() => setViewMode(v.mode)}>
+                {v.icon}
               </button>
             ))}
           </div>
@@ -160,6 +159,10 @@ export function NotePane(): React.JSX.Element {
           <NotebookPicker value={books[note.bookId] ? note.bookId : ''} placeholder="No notebook" onPick={(bookId) => updateNote(note._id, { bookId })} />
           <StatusPicker value={note.status} onPick={(status) => updateNote(note._id, { status })} />
           <TagInput noteId={note._id} tagIds={note.tags} />
+          <NoteStats body={note.body} />
+          <span className="note-updated" title={new Date(note.updatedAt).toLocaleString()}>
+            {relativeTime(note.updatedAt)}
+          </span>
         </div>
       )}
 
@@ -179,10 +182,6 @@ export function NotePane(): React.JSX.Element {
             }
           }}
         />
-      </div>
-      <div className="note-sub">
-        <span title={new Date(note.updatedAt).toLocaleString()}>Edited {relativeTime(note.updatedAt)}</span>
-        <NoteStats body={note.body} />
       </div>
 
       </div>
@@ -282,26 +281,5 @@ function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: n
       </span>
       <span>Markdown</span>
     </footer>
-  )
-}
-
-/** Đường dẫn notebook (cha › con) và tên ghi chú, trên thanh công cụ */
-function Breadcrumb({ bookId, title }: { bookId: string; title: string }): React.JSX.Element | null {
-  const books = useStore((s) => s.books)
-  const path: { id: string; name: string }[] = []
-  for (let b: Book | undefined = books[bookId]; b && path.length < 6; b = b.parentId ? books[b.parentId] : undefined) path.unshift({ id: b._id, name: b.name })
-  if (!path.length) return null
-  return (
-    <nav className="breadcrumb" aria-label="Notebook path">
-      {path.map((b) => (
-        <Fragment key={b.id}>
-          <button className="crumb" onClick={() => useStore.getState().select({ kind: 'book', id: b.id })}>
-            {b.name}
-          </button>
-          <span className="crumb-sep" aria-hidden="true">/</span>
-        </Fragment>
-      ))}
-      <span className="crumb-current">{title || 'Untitled'}</span>
-    </nav>
   )
 }

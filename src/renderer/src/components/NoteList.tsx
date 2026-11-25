@@ -237,8 +237,19 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
             )}
             {selection.kind === 'status' && <StatusIcon status={selection.status} size={15} />}
             <span className="notelist-heading-text">{heading}</span>
+            {quick !== 'all' && <span className="notelist-filter">· {QUICK_FILTERS.find((f) => f.id === quick)?.label}</span>}
             <span className="notelist-count">{list.length}</span>
           </h2>
+          {selection.kind !== 'trash' && (
+            <button
+              className={cx('icon-btn', quick !== 'all' && 'on')}
+              title="Show only…"
+              aria-label="Filter notes"
+              onClick={(e) => openMenu(e, QUICK_FILTERS.map((f) => ({ label: f.label === 'All' ? 'All notes' : f.label, checked: quick === f.id, onClick: () => setQuick(f.id) })), true)}
+            >
+              <ListFilter size={15} />
+            </button>
+          )}
           <button
             className="icon-btn"
             title="Sort"
@@ -268,15 +279,6 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
             </button>
           )}
         </div>
-        {selection.kind !== 'trash' && (
-          <div className="quick-filters" role="tablist" aria-label="Quick filter">
-            {QUICK_FILTERS.map((f) => (
-              <button key={f.id} role="tab" aria-selected={quick === f.id} className={cx('quick-filter', quick === f.id && 'on')} onClick={() => setQuick(f.id)}>
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
         <div className="search-box">
           <ListFilter size={14} />
           <input

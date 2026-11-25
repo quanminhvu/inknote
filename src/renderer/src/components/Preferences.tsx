@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bot, HardDrive, Info, Keyboard, LayoutTemplate, Lock, Palette, Search, SquarePen, X } from 'lucide-react'
+import { Bot, HardDrive, Info, Keyboard, LayoutTemplate, Palette, Search, SquarePen, X } from 'lucide-react'
 import brandIcon from '../../../../assets/icon/inknote-icon.svg'
 import { backupNow, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { onBackupStatus } from '@/lib/backup'
@@ -101,13 +101,7 @@ export function Preferences(): React.JSX.Element | null {
     <div className="modal-backdrop settings-backdrop" onMouseDown={() => setOpen(false)}>
       <div className="settings" role="dialog" aria-label="Preferences" onMouseDown={(e) => e.stopPropagation()}>
         <nav className="settings-nav" aria-label="Preference sections">
-          <div className="settings-brand">
-            <img src={brandIcon} alt="" />
-            <span>
-              <strong>Inknote</strong>
-              <small>Version {__APP_VERSION__}</small>
-            </span>
-          </div>
+          <div className="settings-nav-title">Preferences</div>
           <label className="settings-search">
             <Search size={14} />
             <input
@@ -141,18 +135,12 @@ export function Preferences(): React.JSX.Element | null {
             ))}
             {pages.length === 0 && <p className="settings-nav-empty">No settings match “{query}”.</p>}
           </div>
-          <span className="flex-1" />
-          <p className="settings-nav-foot">
-            <Lock size={12} /> Your notes stay on this computer.
-          </p>
         </nav>
         {current && (
           <section className="settings-main">
             <header className="settings-header">
-              <Tile page={current} size="large" />
               <div className="settings-header-text">
                 <h2>{current.label}</h2>
-                <p>{current.description}</p>
               </div>
               <button className="icon-btn" title="Close (Esc)" aria-label="Close preferences" onClick={() => setOpen(false)}>
                 <X size={16} />
@@ -186,9 +174,8 @@ function AboutSection(): React.JSX.Element {
       <div className="about-hero">
         <img src={brandIcon} alt="Inknote" />
         <div>
-          <h3>Inknote</h3>
-          <p>A local-first Markdown notebook for developers.</p>
-          <span className="about-version">Version {__APP_VERSION__}</span>
+          <h3>Inknote {__APP_VERSION__}</h3>
+          <p>A local-first Markdown notebook.</p>
         </div>
       </div>
       <Group title="Your library">

@@ -1,15 +1,13 @@
 import { AppearancePicker } from './AppearancePicker'
 import type { AppearanceTarget } from './AppearancePicker'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { openActivity } from './ActivityPanel'
 import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, FileText, FolderPlus, LayoutTemplate, LibraryBig, LogIn, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, Trash2, Upload, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { bookTree, childrenByParent, descendantIds } from '@/lib/selectors'
 import { getStatuses } from '@/lib/statuses'
 import type { Book, NoteStatus, Selection } from '@/lib/types'
-import { cx, isMac, relativeTime } from '@/lib/util'
-import { onBackupStatus } from '@/lib/backup'
-import brandIcon from '../../../../assets/icon/inknote-icon.svg'
+import { cx, isMac } from '@/lib/util'
 import { openTodayNote } from '@/lib/dailyNote'
 import { collectTasks, dueCounts } from '@/lib/tasks'
 import { dayKey } from '@/lib/dueDates'
@@ -286,8 +284,6 @@ export function Sidebar(): React.JSX.Element {
   const tags = useStore((s) => s.tags)
   const collapsed = useStore((s) => s.collapsedBooks)
   const selectionKind = useStore((s) => s.selection.kind)
-  const [lastBackupAt, setLastBackupAt] = useState<number | null>(null)
-  useEffect(() => onBackupStatus((st) => setLastBackupAt(st.error ? null : st.lastBackupAt)), [])
   const workspace = useStore((s) => (s.workspace && s.books[s.workspace] ? s.workspace : null))
   const actions = useStore.getState()
   const [appearance, setAppearance] = useState<AppearanceTarget | null>(null)
@@ -453,27 +449,7 @@ export function Sidebar(): React.JSX.Element {
           <ChartNoAxesColumn size={16} />
         </button>
       </div>
-      {!workspace && (
-        <button className="side-brand" title="All notes" onClick={() => actions.select({ kind: 'all' })}>
-          <img src={brandIcon} alt="" />
-          <span className="side-brand-text">
-            <strong>Inknote</strong>
-            <small>
-              {counts.all} {counts.all === 1 ? 'note' : 'notes'}
-              {lastBackupAt ? ` · backed up ${relativeTime(lastBackupAt)}` : ''}
-            </small>
-          </span>
-        </button>
-      )}
       {workspace && <WorkspaceHeader id={workspace} books={books} onOpen={actions.setWorkspace} />}
-      <button className="side-new-note" onClick={() => {
-        actions.createNote()
-        requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.note-title')?.focus())
-      }}>
-        <Plus size={16} />
-        <span>New note</span>
-        <kbd>{isMac() ? '⌘N' : 'Ctrl+N'}</kbd>
-      </button>
       <div className="sidebar-scroll">
         <Row selection={{ kind: 'all' }} icon={<FileText size={15} />} label="All Notes" count={counts.all} />
         {!workspace && (<>
