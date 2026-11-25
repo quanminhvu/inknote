@@ -101,6 +101,8 @@ interface InknoteBridge {
   openQuickNote(id: string, bookId: string): void
   /** Ghim cửa sổ hiện tại nổi trên mọi app (true) hoặc bỏ ghim; trả về trạng thái mới */
   setOnTop(onTop: boolean): Promise<boolean>
+  /** Đưa cửa sổ chính lên trước và mở ghi chú này */
+  showInMain(id: string): void
   web: {
     /** Tiêu đề trang web (og:title hoặc <title>), null nếu không lấy được */
     title(url: string): Promise<string | null>

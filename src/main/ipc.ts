@@ -14,6 +14,7 @@ import { mcpCommand } from './mcp'
 import { readAppleNotes, scanFromDump } from './appleNotes'
 import type { AppleNotesDump } from './appleNotes'
 import { readFileSync, statSync } from 'node:fs'
+import { getMainWindow } from './windows'
 
 export interface SettingsView {
   backupEnabled: boolean
@@ -66,6 +67,15 @@ export function registerIpc(openNoteWindow: (noteId: string, quick?: { bookId?: 
     w.setAlwaysOnTop(on, 'floating')
     w.setVisibleOnAllWorkspaces(on, { visibleOnFullScreen: true })
     return w.isAlwaysOnTop()
+  })
+  // Quick Note → "Mở trong app": đưa cửa sổ chính lên và mở ghi chú đó
+  ipcMain.on('window:showInMain', (_e, id: unknown) => {
+    const main = getMainWindow()
+    if (!main) return
+    if (main.isMinimized()) main.restore()
+    main.show()
+    main.focus()
+    if (typeof id === 'string' && /^note:[A-Za-z0-9_-]{1,64}$/.test(id)) main.webContents.send('menu', `open-note:${id}`)
   })
   // Quick Note: cửa sổ nhỏ ở góc màn hình, kiểu Quick Note của Apple Notes
   ipcMain.on('window:openQuickNote', (_e, id: unknown, bookId: unknown) => {

@@ -19,6 +19,16 @@ function enqueue<T>(id: string, task: () => Promise<T>): Promise<T> {
   return next
 }
 
+/** Chờ mọi lệnh ghi đang xếp hàng xong (vd trước khi đóng cửa sổ Quick Note) */
+export async function writesSettled(): Promise<void> {
+  // Một lệnh ghi có thể xếp thêm lệnh khác: lặp tới khi không còn gì mới
+  for (let i = 0; i < 5; i++) {
+    const pending = [...chains.values()]
+    await Promise.all(pending)
+    if ([...chains.values()].every((p, k) => p === pending[k]) && chains.size === pending.length) return
+  }
+}
+
 async function getOrNull(id: string): Promise<Stored<AnyDoc> | null> {
   try {
     return (await db.get(id)) as Stored<AnyDoc>

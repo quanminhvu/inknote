@@ -2,7 +2,7 @@ import { sourceScrollAnchors } from '@/lib/scrollAnchors'
 import { Backlinks } from './Backlinks'
 import type { CSSProperties } from 'react'
 import { ResizeHandle, usePaneSize } from './ResizeHandle'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
 import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
@@ -15,6 +15,9 @@ import { toggleTask } from '@/lib/markdown'
 import type { ViewMode } from '@/lib/types'
 import { cx, isMac, relativeTime } from '@/lib/util'
 import { noteWindowId } from '@/lib/windowMode'
+import { countWords, useCursor } from '@/lib/noteStats'
+import { onBackupStatus } from '@/lib/backup'
+import type { BackupStatus } from '@/lib/backup'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
 import { openMenu } from './ContextMenu'
@@ -217,6 +220,7 @@ export function NotePane(): React.JSX.Element {
       {outlineOpen && <Outline body={note.body} scope={mainRef} preferPreview={mode === 'preview'} />}
       </div>
       {!readOnly && <Backlinks key={note._id} noteId={note._id} />}
+      <StatusBar body={note.body} updatedAt={note.updatedAt} showCursor={mode !== 'preview'} />
     </main>
   )
 }
@@ -250,5 +254,28 @@ function OnTopButton(): React.JSX.Element | null {
     >
       <PictureInPicture2 size={15} />
     </button>
+  )
+}
+
+/** Thanh trạng thái dưới ghi chú: đã lưu và sao lưu, vị trí con trỏ, số từ */
+function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: number; showCursor: boolean }): React.JSX.Element {
+  const cursor = useCursor()
+  const [backup, setBackup] = useState<BackupStatus>({ lastBackupAt: null, error: null })
+  useEffect(() => onBackupStatus(setBackup), [])
+  const words = useMemo(() => countWords(body), [body])
+  const saved = backup.error ? `Backup failed: ${backup.error}` : backup.lastBackupAt ? `Saved · backed up ${relativeTime(backup.lastBackupAt)}` : 'Saved'
+  return (
+    <footer className="status-bar">
+      <span className={cx('status-dot', backup.error && 'error')} aria-hidden="true" />
+      <span className="status-text" title={`Edited ${new Date(updatedAt).toLocaleString()}`}>
+        {saved}
+      </span>
+      <span className="flex-1" />
+      {showCursor && cursor && <span className="status-num">Ln {cursor.line}, Col {cursor.col}</span>}
+      <span className="status-num">
+        {words.toLocaleString()} {words === 1 ? 'word' : 'words'}
+      </span>
+      <span>Markdown</span>
+    </footer>
   )
 }

@@ -9,7 +9,7 @@ import { HighlightStyle, syntaxHighlighting, syntaxTree, indentOnInput, bracketM
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
 import { followNoteLink, isNoteLink, noteLinkCompletions } from '@/lib/noteLinks'
 import { noteLinkHover } from '@/lib/noteHover'
-import { setSelectionText } from '@/lib/noteStats'
+import { setCursor, setSelectionText } from '@/lib/noteStats'
 import { htmlToMarkdown } from '@/lib/pasteHtml'
 import { dueCompletions, dueDateHighlight } from '@/lib/dueDates'
 import { editorSpot, saveEditorSpot } from '@/lib/viewMemory'
@@ -334,6 +334,9 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
             if (update.selectionSet || update.docChanged) {
               const { state } = update
               setSelectionText(state.selection.ranges.filter((r) => !r.empty).map((r) => state.sliceDoc(r.from, r.to)).join('\n'))
+              const head = state.selection.main.head
+              const line = state.doc.lineAt(head)
+              setCursor({ line: line.number, col: head - line.from + 1 })
             }
           })
         ]
@@ -364,6 +367,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
       }
       setActiveEditor(null, view)
       setSelectionText('')
+      setCursor(null)
       view.destroy()
       viewRef.current = null
     }

@@ -31,6 +31,7 @@ import { Notice } from './components/Notice'
 import { Preferences } from './components/Preferences'
 import { Sidebar } from './components/Sidebar'
 import { isQuickNoteWindow, noteWindowId, openInNewWindow } from './lib/windowMode'
+import { QuickNoteFooter } from './components/QuickNoteFooter'
 
 /** Tiêu đề cửa sổ ghi chú riêng = tiêu đề ghi chú */
 function NoteWindowTitle(): null {
@@ -119,6 +120,9 @@ export function App(): React.JSX.Element {
         // Ghi chú mới mở trong cửa sổ Quick Note nhỏ, nổi trên app đang dùng (kiểu Apple Notes).
         // Chưa tạo ghi chú ở đây: cửa sổ Quick Note chỉ lưu khi người dùng bắt đầu viết.
         window.inknote?.openQuickNote(newNoteId(), s.bookForNewNote())
+      } else if (command.startsWith('open-note:')) {
+        const id = command.slice('open-note:'.length)
+        if (s.notes[id]) s.openNote(id)
       } else if (command.startsWith('quick-note-closed:')) {
         // Đóng Quick Note mà chưa viết gì: xóa luôn ghi chú rỗng. Chờ một chút để
         // nội dung vừa gõ trong cửa sổ đó kịp lưu và đồng bộ sang đây.
@@ -273,6 +277,7 @@ export function App(): React.JSX.Element {
       <div className={cx('app', 'note-window', isQuickNoteWindow && 'quick-note', isMac() && 'mac')}>
         <NoteWindowTitle />
         {isQuickNoteWindow && <QuickNoteFocus />}
+        {isQuickNoteWindow && <QuickNoteFooter />}
         <NotePane />
         <ContextMenuHost />
         <CommandPalette />

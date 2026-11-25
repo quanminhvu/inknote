@@ -34,6 +34,15 @@ export const useSelectionText = create<{ text: string }>(() => ({ text: '' }))
 
 const MAX_SELECTION = 500_000
 
+/** Vị trí con trỏ trong editor (dòng, cột, bắt đầu từ 1), cho thanh trạng thái; null = không có editor */
+export const useCursor = create<{ line: number; col: number } | null>(() => null)
+
+export function setCursor(pos: { line: number; col: number } | null): void {
+  const cur = useCursor.getState()
+  if (cur?.line === pos?.line && cur?.col === pos?.col) return
+  useCursor.setState(pos, true)
+}
+
 export function setSelectionText(text: string): void {
   const next = text.length > MAX_SELECTION ? text.slice(0, MAX_SELECTION) : text
   if (useSelectionText.getState().text !== next) useSelectionText.setState({ text: next })
