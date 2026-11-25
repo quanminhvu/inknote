@@ -64,6 +64,47 @@ interface Item {
   template?: { title: string; body: string; book?: string }
   /** Nhãn hạn chót của task */
   due?: { text: string; state: DueState }
+  /** Ghi chú để xem trước ở cột phải (ghi chú, task) */
+  noteId?: string
+}
+
+/** Bộ lọc nhanh ở đầu bảng lệnh: mỗi bộ lọc là một tiền tố gõ tắt */
+const FILTERS: { label: string; prefix: string }[] = [
+  { label: 'All', prefix: '' },
+  { label: 'Commands', prefix: '>' },
+  { label: 'Notebooks', prefix: '@' },
+  { label: 'Tags', prefix: '#' },
+  { label: 'Headings', prefix: ':' },
+  { label: 'Tasks', prefix: '[' }
+]
+const prefixOf = (raw: string): string => (['>', '@', '#', ':', '['].includes(raw[0]) ? raw[0] : '')
+
+/** Cột xem trước ghi chú đang chọn trong bảng lệnh */
+function NotePreview({ noteId }: { noteId: string }): React.JSX.Element | null {
+  const note = useStore((s) => s.notes[noteId])
+  const books = useStore((s) => s.books)
+  const tags = useStore((s) => s.tags)
+  if (!note) return null
+  // Ghi chú rất dài: chỉ hiển thị phần đầu cho nhanh
+  const body = note.body.length > 6000 ? note.body.slice(0, 6000) + '\n\n…' : note.body
+  return (
+    <div className="pal-preview pal-note-preview">
+      <div className="pal-preview-book">
+        {books[note.bookId]?.name ?? 'No notebook'} · edited {relativeTime(note.updatedAt)}
+      </div>
+      <div className="pal-preview-title">{note.title || 'Untitled'}</div>
+      {note.tags.length > 0 && (
+        <div className="pal-preview-tags">
+          {note.tags.map((id) => tags[id] && (
+            <span key={id} className="tag-chip small" style={{ '--tag': tags[id].color } as React.CSSProperties}>
+              {tags[id].name}
+            </span>
+          ))}
+        </div>
+      )}
+      {body.trim() ? isKanban(body) ? <KanbanBoard source={body} /> : <Preview source={body} /> : <p className="pal-empty">This note is empty.</p>}
+    </div>
+  )
 }
 
 function taskItems(): Item[] {
@@ -78,6 +119,7 @@ function taskItems(): Item[] {
       section: 'Open Tasks',
       label: t.due ? withoutDue(t.text) || t.text : t.text,
       detail: t.noteTitle,
+      noteId: t.noteId,
       keywords: t.due ? `${t.noteTitle} ${t.due} ${dueLabel(t.due)} ${dueState(t.due)} due` : t.noteTitle,
       ...(t.due ? { due: { text: dueLabel(t.due), state: dueState(t.due) } } : {}),
       icon: <Square size={15} />,
@@ -281,7 +323,13 @@ function buildItems(mode: 'commands' | 'templates' | 'actions' | 'tasks', raw: s
       label: n.title || 'Untitled',
       detail: `${s.books[n.bookId]?.name ?? ''} · ${relativeTime(n.updatedAt)}`,
       icon: n.status !== 'none' ? <StatusIcon status={n.status} size={15} /> : <FileText size={15} />,
-      run: () => s.openNote(n._id)
+      noteId: n._id,
+      run: () => s.openNote(n._id),
+      // ⌘↵: mở ghi chú ở cửa sổ riêng
+      altRun: () => {
+        openInNewWindow(n._id)
+        s.setPalette(null)
+      }
     }))
   const books = Object.values(s.books)
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -441,10 +489,14 @@ function PaletteBody({ mode }: { mode: 'commands' | 'templates' | 'actions' | 't
   }
 
   let lastSection: Section | null = null
+  const showFilters = mode === 'commands'
+  const activePrefix = prefixOf(raw)
+  const setFilter = (prefix: string): void => setRaw(prefix + raw.slice(activePrefix.length).replace(/^\s*\]?\s*/, ''))
+  const notePreview = (mode === 'commands' || mode === 'tasks') && current?.noteId ? current.noteId : null
 
   return (
     <div className="palette-backdrop" onMouseDown={close}>
-      <div className={cx('palette', mode === 'templates' && 'with-preview')} role="dialog" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()}>
+      <div className={cx('palette', mode !== 'actions' && 'with-preview')} role="dialog" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()}>
         <div className="pal-input">
           {mode === 'templates' ? <LayoutTemplate size={16} /> : mode === 'tasks' ? <ListChecks size={16} /> : <Search size={16} />}
           <input
@@ -461,9 +513,35 @@ function PaletteBody({ mode }: { mode: 'commands' | 'templates' | 'actions' | 't
                   : 'Search notes, commands, notebooks, tags…'
             }
             onChange={(e) => setRaw(e.target.value)}
-            onKeyDown={onKeyDown}
+            onKeyDown={(e) => {
+              // Tab / ⇧Tab: đổi bộ lọc
+              if (showFilters && e.key === 'Tab') {
+                e.preventDefault()
+                const i = FILTERS.findIndex((f) => f.prefix === activePrefix)
+                setFilter(FILTERS[(i + (e.shiftKey ? FILTERS.length - 1 : 1)) % FILTERS.length].prefix)
+                return
+              }
+              onKeyDown(e)
+            }}
           />
         </div>
+        {showFilters && (
+          <div className="pal-filters" role="tablist" aria-label="Filter">
+            {FILTERS.map((f) => (
+              <button
+                key={f.label}
+                role="tab"
+                aria-selected={f.prefix === activePrefix}
+                className={cx('pal-filter', f.prefix === activePrefix && 'on')}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setFilter(f.prefix)}
+              >
+                {f.label}
+                {f.prefix && <kbd>{f.prefix}</kbd>}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="pal-body">
         <div className="pal-list" ref={listRef}>
           {results.length === 0 && <div className="pal-empty">No matches</div>}
@@ -490,6 +568,22 @@ function PaletteBody({ mode }: { mode: 'commands' | 'templates' | 'actions' | 't
             )
           })}
         </div>
+        {notePreview && <NotePreview noteId={notePreview} />}
+        {!notePreview && mode !== 'templates' && mode !== 'actions' && (
+          <div className="pal-preview pal-preview-empty">
+            {current ? (
+              <>
+                <span className="pal-preview-icon">{current.icon}</span>
+                <div className="pal-preview-title">{current.label.trim()}</div>
+                {current.detail && <div className="pal-preview-book">{current.detail}</div>}
+                {current.shortcut && <kbd className="pal-kbd">{current.shortcut}</kbd>}
+                <p>Press ↵ to {current.section === 'Commands' || current.section === 'Themes' ? 'run it' : 'open it'}.</p>
+              </>
+            ) : (
+              <p>No matches. Try fewer letters, or another filter.</p>
+            )}
+          </div>
+        )}
         {mode === 'templates' && current?.template && (
           <div className="pal-preview">
             <div className="pal-preview-title">{current.template.title || 'Untitled'}</div>
@@ -515,24 +609,20 @@ function PaletteBody({ mode }: { mode: 'commands' | 'templates' | 'actions' | 't
         {mode === 'commands' && !raw.startsWith('[') && (
           <div className="pal-footer">
             <span>
-              <kbd>&gt;</kbd> commands
+              <kbd>↑↓</kbd> move
             </span>
-            <span>
-              <kbd>@</kbd> notebooks
-            </span>
-            <span>
-              <kbd>#</kbd> tags
-            </span>
-            <span>
-              <kbd>:</kbd> headings
-            </span>
-            <span>
-              <kbd>[</kbd> tasks
-            </span>
-            <span className="flex-1" />
             <span>
               <kbd>↵</kbd> open
             </span>
+            {current?.noteId && (
+              <span>
+                <kbd>{isMac() ? '⌘↵' : 'Ctrl+↵'}</kbd> open in new window
+              </span>
+            )}
+            <span>
+              <kbd>tab</kbd> filter
+            </span>
+            <span className="flex-1" />
             <span>
               <kbd>esc</kbd> close
             </span>

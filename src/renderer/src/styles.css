@@ -5601,3 +5601,109 @@ html.vibrant .app:not(.note-window):not(.distraction-free) .notepane {
 .today-foot {
   margin: 0;
 }
+
+/* ── Bảng lệnh ⌘K: rộng hơn, bộ lọc nhanh, cột xem trước ghi chú ── */
+.palette {
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(10, 10, 20, 0.32), 0 0 0 1px var(--line);
+  border: 0;
+}
+.palette.with-preview {
+  width: min(960px, calc(100vw - 48px));
+  height: min(64vh, 620px);
+}
+.palette.with-preview .pal-list {
+  flex: 0 0 380px;
+}
+.pal-input {
+  height: 56px;
+  padding: 0 18px;
+}
+.pal-input input {
+  font-size: 16.5px;
+}
+.pal-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: none;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.pal-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 13px;
+  background: var(--hover);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.pal-filter kbd {
+  font: 500 10.5px/1 var(--font-mono);
+  color: var(--ink-3);
+}
+.pal-filter.on {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.pal-filter.on kbd {
+  color: color-mix(in srgb, var(--on-accent) 75%, transparent);
+}
+.pal-item {
+  border-radius: 9px;
+}
+.pal-preview {
+  background: var(--surface);
+}
+.pal-note-preview .pal-preview-book {
+  padding: 4px 32px 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.pal-note-preview .pal-preview-title {
+  padding-top: 4px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pal-preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 32px 0;
+}
+.pal-note-preview .markdown-body {
+  font-size: 13.5px;
+}
+.pal-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 28px 32px;
+  color: var(--ink-3);
+}
+.pal-preview-empty .pal-preview-title,
+.pal-preview-empty .pal-preview-book {
+  padding: 0;
+}
+.pal-preview-empty .pal-preview-title {
+  color: var(--ink);
+}
+.pal-preview-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--hover);
+  color: var(--ink-2);
+}
+.pal-preview-empty p {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+}
