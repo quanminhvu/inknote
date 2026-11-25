@@ -72,19 +72,6 @@ export function App(): React.JSX.Element {
   const distractionFree = useStore((s) => s.distractionFree)
   const sidebarHidden = useStore((s) => s.sidebarHidden)
   const selection = useStore((s) => s.selection)
-  // Ẩn/hiện sidebar hay vào chế độ tập trung: cho các cột trượt mượt trong lúc đổi
-  // (chỉ trong lúc đổi, để kéo thanh chia cột vẫn bám tay)
-  const [layoutMoving, setLayoutMoving] = useState(false)
-  const firstLayout = useRef(true)
-  useEffect(() => {
-    if (firstLayout.current) {
-      firstLayout.current = false
-      return
-    }
-    setLayoutMoving(true)
-    const t = setTimeout(() => setLayoutMoving(false), 260)
-    return () => clearTimeout(t)
-  }, [sidebarHidden, distractionFree])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -303,7 +290,7 @@ export function App(): React.JSX.Element {
   }
 
   return (
-    <div style={{ '--sidebar-size': `${sidebarWidth}px`, '--list-size': `${listWidth}px` } as CSSProperties} className={cx('app', isMac() && 'mac', distractionFree && 'distraction-free', sidebarHidden && 'sidebar-hidden', layoutMoving && 'layout-moving')}>
+    <div style={{ '--sidebar-size': `${sidebarWidth}px`, '--list-size': `${listWidth}px` } as CSSProperties} className={cx('app', isMac() && 'mac', distractionFree && 'distraction-free', sidebarHidden && 'sidebar-hidden')}>
       <Sidebar />
       {!distractionFree && !sidebarHidden && <ResizeHandle className="resize-sidebar" label="Sidebar width" value={sidebarWidth} min={160} max={420} reset={228} onChange={setSidebarWidth} />}
       {selection.kind === 'today' && !distractionFree ? (
