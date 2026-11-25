@@ -6868,33 +6868,6 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
 .notice {
   animation: ink-notice-rise 0.24s var(--ease-slide) both;
 }
-/* Cột "On this page": trượt vào từ phải */
-.outline {
-  animation: ink-from-right 0.26s var(--ease-slide) both;
-}
-/* Chế độ Split: cột preview trượt vào */
-.note-body.mode-split .note-preview {
-  animation: ink-nudge-right 0.24s var(--ease-slide) both;
-}
-/* Nhóm sidebar, notebook con: mở dần từ trên xuống khi bung */
-.side-unfold {
-  animation: ink-unroll 0.22s var(--ease-slide) both;
-}
-/* Preferences: nội dung mục mới trượt vào */
-.settings-body {
-  animation: ink-nudge-right 0.22s var(--ease-slide) both;
-}
-/* Lịch Today: trượt theo hướng đổi tháng */
-.cal-grid.cal-slide-next {
-  animation: ink-nudge-right 0.24s var(--ease-slide) both;
-}
-.cal-grid.cal-slide-prev {
-  animation: ink-nudge-left 0.24s var(--ease-slide) both;
-}
-/* Tab mới và các thẻ đổi trang */
-.note-tab {
-  animation: ink-nudge-down 0.18s var(--ease-slide) both;
-}
 .editor-host,
 .today {
   animation: none;
@@ -6938,4 +6911,38 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
 .app:not(.note-window) .notelist {
   position: relative;
   z-index: 1;
+}
+
+/* "On this page": nổi trên mép phải editor, trượt vào/ra (chỉ transform, editor không dàn lại chữ) */
+.note-main {
+  position: relative;
+}
+.outline-dock {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  animation: ink-from-right 0.24s var(--ease-slide) both;
+  will-change: transform;
+}
+.outline-dock.closing {
+  animation: ink-to-right 0.2s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+@keyframes ink-to-right {
+  to { transform: translateX(100%); }
+}
+.outline-dock .outline {
+  background: var(--surface-2);
+  box-shadow: -6px 0 16px rgba(0, 0, 0, 0.06);
+}
+/* Bỏ hiệu ứng khi chuyển nội dung: đổi mục Preferences, đổi tháng, tab, Split, bung nhóm */
+.settings-body,
+.cal-grid,
+.note-tab,
+.side-unfold,
+.note-body.mode-split .note-preview,
+.outline {
+  animation: none;
 }

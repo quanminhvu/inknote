@@ -51,6 +51,23 @@ export function NotePane(): React.JSX.Element {
   const bodyRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLDivElement>(null)
   const outlineOpen = useOutline((s) => s.open)
+  // Cột "On this page" nổi trên mép phải editor (editor không đổi độ rộng nên không dàn lại chữ);
+  // khi đóng, giữ lại một chút cho nó trượt ra
+  const [outlineShown, setOutlineShown] = useState(outlineOpen)
+  const [outlineClosing, setOutlineClosing] = useState(false)
+  useEffect(() => {
+    if (outlineOpen) {
+      setOutlineShown(true)
+      setOutlineClosing(false)
+      return
+    }
+    setOutlineClosing(true)
+    const t = setTimeout(() => {
+      setOutlineShown(false)
+      setOutlineClosing(false)
+    }, 200)
+    return () => clearTimeout(t)
+  }, [outlineOpen])
   const syncEnabled = !!note && !note.trashed && viewMode === 'split' && !isKanban(note.body) && multiCount <= 1
   useEffect(() => {
     if (!syncEnabled) return
@@ -218,7 +235,11 @@ export function NotePane(): React.JSX.Element {
           </div>
         )}
       </div>
-      {outlineOpen && <Outline body={note.body} scope={mainRef} preferPreview={mode === 'preview'} noteId={note._id} />}
+      {outlineShown && (
+        <div className={cx('outline-dock', outlineClosing && 'closing')}>
+          <Outline body={note.body} scope={mainRef} preferPreview={mode === 'preview'} noteId={note._id} />
+        </div>
+      )}
       </div>
       {!readOnly && <Backlinks key={note._id} noteId={note._id} />}
       <StatusBar body={note.body} updatedAt={note.updatedAt} showCursor={mode !== 'preview'} />
