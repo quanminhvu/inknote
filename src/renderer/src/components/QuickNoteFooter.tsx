@@ -78,7 +78,7 @@ export function QuickNoteFooter(): React.JSX.Element | null {
     <footer className="quick-footer">
       <label className={cx('quick-append', append && 'on')} title="Add this to the end of today's note instead of keeping a separate note">
         <CalendarDays size={14} />
-        <span>Add to today&rsquo;s note</span>
+        <span>Add to today</span>
         <button
           type="button"
           role="switch"
@@ -99,7 +99,7 @@ export function QuickNoteFooter(): React.JSX.Element | null {
       </label>
       <span className="flex-1" />
       <button
-        className="btn"
+        className="text-btn"
         onClick={async () => {
           useStore.getState().flush()
           await writesSettled()
@@ -109,8 +109,8 @@ export function QuickNoteFooter(): React.JSX.Element | null {
       >
         Open in App
       </button>
-      <button className="btn primary quick-done" onClick={done}>
-        Done <kbd>{mac ? '⌘↵' : 'Ctrl+↵'}</kbd>
+      <button className="btn primary quick-done" title={mac ? 'Done (⌘↵)' : 'Done (Ctrl+Enter)'} onClick={done}>
+        Done
       </button>
     </footer>
   )

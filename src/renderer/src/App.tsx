@@ -279,8 +279,8 @@ export function App(): React.JSX.Element {
       <div className={cx('app', 'note-window', isQuickNoteWindow && 'quick-note', isMac() && 'mac')}>
         <NoteWindowTitle />
         {isQuickNoteWindow && <QuickNoteFocus />}
-        {isQuickNoteWindow && <QuickNoteFooter />}
         <NotePane />
+        {isQuickNoteWindow && <QuickNoteFooter />}
         <ContextMenuHost />
         <CommandPalette />
         <HistoryPanel />

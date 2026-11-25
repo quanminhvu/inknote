@@ -6706,3 +6706,38 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
 .status-bar {
   height: 26px;
 }
+
+/* Quick Note: chân cửa sổ gọn một hàng, nằm dưới cùng */
+.app.quick-note .quick-footer {
+  flex-wrap: nowrap;
+  gap: 6px;
+  padding: 8px 10px 10px 14px;
+  background: transparent;
+}
+.app.quick-note .quick-append {
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.app.quick-note .quick-append .switch {
+  width: 30px;
+  height: 18px;
+}
+.app.quick-note .quick-append .switch-knob {
+  width: 14px;
+  height: 14px;
+}
+.app.quick-note .quick-append .switch.on .switch-knob {
+  transform: translateX(12px);
+}
+.app.quick-note .quick-footer .text-btn {
+  height: 26px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.app.quick-note .quick-done {
+  height: 26px !important;
+  padding: 0 12px;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+}
