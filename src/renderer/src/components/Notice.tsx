@@ -14,7 +14,7 @@ export function Notice(): React.JSX.Element | null {
 
   if (!notice) return null
   return (
-    <div className={cx('notice', notice.tone === 'error' && 'error')} role="status">
+    <div key={notice.id} className={cx('notice', notice.tone === 'error' && 'error')} role="status">
       <span>{notice.text}</span>
       <button className="notice-close" title="Dismiss" onClick={() => useStore.setState({ notice: null })}>
         <X size={13} />

@@ -6741,3 +6741,132 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
   border-radius: 6px !important;
   font-size: 12px !important;
 }
+
+/* ══ Chuyển động: ngắn và tinh tế (kiểu Inkdrop) ══
+   Mờ dần + trượt vài pixel; không nảy, không phóng to lố. Tắt hết khi bật "Reduce motion". */
+:root {
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 170ms;
+}
+@keyframes ink-fade {
+  from { opacity: 0; }
+}
+@keyframes ink-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+}
+@keyframes ink-drop {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes ink-rise {
+  from { opacity: 0; transform: translateY(4px); }
+}
+@keyframes ink-slide-left {
+  from { opacity: 0; transform: translateX(10px); }
+}
+@keyframes ink-notice {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+}
+@keyframes ink-check {
+  50% { transform: scale(0.86); }
+}
+
+/* Hộp thoại: nền mờ dần, khung hiện lên nhẹ */
+.modal-backdrop,
+.palette-backdrop {
+  animation: ink-fade var(--dur) ease-out;
+}
+.modal,
+.settings,
+.palette,
+.history-panel,
+.activity-panel {
+  animation: ink-pop var(--dur) var(--ease-out);
+}
+/* Menu, danh sách chọn, gợi ý, tooltip: rơi xuống nhẹ */
+.menu,
+.nbp-pop,
+.stp-pop,
+.tag-suggestions,
+.cm-tooltip-autocomplete,
+.cm-table-toolbar,
+.cm-tooltip.cm-tooltip-hover,
+.note-hover-card {
+  animation: ink-drop var(--dur-fast) var(--ease-out);
+  transform-origin: top left;
+}
+/* Thông báo dưới đáy */
+.notice {
+  animation: ink-notice 200ms var(--ease-out);
+}
+/* Chuyển ghi chú: nội dung mới hiện mờ dần */
+.editor-host,
+.note-preview .markdown-body,
+.today,
+.empty-pane {
+  animation: ink-fade 140ms ease-out;
+}
+/* Cột "On this page" trượt vào từ phải */
+.outline {
+  animation: ink-slide-left var(--dur) var(--ease-out);
+}
+/* Kết quả bảng lệnh, mục trong danh sách ghi chú: đổi nền mượt */
+.pal-item,
+.note-item,
+.side-row,
+.settings-nav-item,
+.quick-filter,
+.pal-filter,
+.cal-day,
+.today-recent-item,
+.outline-item,
+.icon-btn,
+.text-btn,
+.btn,
+.segmented button,
+.tag-chip,
+.crumb {
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
+}
+.icon-btn:active,
+.btn:active,
+.text-btn:active,
+.segmented button:active {
+  transform: translateY(0.5px);
+}
+/* Bấm checkbox task: nhún nhẹ */
+.cm-live-check:active,
+.task-list-item-checkbox:active,
+.today-tasks li input:active {
+  animation: ink-check 160ms ease;
+}
+/* Ẩn/hiện sidebar, chế độ tập trung: các cột trượt (chỉ trong lúc đổi) */
+.app.layout-moving {
+  transition: grid-template-columns 220ms var(--ease-out);
+}
+.app.layout-moving .sidebar,
+.app.layout-moving .notelist {
+  transition: opacity 180ms ease;
+}
+.app.sidebar-hidden .sidebar {
+  opacity: 0;
+}
+/* Nhóm sidebar thu gọn/mở: mũi tên xoay */
+.side-heading-chevron,
+.side-chevron svg {
+  transition: transform var(--dur) var(--ease-out);
+}
+/* Tab ghi chú mới mở */
+.note-tab {
+  animation: ink-rise var(--dur-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
