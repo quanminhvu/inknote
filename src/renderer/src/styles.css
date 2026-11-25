@@ -6949,3 +6949,24 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
 .outline {
   animation: none;
 }
+
+/* Mỗi cột cố định ở đúng ô của nó. Khi một cột đang trượt ra (tạm nổi, rời khỏi lưới),
+   các cột còn lại không bị dồn sang ô rộng 0px (khung ghi chú từng bị bóp về 0 rồi bung ra: nháy). */
+.app:not(.note-window) > .sidebar { grid-column: 1; grid-row: 1; }
+.app:not(.note-window) > .notelist { grid-column: 2; grid-row: 1; }
+.app:not(.note-window) > .notepane { grid-column: 3; grid-row: 1; }
+.app:not(.note-window) > .today { grid-column: 2 / 4; grid-row: 1; }
+/* Chừa chỗ cho ba nút cửa sổ (macOS) khi cột bên trái ẩn đi: dịch dần theo nhịp trượt, không nhảy */
+.app.mac:not(.note-window) .notelist-header,
+.app.mac:not(.note-window) .notelist-title,
+.app.mac:not(.note-window) .notepane-header {
+  transition: padding-left 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+}
+html.resizing-panes .notelist-header,
+html.resizing-panes .notelist-title,
+html.resizing-panes .notepane-header {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .notelist-header, .notelist-title, .notepane-header { transition: none !important; }
+}
