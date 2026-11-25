@@ -6,7 +6,7 @@ import { linkedNoteIds } from '@/lib/markdown'
 import { linkMention, unlinkedMentions } from '@/lib/mentions'
 
 const linkCache = new WeakMap<Note, Set<string>>()
-function targets(note: Note): Set<string> {
+export function targets(note: Note): Set<string> {
   let ids = linkCache.get(note)
   if (!ids) { ids = linkedNoteIds(note.body); linkCache.set(note, ids) }
   return ids

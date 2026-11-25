@@ -2,7 +2,7 @@ import { sourceScrollAnchors } from '@/lib/scrollAnchors'
 import { Backlinks } from './Backlinks'
 import type { CSSProperties } from 'react'
 import { ResizeHandle, usePaneSize } from './ResizeHandle'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
 import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
@@ -15,6 +15,7 @@ import { toggleTask } from '@/lib/markdown'
 import type { ViewMode } from '@/lib/types'
 import { cx, isMac, relativeTime } from '@/lib/util'
 import { noteWindowId } from '@/lib/windowMode'
+import type { Book } from '@/lib/types'
 import { countWords, useCursor } from '@/lib/noteStats'
 import { onBackupStatus } from '@/lib/backup'
 import type { BackupStatus } from '@/lib/backup'
@@ -30,11 +31,11 @@ import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
 import { TagInput } from './TagInput'
 
-const VIEW_MODES: { mode: ViewMode; title: string; icon: React.ReactNode }[] = [
-  { mode: 'edit', title: 'Write: plain Markdown', icon: <Pencil size={14} /> },
-  { mode: 'live', title: 'Live: write on the formatted text (Cmd/Ctrl+Shift+L)', icon: <PenLine size={14} /> },
-  { mode: 'split', title: 'Side by side (Cmd/Ctrl+P)', icon: <Columns2 size={14} /> },
-  { mode: 'preview', title: 'Preview (Cmd/Ctrl+E)', icon: <Eye size={14} /> }
+const VIEW_MODES: { mode: ViewMode; label: string; title: string; icon: React.ReactNode }[] = [
+  { mode: 'edit', label: 'Write', title: 'Write: plain Markdown', icon: <Pencil size={14} /> },
+  { mode: 'live', label: 'Live', title: 'Live: write on the formatted text (Cmd/Ctrl+Shift+L)', icon: <PenLine size={14} /> },
+  { mode: 'split', label: 'Split', title: 'Side by side (Cmd/Ctrl+P)', icon: <Columns2 size={14} /> },
+  { mode: 'preview', label: 'Read', title: 'Read (Cmd/Ctrl+E)', icon: <Eye size={14} /> }
 ]
 
 
@@ -101,17 +102,17 @@ export function NotePane(): React.JSX.Element {
           {distractionFree ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         </button>
         <NavButtons />
+        <Breadcrumb bookId={note.bookId} title={note.title} />
         <span className="flex-1" />
         {!readOnly && (
-          <div className="segmented" role="group" aria-label="View mode">
+          <div className="segmented view-modes" role="group" aria-label="View mode">
             {VIEW_MODES.map((v) => (
-              <button key={v.mode} title={v.title} className={cx(mode === v.mode && 'on')} onClick={() => setViewMode(v.mode)}>
-                {v.icon}
+              <button key={v.mode} title={v.title} aria-pressed={mode === v.mode} className={cx(mode === v.mode && 'on')} onClick={() => setViewMode(v.mode)}>
+                {v.label}
               </button>
             ))}
           </div>
         )}
-        <span className="flex-1" />
         {!readOnly && (
           <button
             className={cx('icon-btn', note.pinned && 'on')}
@@ -136,24 +137,7 @@ export function NotePane(): React.JSX.Element {
       </header>
       {!distractionFree && <NoteTabs />}
 
-      <div className="note-title-row">
-        <input
-          className="note-title"
-          title={note.title || 'Untitled'}
-          value={note.title}
-          placeholder="Untitled"
-          readOnly={readOnly}
-          spellCheck
-          onChange={(e) => updateNote(note._id, { title: e.target.value })}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === 'ArrowDown') {
-              e.preventDefault()
-              document.querySelector<HTMLElement>('.cm-content')?.focus()
-            }
-          }}
-        />
-      </div>
-
+<div className="note-head">
       {readOnly ? (
         <div className="trash-banner">
           <Trash2 size={14} />
@@ -176,12 +160,32 @@ export function NotePane(): React.JSX.Element {
           <NotebookPicker value={books[note.bookId] ? note.bookId : ''} placeholder="No notebook" onPick={(bookId) => updateNote(note._id, { bookId })} />
           <StatusPicker value={note.status} onPick={(status) => updateNote(note._id, { status })} />
           <TagInput noteId={note._id} tagIds={note.tags} />
-          <NoteStats body={note.body} />
-          <span className="note-updated" title={new Date(note.updatedAt).toLocaleString()}>
-            {relativeTime(note.updatedAt)}
-          </span>
         </div>
       )}
+
+      <div className="note-title-row">
+        <input
+          className="note-title"
+          title={note.title || 'Untitled'}
+          value={note.title}
+          placeholder="Untitled"
+          readOnly={readOnly}
+          spellCheck
+          onChange={(e) => updateNote(note._id, { title: e.target.value })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'ArrowDown') {
+              e.preventDefault()
+              document.querySelector<HTMLElement>('.cm-content')?.focus()
+            }
+          }}
+        />
+      </div>
+      <div className="note-sub">
+        <span title={new Date(note.updatedAt).toLocaleString()}>Edited {relativeTime(note.updatedAt)}</span>
+        <NoteStats body={note.body} />
+      </div>
+
+      </div>
 
       {!readOnly && !note.title && !note.body && (
         <div className="template-hint">
@@ -218,7 +222,7 @@ export function NotePane(): React.JSX.Element {
           </div>
         )}
       </div>
-      {outlineOpen && <Outline body={note.body} scope={mainRef} preferPreview={mode === 'preview'} />}
+      {outlineOpen && <Outline body={note.body} scope={mainRef} preferPreview={mode === 'preview'} noteId={note._id} />}
       </div>
       {!readOnly && <Backlinks key={note._id} noteId={note._id} />}
       <StatusBar body={note.body} updatedAt={note.updatedAt} showCursor={mode !== 'preview'} />
@@ -278,5 +282,26 @@ function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: n
       </span>
       <span>Markdown</span>
     </footer>
+  )
+}
+
+/** Đường dẫn notebook (cha › con) và tên ghi chú, trên thanh công cụ */
+function Breadcrumb({ bookId, title }: { bookId: string; title: string }): React.JSX.Element | null {
+  const books = useStore((s) => s.books)
+  const path: { id: string; name: string }[] = []
+  for (let b: Book | undefined = books[bookId]; b && path.length < 6; b = b.parentId ? books[b.parentId] : undefined) path.unshift({ id: b._id, name: b.name })
+  if (!path.length) return null
+  return (
+    <nav className="breadcrumb" aria-label="Notebook path">
+      {path.map((b) => (
+        <Fragment key={b.id}>
+          <button className="crumb" onClick={() => useStore.getState().select({ kind: 'book', id: b.id })}>
+            {b.name}
+          </button>
+          <span className="crumb-sep" aria-hidden="true">/</span>
+        </Fragment>
+      ))}
+      <span className="crumb-current">{title || 'Untitled'}</span>
+    </nav>
   )
 }

@@ -3,6 +3,8 @@ import { EditorView } from '@codemirror/view'
 import { X } from 'lucide-react'
 import { gotoHeading, headingsOf, plainHeading, toggleOutline } from '@/lib/outline'
 import { cx } from '@/lib/util'
+import { useStore } from '@/lib/store'
+import { targets } from './Backlinks'
 
 /** Khoảng cách từ mép trên vùng cuộn: heading đã qua mốc này thì coi là đang đọc */
 const READ_LINE = 32
@@ -11,7 +13,7 @@ const READ_LINE = 32
  * Mục lục bên phải ghi chú: liệt kê heading, bấm để nhảy tới,
  * tô đậm heading đang đọc theo vị trí cuộn của editor hoặc preview.
  */
-export function Outline({ body, scope, preferPreview }: { body: string; scope: React.RefObject<HTMLElement | null>; preferPreview: boolean }): React.JSX.Element {
+export function Outline({ body, scope, preferPreview, noteId }: { body: string; scope: React.RefObject<HTMLElement | null>; preferPreview: boolean; noteId?: string }): React.JSX.Element {
   const headings = useMemo(() => headingsOf(body), [body])
   const minLevel = headings.reduce((m, h) => Math.min(m, h.level), 6)
   const [active, setActive] = useState(-1)
@@ -49,7 +51,7 @@ export function Outline({ body, scope, preferPreview }: { body: string; scope: R
   return (
     <aside className="outline" aria-label="Outline">
       <header className="outline-head">
-        <span>Outline</span>
+        <span>On this page</span>
         <button className="icon-btn small" title="Hide outline (Cmd/Ctrl+Shift+O)" aria-label="Hide outline" onClick={toggleOutline}>
           <X size={13} />
         </button>
@@ -71,6 +73,7 @@ export function Outline({ body, scope, preferPreview }: { body: string; scope: R
           </button>
         ))}
       </div>
+      {noteId && <LinkedFrom noteId={noteId} />}
     </aside>
   )
 }
@@ -98,4 +101,28 @@ function readingLine(root: HTMLElement, preferPreview: boolean): number {
     return view.state.doc.lineAt(block.from).number - 1
   }
   return -1
+}
+
+/** Ghi chú đang trỏ tới ghi chú này, dưới mục lục */
+function LinkedFrom({ noteId }: { noteId: string }): React.JSX.Element | null {
+  const notes = useStore((s) => s.notes)
+  const links = useMemo(
+    () =>
+      Object.values(notes)
+        .filter((n) => !n.trashed && n._id !== noteId && targets(n).has(noteId))
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .slice(0, 8),
+    [notes, noteId]
+  )
+  if (!links.length) return null
+  return (
+    <section className="linked-from" aria-label="Linked from">
+      <span className="linked-from-title">Linked from</span>
+      {links.map((n) => (
+        <button key={n._id} title={n.title || 'Untitled'} onClick={() => useStore.getState().openNote(n._id)}>
+          {n.title || 'Untitled'}
+        </button>
+      ))}
+    </section>
+  )
 }

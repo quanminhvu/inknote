@@ -37,7 +37,8 @@ const KEY = 'nibmark:outline'
 
 function readOpen(): boolean {
   try {
-    return localStorage.getItem(KEY) === '1'
+    // Mặc định mở cột "On this page"; chỉ đóng khi người dùng đã tắt
+    return localStorage.getItem(KEY) !== '0'
   } catch {
     return false
   }

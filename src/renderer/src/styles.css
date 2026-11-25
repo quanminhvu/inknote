@@ -5812,3 +5812,332 @@ html.vibrant .app:not(.note-window):not(.distraction-free) .notepane {
   opacity: 0.6;
   font-size: 12px;
 }
+
+/* ── Sidebar theo bản thiết kế: logo, nút New note, tiêu đề nhóm, tag dạng viên, chân sidebar ── */
+.side-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  margin: 0 10px 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  text-align: left;
+}
+.side-brand:hover {
+  background: var(--hover);
+}
+.side-brand img {
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+.side-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.side-brand-text strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+.side-brand-text small {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.side-new-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  height: 34px;
+  margin: 0 18px 12px;
+  padding: 0 12px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.side-new-note:hover {
+  filter: brightness(1.06);
+}
+.side-new-note span {
+  flex: 1;
+  text-align: left;
+}
+.side-new-note kbd {
+  font: 500 11px/1 var(--font-ui);
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+}
+.side-heading-title {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px !important;
+  font-weight: 600;
+}
+.side-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 6px 4px;
+}
+.side-tags > .side-row {
+  height: 26px;
+  padding: 0 10px !important;
+  gap: 6px;
+  border-radius: 13px;
+  background: var(--hover);
+  font-size: 12.5px;
+}
+.side-tags > .side-row .side-icon {
+  width: auto;
+}
+.side-tags > .side-row .tag-dot.ring {
+  width: 8px;
+  height: 8px;
+}
+.side-tags > .side-row .side-count,
+.side-tags > .side-row .side-more,
+.side-tags > .side-row .side-chevron {
+  display: none;
+}
+.side-tags > .side-row.selected {
+  background: var(--selection-row);
+}
+.side-tags > .side-row.editing {
+  width: 100%;
+  border-radius: 8px;
+  background: none;
+}
+.side-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.side-footer > .side-row {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Màn hình chính theo bản thiết kế ── */
+/* Danh sách: bộ lọc nhanh và nhóm theo ngày */
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.quick-filter {
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  background: var(--hover);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.quick-filter.on {
+  background: var(--ink);
+  color: var(--surface-2);
+  font-weight: 600;
+}
+.notelist-header .search-box {
+  order: 1;
+}
+.notelist-header .quick-filters {
+  order: 2;
+  margin: 10px 0 0;
+}
+.note-group {
+  padding: 12px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.note-group:first-child {
+  padding-top: 4px;
+}
+
+/* Thanh công cụ: breadcrumb và nút chế độ có chữ */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-left: 6px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+}
+.crumb {
+  padding: 2px 4px;
+  border-radius: 5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.crumb:hover {
+  background: var(--hover);
+  color: var(--ink-2);
+}
+.crumb-sep {
+  opacity: 0.6;
+}
+.crumb-current {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.segmented.view-modes {
+  border: 0;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--hover);
+}
+.segmented.view-modes button {
+  width: auto;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.segmented.view-modes button.on {
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Đầu ghi chú: chip (notebook, trạng thái, tag) → tiêu đề lớn → dòng phụ */
+.note-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+  padding: 18px 40px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.note-head .note-meta {
+  order: 0;
+  padding: 0;
+  margin-left: -6px;
+  border: 0;
+  min-height: 30px;
+}
+.note-head .note-title-row {
+  order: 1;
+  padding: 0;
+}
+.note-head .note-title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+}
+.note-head .note-sub {
+  order: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.note-head .note-sub .note-stats::before {
+  content: '·';
+  margin-right: 8px;
+}
+.note-head .trash-banner {
+  order: 0;
+  margin: 0 -40px;
+}
+.app.quick-note .note-head {
+  padding: 4px 20px 12px;
+}
+.app.quick-note .note-head .note-title {
+  font-size: 20px;
+}
+.app.quick-note .note-sub {
+  display: none;
+}
+
+/* Cột phải "On this page" và "Linked from" */
+.outline {
+  background: transparent;
+  border-left: 1px solid var(--line);
+}
+.outline-head span {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.outline-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  border-radius: 7px;
+}
+.linked-from {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 14px 10px 12px;
+  padding: 10px;
+  border-radius: 11px;
+  background: var(--hover);
+}
+.linked-from-title {
+  padding: 0 4px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.linked-from button {
+  padding: 4px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--syn-link);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.linked-from button:hover {
+  background: var(--hover);
+}
+
+/* Nội dung: cột chữ vừa mắt ở chế độ Live và Read */
+.note-body.mode-live .cm-content,
+.note-body.mode-preview .markdown-body {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.note-body.mode-live .cm-scroller {
+  padding: 18px 40px 80px;
+}
+.notelist-header {
+  display: flex;
+  flex-direction: column;
+}
+.notelist-header .notelist-title {
+  order: 0;
+}

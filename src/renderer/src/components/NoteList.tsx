@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpDown, CircleDashed, ListChecks, ListFilter, PanelLeft, Pin, SquarePen, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { visibleNotes } from '@/lib/selectors'
 import { highlightWords, parseQuery } from '@/lib/search'
 import { countTasks } from '@/lib/markdown'
+import { dayKey } from '@/lib/dueDates'
 import { getStatuses } from '@/lib/statuses'
 import type { Note, SortKey } from '@/lib/types'
 import { cx, isMac, relativeTime, snippet } from '@/lib/util'
@@ -81,6 +82,40 @@ export function noteMenu(note: Note): MenuItem[] {
   ]
 }
 
+type QuickFilter = 'all' | 'pinned' | 'tasks' | 'due'
+
+const OPEN_TASK = /^\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[ \]\s/m
+const DUE_TASK = /^\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[ \]\s.*@(\d{4}-\d{2}-\d{2})/gm
+
+/** Ghi chú có task chưa xong, hạn trong 7 ngày tới (hoặc đã quá hạn) */
+function hasDueSoon(body: string): boolean {
+  if (!body.includes('@')) return false
+  const now = new Date()
+  const limit = dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7))
+  for (const m of body.matchAll(DUE_TASK)) if (m[1] <= limit) return true
+  return false
+}
+
+const QUICK_FILTERS: { id: QuickFilter; label: string; test: (n: Note) => boolean }[] = [
+  { id: 'all', label: 'All', test: () => true },
+  { id: 'pinned', label: 'Pinned', test: (n) => n.pinned },
+  { id: 'tasks', label: 'Open tasks', test: (n) => OPEN_TASK.test(n.body) },
+  { id: 'due', label: 'Due soon', test: (n) => hasDueSoon(n.body) }
+]
+
+/** Nhóm ngày cho danh sách: Today, Yesterday, This week, This month, rồi "November 2026" */
+function dateGroup(time: number): string {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const day = 86_400_000
+  if (time >= today) return 'Today'
+  if (time >= today - day) return 'Yesterday'
+  if (time >= today - 6 * day) return 'This week'
+  const d = new Date(time)
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return 'This month'
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+}
+
 export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputElement | null> }): React.JSX.Element {
   useStore((s) => s.statuses)
   const notes = useStore((s) => s.notes)
@@ -95,10 +130,18 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
   const { selectNote, setQuery, setSort, createNote, emptyTrash } = useStore.getState()
   const listRef = useRef<HTMLDivElement>(null)
 
-  const list = useMemo(
+  const [quick, setQuick] = useState<QuickFilter>('all')
+  const all = useMemo(
     () => visibleNotes({ notes, books, tags, selection, query, sort, collapsedBooks, workspace }),
     [notes, books, tags, selection, query, sort, collapsedBooks, workspace]
   )
+  const list = useMemo(() => (quick === 'all' ? all : all.filter(QUICK_FILTERS.find((f) => f.id === quick)!.test)), [all, quick])
+  // Nhóm theo ngày (khi xếp theo thời gian): Pinned, Today, Yesterday, This week, This month, rồi theo tháng
+  const groupOf = (note: (typeof list)[number]): string => {
+    if (note.pinned && selection.kind !== 'trash') return 'Pinned'
+    if (sort === 'title') return ''
+    return dateGroup(note[sort])
+  }
   const words = useMemo(() => highlightWords(parseQuery(query)), [query])
 
   const multi = useStore((s) => s.multi)
@@ -225,6 +268,15 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
             </button>
           )}
         </div>
+        {selection.kind !== 'trash' && (
+          <div className="quick-filters" role="tablist" aria-label="Quick filter">
+            {QUICK_FILTERS.map((f) => (
+              <button key={f.id} role="tab" aria-selected={quick === f.id} className={cx('quick-filter', quick === f.id && 'on')} onClick={() => setQuick(f.id)}>
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="search-box">
           <ListFilter size={14} />
           <input
@@ -256,12 +308,15 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
         {list.length === 0 && (
           <div className="empty-hint">{query ? 'No notes match your search.' : selection.kind === 'trash' ? 'Trash is empty.' : 'No notes here yet.'}</div>
         )}
-        {list.map((note) => {
+        {list.map((note, i) => {
           const tasks = countTasks(note.body)
           const book = books[note.bookId]
+          const group = groupOf(note)
+          const showGroup = group && (i === 0 || groupOf(list[i - 1]) !== group)
           return (
+            <Fragment key={note._id}>
+            {showGroup && <div className="note-group">{group}</div>}
             <div
-              key={note._id}
               className={cx(
                 'note-item',
                 (multi.length > 1 ? multiSet.has(note._id) : note._id === selectedNoteId) && 'selected'
@@ -329,6 +384,7 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
                 )}
               </div>
             </div>
+            </Fragment>
           )
         })}
       </div>
