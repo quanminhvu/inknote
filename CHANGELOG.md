@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Live mode (⌘⇧L or the pen button): write on the formatted text. Markdown marks are hidden except on the line you are editing, headings show at full size, task checkboxes can be clicked, and links show only their text
+- Today page: tasks due in the next 7 days from every note, a capture box that adds a task to today's note (`@tomorrow`, weekday names and dates set the due date), a month calendar of daily notes and due dates, recently edited notes and this week's activity
+- The command bar shows the selected note on the right, has filter chips (Tab to switch) and opens a note in its own window with ⌘↵
+- Quick Note can add its text to the end of today's note, and has Open in App, Done (⌘↵) and Esc
+- A status bar under each note shows save and backup state, the cursor position and the word count
+
+### Changed
+
+- The note list and note pane float as rounded panels; the selected note is a raised card
+- Quick Note is a regular window that steps back when you click another app, with a button to keep it on top
+
 ## [1.1.0] - 2026-11-21
 
 ### Changed

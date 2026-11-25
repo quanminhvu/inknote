@@ -10,6 +10,7 @@ import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } 
 import { followNoteLink, isNoteLink, noteLinkCompletions } from '@/lib/noteLinks'
 import { noteLinkHover } from '@/lib/noteHover'
 import { setCursor, setSelectionText } from '@/lib/noteStats'
+import { livePreview } from '@/lib/livePreview'
 import { htmlToMarkdown } from '@/lib/pasteHtml'
 import { dueCompletions, dueDateHighlight } from '@/lib/dueDates'
 import { editorSpot, saveEditorSpot } from '@/lib/viewMemory'
@@ -176,13 +177,16 @@ interface Props {
   onChange: (value: string) => void
   /** Id ghi chú: để nhớ con trỏ và vị trí cuộn khi chuyển qua lại */
   docId?: string
+  /** Chế độ Live: ẩn ký hiệu Markdown ngoài dòng đang sửa */
+  live?: boolean
 }
 
-export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Props): React.JSX.Element {
+export function MarkdownEditor({ value, readOnly = false, onChange, docId, live = false }: Props): React.JSX.Element {
   const hostRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   const readOnlyConf = useRef(new Compartment())
+  const liveConf = useRef(new Compartment())
   const prefConf = useRef({ gutter: new Compartment(), wrap: new Compartment(), spell: new Compartment(), strike: new Compartment() })
   const prefs = useEditorPrefs()
   onChangeRef.current = onChange
@@ -252,6 +256,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
             indentWithTab
           ]),
           readOnlyConf.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
+          liveConf.current.of(live ? livePreview : []),
           prefConf.current.spell.of(spellExt(useEditorPrefs.getState())),
           // Dán một URL lên chữ đang chọn thì biến chữ đó thành link Markdown
           EditorView.domEventHandlers({
@@ -411,6 +416,10 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId }: Pro
       ]
     })
   }, [prefs])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: liveConf.current.reconfigure(live ? livePreview : []) })
+  }, [live])
 
   useEffect(() => {
     viewRef.current?.dispatch({

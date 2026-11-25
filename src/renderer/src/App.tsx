@@ -221,7 +221,7 @@ export function App(): React.JSX.Element {
         } else if (key === 'o') {
           if (!s.selectedNoteId) return
           toggleOutline()
-        }
+        } else if (key === 'l') s.setViewMode(s.viewMode === 'live' ? 'edit' : 'live')
         else if (key === 'f') {
           if (s.distractionFree) s.toggleDistractionFree()
           requestAnimationFrame(() => searchRef.current?.focus())

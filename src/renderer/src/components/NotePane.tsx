@@ -5,7 +5,7 @@ import { ResizeHandle, usePaneSize } from './ResizeHandle'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteStats } from './NoteStats'
@@ -31,7 +31,8 @@ import { isKanban } from '@/lib/kanban'
 import { TagInput } from './TagInput'
 
 const VIEW_MODES: { mode: ViewMode; title: string; icon: React.ReactNode }[] = [
-  { mode: 'edit', title: 'Editor', icon: <Pencil size={14} /> },
+  { mode: 'edit', title: 'Write: plain Markdown', icon: <Pencil size={14} /> },
+  { mode: 'live', title: 'Live: write on the formatted text (Cmd/Ctrl+Shift+L)', icon: <PenLine size={14} /> },
   { mode: 'split', title: 'Side by side (Cmd/Ctrl+P)', icon: <Columns2 size={14} /> },
   { mode: 'preview', title: 'Preview (Cmd/Ctrl+E)', icon: <Eye size={14} /> }
 ]
@@ -195,7 +196,7 @@ export function NotePane(): React.JSX.Element {
       <div ref={bodyRef} style={{ '--editor-split': `${Math.max(20, Math.min(80, split))}%` } as CSSProperties} className={cx('note-body', `mode-${mode}`)}>
         {mode !== 'preview' && (
           <div className="note-editor">
-            <MarkdownEditor key={note._id} docId={note._id} value={note.body} onChange={(body) => {
+            <MarkdownEditor key={note._id} docId={note._id} value={note.body} live={mode === 'live'} onChange={(body) => {
                 // Bỏ qua khi nội dung không đổi (ví dụ editor vừa nhận nội dung từ bên ngoài)
                 if (body !== useStore.getState().notes[note._id]?.body) updateNote(note._id, { body })
               }}
@@ -203,7 +204,7 @@ export function NotePane(): React.JSX.Element {
           </div>
         )}
         {mode === 'split' && <ResizeHandle className="resize-editor" label="Editor width" value={split} min={20} max={80} reset={50} percent onChange={setSplit} />}
-        {mode !== 'edit' && (
+        {(mode === 'split' || mode === 'preview') && (
           <div className={cx('note-preview', kanban && 'is-kanban')}>
             {kanban ? (
               <KanbanBoard source={note.body} onChange={readOnly ? undefined : (body) => updateNote(note._id, { body })} />

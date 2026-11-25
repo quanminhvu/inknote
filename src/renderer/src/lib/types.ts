@@ -86,7 +86,8 @@ export type Selection =
   /** Trang Today: việc đến hạn, ghi nhanh, lịch */
   | { kind: 'today' }
 
-export type ViewMode = 'edit' | 'split' | 'preview'
+/** edit = Markdown thô, live = viết trên bản hiển thị, split = editor và preview cạnh nhau, preview = chỉ đọc */
+export type ViewMode = 'edit' | 'live' | 'split' | 'preview'
 export type SortKey = 'updatedAt' | 'createdAt' | 'title'
 
 export const STATUSES: { id: Exclude<NoteStatus, 'none'>; label: string }[] = [

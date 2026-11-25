@@ -225,6 +225,7 @@ function commandItems(): Item[] {
     cmd('outline', 'Toggle Outline', () => toggleOutline(), `${mod()}${shift()}O`, 'table of contents headings toc'),
     cmd('template', 'New Note from Template…', () => s.setPalette('templates'), `${mod()}T`, 'template'),
     cmd('search', 'Search Notes', () => document.querySelector<HTMLInputElement>('.search-box input')?.focus(), `${mod()}${shift()}F`, 'find filter'),
+    cmd('live', 'Toggle Live Mode', () => s.setViewMode(useStore.getState().viewMode === 'live' ? 'edit' : 'live'), `${mod()}${shift()}L`, 'wysiwyg write formatted rich'),
     cmd('preview', 'Toggle Preview', () => s.setViewMode(useStore.getState().viewMode === 'preview' ? 'edit' : 'preview'), `${mod()}E`),
     cmd('split', 'Toggle Side-by-Side View', () => s.setViewMode(useStore.getState().viewMode === 'split' ? 'edit' : 'split'), `${mod()}P`, 'split'),
     cmd('focus', 'Toggle Distraction-Free Mode', () => s.toggleDistractionFree(), `${mod()}${shift()}D`, 'focus zen fullscreen'),
