@@ -283,6 +283,7 @@ export function Sidebar(): React.JSX.Element {
   const books = useStore((s) => s.books)
   const tags = useStore((s) => s.tags)
   const collapsed = useStore((s) => s.collapsedBooks)
+  const selectionKind = useStore((s) => s.selection.kind)
   const workspace = useStore((s) => (s.workspace && s.books[s.workspace] ? s.workspace : null))
   const actions = useStore.getState()
   const [appearance, setAppearance] = useState<AppearanceTarget | null>(null)
@@ -461,7 +462,13 @@ export function Sidebar(): React.JSX.Element {
           </span>
           <span className="side-label">Note Templates</span>
         </div>
-        <div className="side-row" style={{ paddingLeft: 10 }} title={`Open today's note (${isMac() ? '⌘⇧T' : 'Ctrl+Shift+T'})`} onClick={() => openTodayNote()}>
+        <div
+          className={cx('side-row', selectionKind === 'today' && 'selected')}
+          style={{ paddingLeft: 10 }}
+          title={`Tasks due, quick capture and calendar. Today's note: ${isMac() ? '⌘⇧T' : 'Ctrl+Shift+T'}`}
+          onClick={() => actions.select({ kind: 'today' })}
+          onDoubleClick={() => openTodayNote()}
+        >
           <span className="side-icon">
             <CalendarDays size={15} />
           </span>

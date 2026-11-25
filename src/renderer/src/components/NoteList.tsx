@@ -158,7 +158,9 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
           ? (books[selection.id]?.name ?? 'Notebook')
           : selection.kind === 'tag'
             ? (tags[selection.id]?.name ?? '')
-            : (getStatuses().find((s) => s.id === selection.status)?.label ?? '')
+            : selection.kind === 'status'
+              ? (getStatuses().find((s) => s.id === selection.status)?.label ?? '')
+              : 'Today'
 
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {

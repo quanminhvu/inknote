@@ -83,6 +83,8 @@ export type Selection =
   | { kind: 'status'; status: NoteStatus }
   | { kind: 'tag'; id: string }
   | { kind: 'trash' }
+  /** Trang Today: việc đến hạn, ghi nhanh, lịch */
+  | { kind: 'today' }
 
 export type ViewMode = 'edit' | 'split' | 'preview'
 export type SortKey = 'updatedAt' | 'createdAt' | 'title'

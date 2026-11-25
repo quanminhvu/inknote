@@ -5280,3 +5280,324 @@ html.vibrant .app:not(.note-window):not(.distraction-free) .notepane {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.22);
 }
+
+/* ── Trang Today ── */
+.today {
+  grid-column: 2 / -1;
+  min-width: 0;
+  min-height: 0;
+  margin: 8px 8px 8px 0;
+  padding: 32px 36px 40px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(16, 16, 24, 0.06), 0 6px 18px rgba(16, 16, 24, 0.07), 0 0 0 1px var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  user-select: none;
+}
+.app.sidebar-hidden .today {
+  margin-left: 8px;
+}
+.today-header {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.today-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 320px;
+}
+.today-date {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.today-heading h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.today-heading p {
+  margin: 0;
+  color: var(--ink-2);
+}
+.today-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px !important;
+  border-radius: 9px !important;
+}
+.today-capture {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--ink-3);
+}
+.today-capture:focus-within {
+  box-shadow: 0 0 0 1.5px var(--accent), 0 0 0 5px var(--accent-soft);
+  color: var(--accent);
+}
+.today-capture input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font-size: 15px;
+  color: var(--ink);
+}
+.today-capture input::placeholder {
+  color: var(--ink-3);
+}
+.today-capture kbd,
+.cal-legend i {
+  font: 500 11px/1 var(--font-ui);
+}
+.today-capture kbd {
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: var(--hover);
+  color: var(--ink-3);
+}
+.today-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 1100px) {
+  .today-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .today-grid > * {
+    grid-column: auto !important;
+  }
+}
+.today-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 16px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.today-tasks,
+.today-recent {
+  grid-column: span 2;
+}
+.today-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.today-card-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.today-tasks ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.today-tasks li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  border-top: 1px solid var(--line);
+}
+.today-tasks li input {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  accent-color: var(--accent);
+}
+.today-task-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  text-align: left;
+}
+.today-task-text span {
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.today-task-text small {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.today-task-text:hover span {
+  color: var(--accent);
+}
+.today-empty {
+  margin: 4px 0 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+.cal-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 36px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.cal-day:hover {
+  background: var(--hover);
+}
+.cal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.cal-day.has-note .cal-dot {
+  background: var(--accent);
+}
+.cal-day.has-due .cal-dot {
+  background: var(--status-onhold);
+}
+.cal-day.is-today {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.cal-day.is-today .cal-dot {
+  background: var(--on-accent);
+}
+.cal-legend {
+  display: flex;
+  gap: 14px;
+  padding-top: 4px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.cal-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.cal-legend i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.cal-legend i.lg-due {
+  background: var(--status-onhold);
+}
+.today-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.today-recent-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 11px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line);
+  text-align: left;
+}
+.today-recent-item:hover {
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+.today-recent-item small {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.today-recent-item strong {
+  font-size: 14px;
+  font-weight: 650;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.today-recent-item span {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.today-week-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.week-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 96px;
+}
+.week-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.week-fill {
+  width: 100%;
+  max-width: 24px;
+  border-radius: 5px;
+  background: var(--accent-soft);
+}
+.week-fill.now {
+  background: var(--accent);
+}
+.week-bar small {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.today-week-note,
+.today-foot {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.today-foot {
+  margin: 0;
+}

@@ -334,7 +334,7 @@ export const useStore = create<State>((set, get) => {
       }
       // Giữ nguyên sidebar nếu ghi chú vẫn hiện trong đó; nếu không thì về All Notes
       const visible = visibleNotes({ ...s, query: '' }).some((n) => n._id === id)
-      if (visible && s.selection.kind !== 'trash') {
+      if (visible && s.selection.kind !== 'trash' && s.selection.kind !== 'today') {
         set({ query: '', selectedNoteId: id })
         return true
       }
@@ -374,7 +374,7 @@ export const useStore = create<State>((set, get) => {
         selectedNoteId: note._id,
         query: '',
         lastBookId: bookId,
-        selection: s.selection.kind === 'trash' ? { kind: 'all' } : s.selection,
+        selection: s.selection.kind === 'trash' || s.selection.kind === 'today' ? { kind: 'all' } : s.selection,
         viewMode: s.viewMode === 'preview' ? 'edit' : s.viewMode
       }))
       return note._id

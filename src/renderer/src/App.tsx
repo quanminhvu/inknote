@@ -32,6 +32,7 @@ import { Preferences } from './components/Preferences'
 import { Sidebar } from './components/Sidebar'
 import { isQuickNoteWindow, noteWindowId, openInNewWindow } from './lib/windowMode'
 import { QuickNoteFooter } from './components/QuickNoteFooter'
+import { TodayView } from './components/TodayView'
 
 /** Tiêu đề cửa sổ ghi chú riêng = tiêu đề ghi chú */
 function NoteWindowTitle(): null {
@@ -70,6 +71,7 @@ export function App(): React.JSX.Element {
   const ready = useStore((s) => s.ready)
   const distractionFree = useStore((s) => s.distractionFree)
   const sidebarHidden = useStore((s) => s.sidebarHidden)
+  const selection = useStore((s) => s.selection)
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -291,9 +293,15 @@ export function App(): React.JSX.Element {
     <div style={{ '--sidebar-size': `${sidebarWidth}px`, '--list-size': `${listWidth}px` } as CSSProperties} className={cx('app', isMac() && 'mac', distractionFree && 'distraction-free', sidebarHidden && 'sidebar-hidden')}>
       <Sidebar />
       {!distractionFree && !sidebarHidden && <ResizeHandle className="resize-sidebar" label="Sidebar width" value={sidebarWidth} min={160} max={420} reset={228} onChange={setSidebarWidth} />}
-      <NoteList searchRef={searchRef} />
-      {!distractionFree && <ResizeHandle className="resize-notelist" label="Note list width" value={listWidth} min={200} max={600} reset={300} onChange={setListWidth} />}
-      <NotePane />
+      {selection.kind === 'today' && !distractionFree ? (
+        <TodayView />
+      ) : (
+        <>
+          <NoteList searchRef={searchRef} />
+          {!distractionFree && <ResizeHandle className="resize-notelist" label="Note list width" value={listWidth} min={200} max={600} reset={300} onChange={setListWidth} />}
+          <NotePane />
+        </>
+      )}
       <ContextMenuHost />
       <CommandPalette />
       <HistoryPanel />
