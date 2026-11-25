@@ -6913,9 +6913,11 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
   z-index: 1;
 }
 
-/* "On this page": nổi trên mép phải editor, trượt vào/ra (chỉ transform, editor không dàn lại chữ) */
+/* "On this page": luôn được dựng sẵn, nổi trên mép phải editor. Mở/đóng chỉ là trượt
+   (transform, do GPU vẽ): không dựng lại cột, editor không đổi độ rộng nên không giật. */
 .note-main {
   position: relative;
+  overflow: hidden;
 }
 .outline-dock {
   position: absolute;
@@ -6924,14 +6926,15 @@ html.vibrant .app:not(.note-window):not(.distraction-free) {
   bottom: 0;
   z-index: 5;
   display: flex;
-  animation: ink-from-right 0.24s var(--ease-slide) both;
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.2s cubic-bezier(0.5, 0, 0.75, 0), visibility 0s 0.2s;
   will-change: transform;
 }
-.outline-dock.closing {
-  animation: ink-to-right 0.2s cubic-bezier(0.5, 0, 0.75, 0) both;
-}
-@keyframes ink-to-right {
-  to { transform: translateX(100%); }
+.outline-dock.open {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.26s cubic-bezier(0.25, 1, 0.5, 1), visibility 0s;
 }
 .outline-dock .outline {
   background: var(--surface-2);

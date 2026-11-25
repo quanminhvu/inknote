@@ -13,7 +13,7 @@ const READ_LINE = 32
  * Mục lục bên phải ghi chú: liệt kê heading, bấm để nhảy tới,
  * tô đậm heading đang đọc theo vị trí cuộn của editor hoặc preview.
  */
-export function Outline({ body, scope, preferPreview, noteId }: { body: string; scope: React.RefObject<HTMLElement | null>; preferPreview: boolean; noteId?: string }): React.JSX.Element {
+export function Outline({ body, scope, preferPreview, noteId, paused = false }: { body: string; scope: React.RefObject<HTMLElement | null>; preferPreview: boolean; noteId?: string; paused?: boolean }): React.JSX.Element {
   const headings = useMemo(() => headingsOf(body), [body])
   const minLevel = headings.reduce((m, h) => Math.min(m, h.level), 6)
   const [active, setActive] = useState(-1)
@@ -21,7 +21,8 @@ export function Outline({ body, scope, preferPreview, noteId }: { body: string; 
 
   useEffect(() => {
     const root = scope.current
-    if (!root) return
+    // Đang ẩn: không theo dõi cuộn (cột được dựng sẵn để mở ra là trượt vào ngay)
+    if (!root || paused) return
     let frame = 0
     const measure = (): void => {
       frame = 0
@@ -33,16 +34,18 @@ export function Outline({ body, scope, preferPreview, noteId }: { body: string; 
     const schedule = (): void => {
       if (!frame) frame = requestAnimationFrame(measure)
     }
-    schedule()
+    // Lần đo đầu chờ cột trượt vào xong, để không chen vào khung hình của hiệu ứng
+    const first = setTimeout(schedule, 260)
     // Sự kiện cuộn không nổi bọt: bắt ở pha capture cho cả editor lẫn preview
     root.addEventListener('scroll', schedule, true)
     window.addEventListener('resize', schedule)
     return () => {
       root.removeEventListener('scroll', schedule, true)
       window.removeEventListener('resize', schedule)
+      clearTimeout(first)
       if (frame) cancelAnimationFrame(frame)
     }
-  }, [scope, headings, preferPreview])
+  }, [scope, headings, preferPreview, paused])
 
   useEffect(() => {
     list.current?.querySelector('.outline-item.active')?.scrollIntoView({ block: 'nearest' })
