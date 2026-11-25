@@ -8,7 +8,6 @@ import { syncScroll } from '@/lib/scrollSync'
 import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
-import { NoteStats } from './NoteStats'
 import { NoteTabs } from './NoteTabs'
 import { useStore } from '@/lib/store'
 import { toggleTask } from '@/lib/markdown'
@@ -161,10 +160,6 @@ export function NotePane(): React.JSX.Element {
           <NotebookPicker value={books[note.bookId] ? note.bookId : ''} placeholder="No notebook" onPick={(bookId) => updateNote(note._id, { bookId })} />
           <StatusPicker value={note.status} onPick={(status) => updateNote(note._id, { status })} />
           <TagInput noteId={note._id} tagIds={note.tags} />
-          <NoteStats body={note.body} />
-          <span className="note-updated" title={new Date(note.updatedAt).toLocaleString()}>
-            {relativeTime(note.updatedAt)}
-          </span>
         </div>
       )}
 
