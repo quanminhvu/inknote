@@ -6141,3 +6141,291 @@ html.vibrant .app:not(.note-window):not(.distraction-free) .notepane {
 .notelist-header .notelist-title {
   order: 0;
 }
+
+/* ── Preferences: đồng bộ với giao diện đảo nổi ── */
+.settings-backdrop {
+  backdrop-filter: blur(6px) saturate(1.1);
+}
+.settings {
+  grid-template-columns: 232px minmax(0, 1fr);
+  width: min(960px, calc(100vw - 48px));
+  height: min(680px, calc(100vh - 56px));
+  border: 0;
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: 0 30px 90px rgba(10, 10, 20, 0.32), 0 0 0 1px var(--line);
+}
+.settings-nav {
+  gap: 10px;
+  padding: 18px 12px 14px;
+  background: color-mix(in srgb, var(--paper) 72%, var(--surface-2));
+}
+.settings-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 8px 4px;
+}
+.settings-brand img {
+  width: 34px;
+  height: 34px;
+}
+.settings-brand span {
+  display: flex;
+  flex-direction: column;
+}
+.settings-brand strong {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.settings-brand small {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.settings-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  margin: 0 2px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--ink-3);
+}
+.settings-search:focus-within {
+  box-shadow: 0 0 0 1.5px var(--accent), 0 0 0 4px var(--accent-soft);
+}
+.settings-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  color: var(--ink);
+}
+.settings-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings-nav-item {
+  height: 34px;
+  padding: 0 8px;
+  gap: 10px;
+  border-radius: 9px;
+}
+.settings-nav-item.selected {
+  background: var(--surface-2);
+  box-shadow: 0 1px 2px rgba(16, 16, 24, 0.06), 0 2px 8px rgba(16, 16, 24, 0.06), 0 0 0 1px var(--line);
+}
+.settings-nav-item.selected svg {
+  color: #fff;
+}
+.settings-nav-empty {
+  margin: 8px 10px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.settings-nav-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 8px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.settings-tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tile) 82%, #fff), var(--tile));
+  color: #fff;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.settings-tile svg {
+  color: #fff !important;
+}
+.settings-tile.large {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+:root[data-theme='night'] .settings-tile,
+:root[data-theme='ink'] .settings-tile,
+:root[data-theme='indigo'] .settings-tile {
+  --tile-dark: 1;
+}
+.settings-header {
+  gap: 14px;
+  height: auto;
+  padding: 26px 18px 18px 36px;
+}
+.settings-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.settings-header h2 {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.settings-header p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.settings-header .icon-btn {
+  align-self: flex-start;
+}
+.settings-body {
+  gap: 26px;
+  padding: 4px 36px 36px;
+}
+.settings-group-title {
+  margin: 0 0 8px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.settings-card {
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(16, 16, 24, 0.05), 0 4px 14px rgba(16, 16, 24, 0.05), 0 0 0 1px var(--line);
+}
+.settings-row {
+  min-height: 52px;
+  padding: 10px 16px;
+}
+.settings-row-label {
+  font-size: 13.5px;
+  font-weight: 550;
+}
+.settings-value {
+  font-size: 15px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.settings .btn {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-2);
+  box-shadow: 0 1px 1px rgba(16, 16, 24, 0.05), 0 0 0 1px var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.settings .btn:hover {
+  background: var(--hover);
+}
+.settings .btn.primary {
+  background: var(--accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: var(--on-accent);
+}
+.settings-select {
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+.switch {
+  width: 38px;
+  height: 22px;
+}
+.switch-knob {
+  width: 18px;
+  height: 18px;
+}
+.switch.on .switch-knob {
+  transform: translateX(16px);
+}
+/* Theme: thẻ lớn có dấu tích */
+.settings-themes {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px 14px;
+  padding: 18px;
+}
+.settings-themes .theme-sample {
+  height: 84px;
+  border-radius: 11px;
+}
+.settings-themes .theme-swatch.selected .theme-sample {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.settings-themes .theme-swatch {
+  position: relative;
+}
+.settings-themes .theme-swatch.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.settings-themes .theme-name {
+  font-size: 12.5px;
+}
+/* About */
+.about-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 8px 4px 0;
+}
+.about-hero img {
+  width: 76px;
+  height: 76px;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+}
+.about-hero h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.about-hero p {
+  margin: 2px 0 8px;
+  color: var(--ink-2);
+}
+.about-version {
+  display: inline-flex;
+  height: 22px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.settings-snippet {
+  border: 0;
+  box-shadow: 0 0 0 1px var(--line);
+  border-radius: 10px;
+}

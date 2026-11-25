@@ -1,5 +1,8 @@
 /// <reference types="vite/client" />
 
+/** Phiên bản app, lấy từ package.json lúc build */
+declare const __APP_VERSION__: string
+
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'
   const plugin: PluginWithOptions<{ enabled?: boolean; label?: boolean; labelAfter?: boolean }>

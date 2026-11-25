@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Bot, HardDrive, Keyboard, LayoutTemplate, Palette, SquarePen, X } from 'lucide-react'
+import { Bot, HardDrive, Info, Keyboard, LayoutTemplate, Lock, Palette, Search, SquarePen, X } from 'lucide-react'
+import brandIcon from '../../../../assets/icon/inknote-icon.svg'
 import { backupNow, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { onBackupStatus } from '@/lib/backup'
 import type { BackupStatus } from '@/lib/backup'
@@ -13,15 +14,29 @@ import { useEditorPrefs } from '@/lib/editorPrefs'
 import { NotebookPicker } from './NotebookPicker'
 import type { PasteLink, WrapMode } from '@/lib/editorPrefs'
 
-type PageId = 'appearance' | 'editor' | 'shortcuts' | 'templates' | 'agents' | 'data'
+type PageId = 'appearance' | 'editor' | 'shortcuts' | 'templates' | 'agents' | 'data' | 'about'
 
-const PAGES: { id: PageId; label: string; icon: React.ComponentType<{ size?: number }>; desktopOnly?: boolean }[] = [
-  { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'editor', label: 'Editor', icon: SquarePen },
-  { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard, desktopOnly: true },
-  { id: 'templates', label: 'Templates', icon: LayoutTemplate },
-  { id: 'agents', label: 'AI Agents', icon: Bot, desktopOnly: true },
-  { id: 'data', label: 'Backup & Data', icon: HardDrive, desktopOnly: true }
+interface PageInfo {
+  id: PageId
+  label: string
+  /** Một câu dưới tiêu đề trang */
+  description: string
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>
+  /** Màu ô icon ở thanh bên */
+  tint: string
+  /** Từ khoá để ô tìm kiếm tìm ra trang này */
+  keywords: string
+  desktopOnly?: boolean
+}
+
+const PAGES: PageInfo[] = [
+  { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike' },
+  { id: 'shortcuts', label: 'Shortcuts', description: 'Global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard tray show hide', desktopOnly: true },
+  { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
+  { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
+  { id: 'data', label: 'Backup & Data', description: 'Backups, restore, import and export.', icon: HardDrive, tint: '#16a34a', keywords: 'backup restore import export folder icloud data', desktopOnly: true },
+  { id: 'about', label: 'About', description: 'Version, data location and credits.', icon: Info, tint: '#6b7280', keywords: 'about version licence license github release' }
 ]
 const PAGE_KEY = 'nibmark:prefs-page'
 
@@ -34,12 +49,25 @@ function readPage(): PageId {
   }
 }
 
+/** Ô icon màu ở thanh bên và đầu trang (kiểu System Settings của macOS) */
+function Tile({ page, size = 'small' }: { page: PageInfo; size?: 'small' | 'large' }): React.JSX.Element {
+  const Icon = page.icon
+  return (
+    <span className={cx('settings-tile', size)} style={{ '--tile': page.tint } as React.CSSProperties} aria-hidden="true">
+      <Icon size={size === 'large' ? 20 : 14} strokeWidth={2} />
+    </span>
+  )
+}
+
 export function Preferences(): React.JSX.Element | null {
   const open = useStore((s) => s.prefsOpen)
   const setOpen = useStore((s) => s.setPrefsOpen)
   const [page, setPageState] = useState<PageId>(readPage)
+  const [query, setQuery] = useState('')
   const bridge = window.inknote
-  const pages = PAGES.filter((p) => !p.desktopOnly || bridge)
+  const available = PAGES.filter((p) => !p.desktopOnly || bridge)
+  const q = query.trim().toLowerCase()
+  const pages = q ? available.filter((p) => `${p.label} ${p.keywords}`.toLowerCase().includes(q)) : available
   const setPage = (id: PageId): void => {
     setPageState(id)
     try {
@@ -61,44 +89,136 @@ export function Preferences(): React.JSX.Element | null {
     return () => window.removeEventListener('keydown', onKey, true)
   }, [open, setOpen])
 
+  useEffect(() => {
+    if (!open) setQuery('')
+  }, [open])
+
   if (!open) return null
-  const current = pages.find((p) => p.id === page) ?? pages[0]
+  // Đang tìm: hiện trang đầu tiên khớp; không thì trang đã chọn
+  const current = (q ? pages[0] : available.find((p) => p.id === page)) ?? available[0]
 
   return (
-    <div className="modal-backdrop" onMouseDown={() => setOpen(false)}>
+    <div className="modal-backdrop settings-backdrop" onMouseDown={() => setOpen(false)}>
       <div className="settings" role="dialog" aria-label="Preferences" onMouseDown={(e) => e.stopPropagation()}>
         <nav className="settings-nav" aria-label="Preference sections">
-          <div className="settings-nav-title">Preferences</div>
-          {pages.map((p) => (
-            <button
-              key={p.id}
-              className={cx('settings-nav-item', p.id === current.id && 'selected')}
-              aria-current={p.id === current.id ? 'page' : undefined}
-              onClick={() => setPage(p.id)}
-            >
-              <p.icon size={16} />
-              <span>{p.label}</span>
-            </button>
-          ))}
-        </nav>
-        <section className="settings-main">
-          <header className="settings-header">
-            <h2>{current.label}</h2>
-            <button className="icon-btn" title="Close (Esc)" aria-label="Close preferences" onClick={() => setOpen(false)}>
-              <X size={16} />
-            </button>
-          </header>
-          <div className="settings-body" key={current.id}>
-            {current.id === 'appearance' && <Appearance />}
-            {current.id === 'editor' && <EditorSection />}
-            {current.id === 'shortcuts' && <QuickNote />}
-            {current.id === 'templates' && <Templates />}
-            {current.id === 'agents' && <AgentsSection />}
-            {current.id === 'data' && <DataSection />}
+          <div className="settings-brand">
+            <img src={brandIcon} alt="" />
+            <span>
+              <strong>Inknote</strong>
+              <small>Version {__APP_VERSION__}</small>
+            </span>
           </div>
-        </section>
+          <label className="settings-search">
+            <Search size={14} />
+            <input
+              value={query}
+              placeholder="Search settings"
+              aria-label="Search settings"
+              spellCheck={false}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && pages[0]) {
+                  setPage(pages[0].id)
+                  setQuery('')
+                }
+              }}
+            />
+          </label>
+          <div className="settings-nav-list">
+            {pages.map((p) => (
+              <button
+                key={p.id}
+                className={cx('settings-nav-item', p.id === current?.id && 'selected')}
+                aria-current={p.id === current?.id ? 'page' : undefined}
+                onClick={() => {
+                  setPage(p.id)
+                  setQuery('')
+                }}
+              >
+                <Tile page={p} />
+                <span>{p.label}</span>
+              </button>
+            ))}
+            {pages.length === 0 && <p className="settings-nav-empty">No settings match “{query}”.</p>}
+          </div>
+          <span className="flex-1" />
+          <p className="settings-nav-foot">
+            <Lock size={12} /> Your notes stay on this computer.
+          </p>
+        </nav>
+        {current && (
+          <section className="settings-main">
+            <header className="settings-header">
+              <Tile page={current} size="large" />
+              <div className="settings-header-text">
+                <h2>{current.label}</h2>
+                <p>{current.description}</p>
+              </div>
+              <button className="icon-btn" title="Close (Esc)" aria-label="Close preferences" onClick={() => setOpen(false)}>
+                <X size={16} />
+              </button>
+            </header>
+            <div className="settings-body" key={current.id}>
+              {current.id === 'appearance' && <Appearance />}
+              {current.id === 'editor' && <EditorSection />}
+              {current.id === 'shortcuts' && <QuickNote />}
+              {current.id === 'templates' && <Templates />}
+              {current.id === 'agents' && <AgentsSection />}
+              {current.id === 'data' && <DataSection />}
+              {current.id === 'about' && <AboutSection />}
+            </div>
+          </section>
+        )}
       </div>
     </div>
+  )
+}
+
+function AboutSection(): React.JSX.Element {
+  const bridge = window.inknote
+  const notes = useStore((s) => Object.values(s.notes).filter((n) => !n.trashed).length)
+  const books = useStore((s) => Object.keys(s.books).length)
+  const report = (error: string | null): void => {
+    if (error) useStore.getState().showNotice(error, 'error')
+  }
+  return (
+    <>
+      <div className="about-hero">
+        <img src={brandIcon} alt="Inknote" />
+        <div>
+          <h3>Inknote</h3>
+          <p>A local-first Markdown notebook for developers.</p>
+          <span className="about-version">Version {__APP_VERSION__}</span>
+        </div>
+      </div>
+      <Group title="Your library">
+        <Row label="Notes" detail="Not counting the Trash">
+          <span className="settings-value">{notes.toLocaleString()}</span>
+        </Row>
+        <Row label="Notebooks">
+          <span className="settings-value">{books.toLocaleString()}</span>
+        </Row>
+        {bridge && (
+          <Row label="Data folder" detail="Database, version history, themes and settings">
+            <button className="btn" onClick={async () => report(await bridge.openDataFolder())}>
+              Open Folder
+            </button>
+          </Row>
+        )}
+      </Group>
+      <Group title="Project" note="Inknote is open source under the MIT License.">
+        <Row label="Release notes" detail="What changed in each version">
+          <a className="btn" href="https://github.com/quanminhvu/inknote/releases" target="_blank" rel="noreferrer">
+            Open on GitHub
+          </a>
+        </Row>
+        <Row label="Report a problem" detail="Opens a new issue on GitHub">
+          <a className="btn" href="https://github.com/quanminhvu/inknote/issues/new" target="_blank" rel="noreferrer">
+            New Issue
+          </a>
+        </Row>
+      </Group>
+    </>
   )
 }
 
