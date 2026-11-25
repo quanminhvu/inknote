@@ -58,7 +58,16 @@ export function registerIpc(openNoteWindow: (noteId: string, quick?: { bookId?: 
   ipcMain.on('window:openNote', (_e, id: unknown) => {
     if (typeof id === 'string' && /^note:[A-Za-z0-9_-]{1,64}$/.test(id)) openNoteWindow(id)
   })
-  // Quick Note: cửa sổ nhỏ nổi trên mọi app, kiểu Quick Note của Apple Notes
+  // Ghim cửa sổ ghi chú (Quick Note, ⌘⇧N) nổi trên mọi app và mọi Space, hoặc bỏ ghim
+  ipcMain.handle('window:setOnTop', (event, onTop: unknown) => {
+    const w = BrowserWindow.fromWebContents(event.sender)
+    if (!w) return false
+    const on = onTop === true
+    w.setAlwaysOnTop(on, 'floating')
+    w.setVisibleOnAllWorkspaces(on, { visibleOnFullScreen: true })
+    return w.isAlwaysOnTop()
+  })
+  // Quick Note: cửa sổ nhỏ ở góc màn hình, kiểu Quick Note của Apple Notes
   ipcMain.on('window:openQuickNote', (_e, id: unknown, bookId: unknown) => {
     if (typeof id !== 'string' || !/^note:[A-Za-z0-9_-]{1,64}$/.test(id)) return
     openNoteWindow(id, { bookId: typeof bookId === 'string' && /^book:[A-Za-z0-9_-]{1,64}$/.test(bookId) ? bookId : undefined })

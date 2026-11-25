@@ -4829,7 +4829,7 @@ svg.lucide {
 }
 
 /* ── Quick Note: cửa sổ nhỏ nổi (kiểu Apple Notes) — chỉ giữ tiêu đề, notebook/status/tag và nội dung ── */
-.app.quick-note .notepane-header > :not(.flex-1):not(:last-child),
+.app.quick-note .notepane-header > :not(.flex-1):not(:last-child):not(.window-ontop),
 .app.quick-note .template-hint,
 .app.quick-note .note-updated,
 .app.quick-note .cm-gutters {
@@ -5123,4 +5123,10 @@ svg.lucide {
 }
 .settings-card .pref-templates li + li {
   border-top: 1px solid var(--line);
+}
+
+/* Menu dài trong cửa sổ nhỏ (Quick Note): cuộn bên trong thay vì tràn ra ngoài */
+.menu {
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
 }

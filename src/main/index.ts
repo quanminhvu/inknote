@@ -60,10 +60,9 @@ function createWindow(noteId?: string, quick?: { bookId?: string }, hidden = fal
     height: noteId ? 760 : 800,
     minWidth: noteId ? 420 : 880,
     minHeight: noteId ? 360 : 520,
-    ...(quick ? { ...quickNoteBounds(), minWidth: 320, minHeight: 260, alwaysOnTop: true, fullscreenable: false, minimizable: false } : {}),
-    // macOS: Quick Note là một panel, như Quick Note của Apple Notes: nhận bàn phím ngay
-    // mà không kích hoạt cả app, nên cửa sổ chính (nếu đang nằm sau app khác) không bị kéo lên
-    ...(quick && process.platform === 'darwin' ? { type: 'panel' } : {}),
+    // Quick Note: cửa sổ nhỏ ở góc màn hình. Là cửa sổ thường (bấm ra ngoài thì nó lùi xuống),
+    // chỉ nổi trên cùng khi người dùng bấm nút ghim.
+    ...(quick ? { ...quickNoteBounds(), minWidth: 320, minHeight: 260, fullscreenable: false } : {}),
     show: false,
     title: 'Inknote',
     icon: app.isPackaged ? join(process.resourcesPath, 'icon.png') : join(__dirname, '../../resources/icon.png'),
@@ -84,13 +83,11 @@ function createWindow(noteId?: string, quick?: { bookId?: string }, hidden = fal
 
   win.once('ready-to-show', () => {
     if (quick) {
-      // Nổi trên mọi app và mọi Space, kể cả app đang toàn màn hình
-      win.setAlwaysOnTop(true, 'floating')
-      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
-      // Windows/Linux không có panel: phải đưa app lên trước để gõ được ngay
-      if (process.platform !== 'darwin') app.focus({ steal: true })
+      // Hiện cửa sổ này trước rồi mới đưa app lên: macOS chỉ kéo cửa sổ đang được chọn lên trước,
+      // cửa sổ chính đang nằm sau app khác vẫn ở nguyên chỗ
       win.show()
       win.focus()
+      app.focus({ steal: true })
       return
     }
     if (!hidden) win.show()

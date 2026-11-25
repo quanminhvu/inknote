@@ -2,10 +2,10 @@ import { sourceScrollAnchors } from '@/lib/scrollAnchors'
 import { Backlinks } from './Backlinks'
 import type { CSSProperties } from 'react'
 import { ResizeHandle, usePaneSize } from './ResizeHandle'
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, Pencil, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteStats } from './NoteStats'
@@ -14,6 +14,7 @@ import { useStore } from '@/lib/store'
 import { toggleTask } from '@/lib/markdown'
 import type { ViewMode } from '@/lib/types'
 import { cx, isMac, relativeTime } from '@/lib/util'
+import { noteWindowId } from '@/lib/windowMode'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
 import { openMenu } from './ContextMenu'
@@ -124,6 +125,7 @@ export function NotePane(): React.JSX.Element {
         >
           <TableOfContents size={16} />
         </button>
+        {noteWindowId && <OnTopButton />}
         <button className="icon-btn" title="More actions" onClick={(e) => openMenu(e, noteMenu(note), true)}>
           <EllipsisVertical size={16} />
         </button>
@@ -232,5 +234,21 @@ function NavButtons(): React.JSX.Element {
         <ArrowRight size={17} />
       </button>
     </div>
+  )
+}
+
+/** Cửa sổ ghi chú riêng (Quick Note, ⌘⇧N): ghim nổi trên mọi app, hoặc để như cửa sổ thường */
+function OnTopButton(): React.JSX.Element | null {
+  const [onTop, setOnTop] = useState(false)
+  if (!window.inknote?.setOnTop) return null
+  return (
+    <button
+      className={cx('icon-btn', 'window-ontop', onTop && 'on')}
+      title={onTop ? 'Stop keeping this window on top' : 'Keep this window on top of other apps'}
+      aria-pressed={onTop}
+      onClick={async () => setOnTop((await window.inknote?.setOnTop(!onTop)) ?? false)}
+    >
+      <PictureInPicture2 size={15} />
+    </button>
   )
 }

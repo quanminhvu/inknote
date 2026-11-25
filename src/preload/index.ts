@@ -50,6 +50,7 @@ contextBridge.exposeInMainWorld('inknote', {
   readClipboardText: () => ipcRenderer.invoke('clipboard:readText'),
   openNoteWindow: (id: string) => ipcRenderer.send('window:openNote', id),
   openQuickNote: (id: string, bookId: string) => ipcRenderer.send('window:openQuickNote', id, bookId),
+  setOnTop: (onTop: boolean): Promise<boolean> => ipcRenderer.invoke('window:setOnTop', onTop),
   importer: {
     pick: () => ipcRenderer.invoke('import:pick'),
     appleNotes: () => ipcRenderer.invoke('import:appleNotes'),
