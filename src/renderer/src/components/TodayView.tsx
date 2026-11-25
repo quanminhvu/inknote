@@ -53,10 +53,16 @@ const fromNotes = (n: number): string => `from ${n} ${n === 1 ? 'note' : 'notes'
 export function TodayView(): React.JSX.Element {
   const notes = useStore((s) => s.notes)
   const [capture, setCapture] = useState('')
-  const [month, setMonth] = useState(() => {
+  // Hướng trượt của lịch khi đổi tháng
+  const [slide, setSlide] = useState<'next' | 'prev' | ''>('')
+  const [month, setMonthState] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth(), 1)
   })
+  const setMonth = (next: Date): void => {
+    setSlide(next > month ? 'next' : 'prev')
+    setMonthState(next)
+  }
   const now = new Date()
   const todayKey = dayKey(now)
 
@@ -221,7 +227,7 @@ export function TodayView(): React.JSX.Element {
               <span key={d}>{d}</span>
             ))}
           </div>
-          <div className="cal-grid">
+          <div className={cx('cal-grid', slide && `cal-slide-${slide}`)} key={`${month.getFullYear()}-${month.getMonth()}`}>
             {cells.map((d, i) => {
               if (!d) return <span key={i} />
               const key = dayKey(d)

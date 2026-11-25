@@ -906,7 +906,7 @@ mark {
   font: 11px var(--font-ui);
   color: var(--ink-2);
   opacity: 0;
-  transition: opacity 0.12s;
+  transition: none;
   user-select: none;
 }
 .markdown-body pre:hover .code-copy,
@@ -4236,8 +4236,8 @@ html.resizing-panes, html.resizing-panes * {
   animation: note-card-in 0.12s ease-out;
 }
 @keyframes note-card-in {
-  from { opacity: 0; transform: translateY(-3px); }
-  to { opacity: 1; transform: none; }
+  from { transform: translateY(-3px); }
+  to { transform: none; }
 }
 /* Mờ dần ở đáy khi nội dung dài hơn thẻ */
 .note-card::after {
@@ -4491,7 +4491,7 @@ html.resizing-panes, html.resizing-panes * {
   border-radius: 10px;
   background: var(--surface-2);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  transition: opacity 0.25s ease;
+  transition: none;
 }
 .present.idle .present-bar { opacity: 0; pointer-events: none; }
 .present-count {
@@ -4589,7 +4589,7 @@ html.resizing-panes, html.resizing-panes * {
   margin-left: 2px;
   border-radius: 4px;
   opacity: 0;
-  transition: opacity 0.12s ease;
+  transition: none;
 }
 .note-tab.active .note-tab-close { opacity: 0; }
 .note-tab:hover .note-tab-close { opacity: 0.7; }
@@ -6812,28 +6812,123 @@ html.resizing-panes .app {
   transition: transform 0.2s ease-out;
 }
 
-/* Không mờ dần: menu, hộp thoại, thông báo, thẻ xem trước, nút copy code, đổi theme */
+/* Không mờ dần ở đâu cả: mọi hiệu ứng dưới đây chỉ dùng transform (trượt) và clip-path
+   (mở dần như rèm kéo), độ trong suốt luôn 100%. */
+@keyframes ink-unroll {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes ink-drop-in {
+  from { transform: translateY(-14px); }
+}
+@keyframes ink-rise-in {
+  from { transform: translateY(calc(100% + 24px)); }
+}
+@keyframes ink-from-right {
+  from { transform: translateX(100%); }
+}
+@keyframes ink-nudge-right {
+  from { transform: translateX(18px); }
+}
+@keyframes ink-nudge-left {
+  from { transform: translateX(-18px); }
+}
+@keyframes ink-nudge-down {
+  from { transform: translateY(-6px); }
+}
+:root {
+  --ease-slide: cubic-bezier(0.25, 1, 0.5, 1);
+}
+/* Menu, danh sách chọn, gợi ý khi gõ, thanh công cụ bảng: mở từ trên xuống */
 .menu,
 .nbp-pop,
 .stp-pop,
 .tag-suggestions,
-.modal,
+.cm-tooltip-autocomplete,
+.cm-table-toolbar {
+  animation: ink-unroll 0.16s var(--ease-slide) both;
+}
+.note-card.floating {
+  animation: ink-unroll 0.16s var(--ease-slide) both;
+}
+/* Hộp thoại: trượt xuống vào chỗ (nền tối hiện ngay) */
 .modal-backdrop,
+.palette-backdrop,
+.notice-backdrop {
+  animation: none;
+}
+.modal,
 .settings,
 .palette,
-.palette-backdrop,
-.notice,
 .history-panel,
-.activity-panel,
-.note-card.floating,
-.cm-tooltip,
+.activity-panel {
+  animation: ink-drop-in 0.22s var(--ease-slide) both;
+}
+/* Thông báo: trượt lên từ đáy */
+.notice {
+  animation: none;
+}
+@keyframes ink-notice-rise {
+  from { transform: translate(-50%, calc(100% + 24px)); }
+}
+.notice {
+  animation: ink-notice-rise 0.24s var(--ease-slide) both;
+}
+/* Cột "On this page": trượt vào từ phải */
+.outline {
+  animation: ink-from-right 0.26s var(--ease-slide) both;
+}
+/* Chế độ Split: cột preview trượt vào */
+.note-body.mode-split .note-preview {
+  animation: ink-nudge-right 0.24s var(--ease-slide) both;
+}
+/* Nhóm sidebar, notebook con: mở dần từ trên xuống khi bung */
+.side-unfold {
+  animation: ink-unroll 0.22s var(--ease-slide) both;
+}
+/* Preferences: nội dung mục mới trượt vào */
+.settings-body {
+  animation: ink-nudge-right 0.22s var(--ease-slide) both;
+}
+/* Lịch Today: trượt theo hướng đổi tháng */
+.cal-grid.cal-slide-next {
+  animation: ink-nudge-right 0.24s var(--ease-slide) both;
+}
+.cal-grid.cal-slide-prev {
+  animation: ink-nudge-left 0.24s var(--ease-slide) both;
+}
+/* Tab mới và các thẻ đổi trang */
+.note-tab {
+  animation: ink-nudge-down 0.18s var(--ease-slide) both;
+}
 .editor-host,
-.outline,
 .today {
-  animation: none !important;
+  animation: none;
 }
 .code-copy {
   transition: none;
+}
+/* Nút chế độ xem: ô đánh dấu trượt sang nút được chọn */
+.segmented.view-switch {
+  position: relative;
+}
+.seg-indicator {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 36px;
+  height: 28px;
+  border-radius: var(--radius);
+  background: var(--selection-row);
+  transition: transform 0.24s var(--ease-slide);
+  pointer-events: none;
+}
+.segmented.view-switch button {
+  position: relative;
+  z-index: 1;
+}
+.segmented.view-switch button.on {
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

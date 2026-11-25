@@ -104,7 +104,9 @@ export function NotePane(): React.JSX.Element {
         <NavButtons />
         <span className="flex-1" />
         {!readOnly && (
-          <div className="segmented" role="group" aria-label="View mode">
+          <div className="segmented view-switch" role="group" aria-label="View mode">
+            {/* Ô đánh dấu trượt sang nút đang chọn */}
+            <span className="seg-indicator" aria-hidden="true" style={{ transform: `translateX(${Math.max(0, VIEW_MODES.findIndex((v) => v.mode === mode)) * 38}px)` }} />
             {VIEW_MODES.map((v) => (
               <button key={v.mode} title={v.title} aria-label={v.label} aria-pressed={mode === v.mode} className={cx(mode === v.mode && 'on')} onClick={() => setViewMode(v.mode)}>
                 {v.icon}

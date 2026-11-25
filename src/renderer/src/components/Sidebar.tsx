@@ -419,7 +419,7 @@ export function Sidebar(): React.JSX.Element {
                 </button>
               </Row>
             </div>
-            {!isCollapsed && renderBooks(book._id, depth + 1)}
+            {!isCollapsed && (children.get(book._id) ?? []).length > 0 && <div className="side-unfold">{renderBooks(book._id, depth + 1)}</div>}
             {editing?.kind === 'new' && editing.parentId === book._id && (
               <div className="side-row editing" style={{ paddingLeft: 10 + (depth + 1) * 14 }}>
                 <NameInput
@@ -519,7 +519,7 @@ export function Sidebar(): React.JSX.Element {
                     onContextMenu={bookMenu(b)}
                   />
                 ))
-            : renderBooks(workspace, 0))}
+            : <div className="side-unfold">{renderBooks(workspace, 0)}</div>)}
         {editing?.kind === 'new' && editing.parentId === workspace && (
           <div className="side-row editing" style={{ paddingLeft: 10 }}>
             <NameInput
@@ -539,7 +539,7 @@ export function Sidebar(): React.JSX.Element {
           if (name) actions.select({ kind: 'status', status: actions.ensureStatus(name) })
           setEditing(null)
         }} /></div>}
-        {!sections.status && getStatuses().map((status) => {
+        {!sections.status && <div className="side-unfold">{getStatuses().map((status) => {
           const look = statusLook(status)
           const editLook = (): void =>
             setAppearance({
@@ -599,7 +599,7 @@ export function Sidebar(): React.JSX.Element {
             }}
           />
           )
-        })}
+        })}</div>}
 
         <SectionHeading
             title="Tags"
@@ -613,7 +613,7 @@ export function Sidebar(): React.JSX.Element {
           setEditing(null)
         }} /></div>}
         {!sections.tags && tagFilter !== null && <FilterInput value={tagFilter} onChange={setTagFilter} onClose={() => setTagFilter(null)} />}
-        {!sections.tags && (<div className="side-tags">{
+        {!sections.tags && (<div className="side-tags side-unfold">{
           sortedTags
             .filter((tag) => !tagFilter || fuzzyMatch(tagFilter, tag.name))
             // Trong không gian riêng chỉ hiện tag có dùng trong đó
