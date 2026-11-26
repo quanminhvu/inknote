@@ -88,6 +88,8 @@ interface InknoteBridge {
     note(title: string, content: string, attachments?: { name: string; data: Uint8Array }[]): Promise<string | null>
     html(title: string, html: string): Promise<string | null>
     pdf(title: string, html: string): Promise<string | null>
+    /** Ảnh PNG của ghi chú: 'save' hỏi chỗ lưu, 'copy' chép vào clipboard. cut = ghi chú quá dài, ảnh bị cắt */
+    image(title: string, html: string, mode: 'save' | 'copy'): Promise<{ path: string | null; cut: boolean } | null>
     tree(
       label: string,
       files: { folders: string[]; name: string; content: string }[],

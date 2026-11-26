@@ -23,6 +23,7 @@ import { BulkPanel } from './BulkPanel'
 import { openMenu } from './ContextMenu'
 import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
+import { exportImage } from '@/lib/exportHtml'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
 import { noteMenu } from './NoteList'
@@ -62,7 +63,8 @@ function selectionMenu(e: React.MouseEvent): void {
   openMenu(e, [
     { label: 'Translate', hint: isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', onClick: () => translateSelection() },
     { label: `Look Up “${quoted}”`, hint: isMac() ? '⌃⌘D' : undefined, onClick: () => lookUpSelection() },
-    { label: `Search with Google`, onClick: () => searchGoogle(picked.text) }
+    { label: `Search with Google`, onClick: () => searchGoogle(picked.text) },
+    ...(window.inknote ? [{ separator: true as const }, { label: 'Copy Selection as Image', onClick: () => void exportImage('selection', 'copy') }] : [])
   ])
 }
 

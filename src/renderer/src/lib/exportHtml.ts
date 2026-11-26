@@ -4,6 +4,7 @@ import { renderMermaidIn } from './mermaid'
 import { fileIdFromUrl, readFile } from './attachments'
 import { isNoteLink } from './noteLinks'
 import { useStore } from './store'
+import { getActiveEditor } from './editorCommands'
 
 // Export một ghi chú thành một file HTML tự chứa: ảnh đính kèm được nhúng (data URL),
 // sơ đồ Mermaid thành SVG, khối code đã tô màu. Chỉ công thức toán cần tải font KaTeX từ CDN.
@@ -101,6 +102,17 @@ export async function exportNotePdf(noteId: string | null = useStore.getState().
   }
 }
 
+/** Ảnh PNG: khung vừa nội dung, lề đều, không chừa khoảng trống cuối trang */
+const IMAGE_CSS = `
+html, body { width: 860px; overflow: hidden; }
+::-webkit-scrollbar { display: none; }
+.markdown-body { max-width: none; width: 860px; padding: 44px 56px 40px; }
+.markdown-body > :last-child { margin-bottom: 0; }
+pre { white-space: pre-wrap; word-break: break-word; }
+/* Ảnh gửi đi: bỏ cột số dòng của khối code (khi chữ xuống dòng thì số dòng lệch) */
+pre .code-gutter { display: none; }
+`
+
 const DARK_CSS = `
 @media (prefers-color-scheme: dark) { :root { --fg:#f2f2f7; --fg2:#c4c4ca; --fg3:#8a8a91; --bg:#1a1a1c; --code:#26262a; --line:rgba(255,255,255,.12); --accent:#6aa7ff;
   --k:#fc5fa3; --s:#fc6a5d; --n:#d0bf69; --f:#67b7a4; --t:#d0a8ff; --a:#d9c97c; } }
@@ -169,3 +181,45 @@ mark { background: rgba(255,204,0,.4); color: inherit; }
 .hljs-deletion { color: #e0484e; }
 @media print { .markdown-body { padding: 0; } pre { white-space: pre-wrap; } }
 `
+
+/** HTML để chụp thành ảnh: cả ghi chú (có tiêu đề) hoặc một đoạn (title = null, không có tiêu đề) */
+export async function toImageHtml(title: string | null, body: string): Promise<string> {
+  let html = await noteToHtml(title ?? '', body)
+  if (title === null) html = html.replace(/<h1 class="note-title">[\s\S]*?<\/h1>\n/, '')
+  return html.replace('</style>', `${IMAGE_CSS}</style>`)
+}
+
+/** Xuất ghi chú hoặc đoạn đang chọn thành ảnh PNG: lưu ra file, hoặc chép vào clipboard để dán vào chat */
+export async function exportImage(target: 'note' | 'selection', mode: 'save' | 'copy'): Promise<void> {
+  const s = useStore.getState()
+  const note = s.selectedNoteId ? s.notes[s.selectedNoteId] : undefined
+  if (!note || !window.inknote) return
+  let title: string | null = note.title || 'Untitled'
+  let body = note.body
+  if (target === 'selection') {
+    const view = getActiveEditor()
+    const sel = view?.state.selection.main
+    const text = view && sel && !sel.empty ? view.state.sliceDoc(sel.from, sel.to) : window.getSelection()?.toString() ?? ''
+    if (!text.trim()) {
+      s.showNotice('Select some text first.')
+      return
+    }
+    title = null
+    body = text
+  }
+  try {
+    const html = await toImageHtml(title, body)
+    const res = await window.inknote.exporter.image(note.title || 'Untitled', html, mode)
+    if (!res) return
+    const cut = res.cut ? ' The note was too long, so the image stops partway.' : ''
+    s.showNotice(mode === 'copy' ? `Image copied. Paste it into a chat or document.${cut}` : `Saved as an image.${cut}`)
+  } catch {
+    s.showNotice('Could not make an image of this note.', 'error')
+  }
+}
+
+/** Ảnh của một ghi chú bất kỳ (từ menu của ghi chú): chọn ghi chú đó rồi chụp */
+export async function exportImageOf(noteId: string, mode: 'save' | 'copy'): Promise<void> {
+  if (useStore.getState().selectedNoteId !== noteId) useStore.getState().selectNote(noteId)
+  await exportImage('note', mode)
+}

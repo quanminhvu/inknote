@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('inknote', {
     note: (title: string, content: string, attachments: unknown[] = []) => ipcRenderer.invoke('export:note', title, content, attachments),
     html: (title: string, html: string) => ipcRenderer.invoke('export:html', title, html),
     pdf: (title: string, html: string) => ipcRenderer.invoke('export:pdf', title, html),
+    image: (title: string, html: string, mode: 'save' | 'copy') => ipcRenderer.invoke('export:image', title, html, mode),
     tree: (label: string, files: unknown[], attachments: unknown[] = []) => ipcRenderer.invoke('export:tree', label, files, attachments)
   },
   files: {

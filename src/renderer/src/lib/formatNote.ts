@@ -1,4 +1,5 @@
 import { getActiveEditor } from './editorCommands'
+import { formatCodeBlockAt } from './formatCode'
 import { useEditorPrefs } from './editorPrefs'
 import { applyFormatted, formatMarkdown } from './formatMarkdown'
 import { useStore } from './store'
@@ -52,4 +53,25 @@ export function startFormatOnLeave(): () => void {
     const left = s.notes[leftId]
     if (left && !left.trashed && left.body !== leftBody) void formatNote(leftId, true)
   })
+}
+
+/**
+ * ⌥⇧F: con trỏ đang trong khối code có ngôn ngữ hỗ trợ (json, sql, xml, js, css…) thì định dạng
+ * khối đó; không thì format cả ghi chú như trước.
+ */
+export async function formatAtCursor(mode: 'pretty' | 'minify' = 'pretty'): Promise<void> {
+  const s = useStore.getState()
+  const view = getActiveEditor()
+  if (view) {
+    const msg = await formatCodeBlockAt(view, mode)
+    if (msg !== null) {
+      s.showNotice(msg, msg.startsWith('Could not') ? 'error' : 'info')
+      return
+    }
+  }
+  if (mode === 'minify') {
+    s.showNotice('Put the cursor in a code block (json, sql, xml…) to minify it.')
+    return
+  }
+  await formatNote()
 }

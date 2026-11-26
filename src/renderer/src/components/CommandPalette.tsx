@@ -7,7 +7,7 @@ import { toggleTask } from '@/lib/markdown'
 import { backupNow, exportNote, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { runAppleNotesImport, runImport } from '@/lib/importer'
 import { runKindleImport } from '@/lib/kindle'
-import { exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
+import { exportImage, exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
 import { fuzzyMatch } from '@/lib/fuzzy'
 import { useStore } from '@/lib/store'
 import { allTemplates, applyTemplate, fillPlaceholders } from '@/lib/templates'
@@ -28,7 +28,7 @@ import { copyId, copyNoteLink } from '@/lib/clipboard'
 import { gotoHeading, headingsOf, toggleOutline } from '@/lib/outline'
 import { openTodayNote } from '@/lib/dailyNote'
 import { presentNote } from '@/lib/slides'
-import { formatNote } from '@/lib/formatNote'
+import { formatAtCursor, formatNote } from '@/lib/formatNote'
 import { openGraph } from '@/lib/graph'
 import { closeOtherTabs, reopenClosedTab, tabsEnabled } from '@/lib/tabs'
 import { noteWindowId, openInNewWindow } from '@/lib/windowMode'
@@ -164,6 +164,11 @@ function noteActionItems(id: string, withTargets = false): Item[] {
     }),
     ...(noteWindowId ? [] : [cmd('local-graph', 'Show Note in Graph', () => openGraph('local', id), undefined, 'links network map connections local')]),
     cmd('format', 'Format Document', () => void formatNote(id), isMac() ? '⌥⇧F' : 'Alt+Shift+F', 'prettier markdown tidy clean beautify'),
+    cmd('image-save', 'Export Note as Image…', () => void exportImage('note', 'save'), '', 'png picture screenshot share'),
+    cmd('image-copy', 'Copy Note as Image', () => void exportImage('note', 'copy'), '', 'png picture screenshot share chat clipboard'),
+    cmd('image-selection', 'Copy Selection as Image', () => void exportImage('selection', 'copy'), '', 'png picture screenshot share chat clipboard'),
+    cmd('format-code', 'Format Code Block', () => void formatAtCursor('pretty'), isMac() ? '⌥⇧F' : 'Alt+Shift+F', 'json sql xml html css javascript typescript yaml graphql beautify pretty indent'),
+    cmd('minify-code', 'Minify Code Block', () => void formatAtCursor('minify'), '', 'json sql xml html css compact one line'),
     cmd('present', 'Start Presentation', () => presentNote(id), undefined, 'slides slideshow present deck'),
     cmd('export-note', 'Export Note as Markdown…', () => void exportNote(id)),
     cmd('export-html', 'Export Note as HTML…', () => void exportNoteHtml(id), undefined, 'web page save share'),

@@ -62,7 +62,7 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { label: 'Move to Trash (outside the editor)', keys: '', mac: '⌘⌫', other: 'Ctrl+Backspace' },
       { label: 'Open in a new window', keys: 'Cmd/Ctrl+Shift+N' },
       { label: 'Version history', keys: 'Cmd/Ctrl+Shift+H' },
-      { label: 'Format document', keys: 'Alt+Shift+F' }
+      { label: 'Format document (inside a json/sql/xml… code block: that block)', keys: 'Alt+Shift+F' }
     ]
   },
   {

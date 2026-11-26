@@ -14,6 +14,7 @@ import { presentNote } from '@/lib/slides'
 import { formatNote } from '@/lib/formatNote'
 import { openGraph } from '@/lib/graph'
 import { exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
+import { exportImageOf } from '@/lib/exportHtml'
 import { exportNote } from '@/lib/actions'
 import { openHistory } from './HistoryPanel'
 import { copyId, copyNoteLink, noteLinkMarkdown } from '@/lib/clipboard'
@@ -66,6 +67,12 @@ export function noteMenu(note: Note): MenuItem[] {
     { label: 'Export as Markdown…', onClick: () => void exportNote(note._id) },
     { label: 'Export as HTML…', onClick: () => void exportNoteHtml(note._id) },
     ...(window.inknote ? [{ label: 'Export as PDF…', onClick: () => void exportNotePdf(note._id) }] : []),
+    ...(window.inknote
+      ? [
+          { label: 'Export as Image…', onClick: () => void exportImageOf(note._id, 'save') },
+          { label: 'Copy as Image', onClick: () => void exportImageOf(note._id, 'copy') }
+        ]
+      : []),
     { label: 'Version History…', onClick: () => openHistory(note._id) },
     { label: 'Copy Link', onClick: () => copyNoteLink(note._id) },
     { label: 'Copy Note ID', onClick: () => copyId(note._id) },

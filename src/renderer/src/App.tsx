@@ -11,7 +11,7 @@ import { exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
 import { toggleOutline } from '@/lib/outline'
 import { openTodayNote } from '@/lib/dailyNote'
 import { startMcpBridge } from '@/lib/mcpTools'
-import { formatNote, startFormatOnLeave } from '@/lib/formatNote'
+import { formatAtCursor, startFormatOnLeave } from '@/lib/formatNote'
 import { usePresentation } from '@/lib/slides'
 import { isGraphOpen, openGraph } from '@/lib/graph'
 import { GraphView } from './components/GraphView'
@@ -186,7 +186,7 @@ export function App(): React.JSX.Element {
       if (e.altKey && e.shiftKey && !e.metaKey && !e.ctrlKey && e.code === 'KeyF' && !(document.activeElement as HTMLElement | null)?.closest?.('input, textarea')) {
         e.preventDefault()
         e.stopPropagation()
-        void formatNote()
+        void formatAtCursor()
         return
       }
       if (!(e.metaKey || e.ctrlKey)) return

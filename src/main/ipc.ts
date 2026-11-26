@@ -1,4 +1,4 @@
-import { app, BrowserWindow, clipboard, dialog, ipcMain, nativeTheme, shell } from 'electron'
+import { app, BrowserWindow, clipboard, ClipboardItem, dialog, ipcMain, nativeTheme, shell } from 'electron'
 import { existsSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { writeFile } from 'node:fs/promises'
@@ -10,6 +10,7 @@ import { ensureStylesFile, ensureThemesDir, listUserThemes, readUserStyles } fro
 import { scanImport } from './importer'
 import { fetchGithubSnippet, fetchTitle } from './web'
 import { htmlToPdf } from './pdf'
+import { htmlToImage } from './image'
 import { mcpCommand } from './mcp'
 import { readAppleNotes, scanFromDump } from './appleNotes'
 import type { AppleNotesDump } from './appleNotes'
@@ -200,6 +201,32 @@ export function registerIpc(openNoteWindow: (noteId: string, quick?: { bookId?: 
     if (res.canceled || !res.filePath) return null
     await writeFile(res.filePath, new Uint8Array(await htmlToPdf(html)))
     return res.filePath
+  })
+  // Ảnh PNG của ghi chú: lưu ra file, hoặc chép vào clipboard để dán vào chat
+  ipcMain.handle('export:image', async (event, title: unknown, html: unknown, mode: unknown) => {
+    if (typeof title !== 'string' || typeof html !== 'string' || (mode !== 'save' && mode !== 'copy')) return null
+    const { image, cut } = await htmlToImage(html)
+    if (image.isEmpty()) throw new Error('Empty image')
+    if (mode === 'copy') {
+      const png = new Uint8Array(image.toPNG())
+      await clipboard.write([new ClipboardItem({ 'image/png': new Blob([png], { type: 'image/png' }) })])
+      return { path: null, cut }
+    }
+    // Hồ sơ thử nghiệm: lưu thẳng vào thư mục chỉ định, không hỏi
+    const testDir = process.env['INKNOTE_USER_DATA'] ? process.env['INKNOTE_TEST_EXPORT_DIR'] : undefined
+    if (testDir) {
+      const path = join(testDir, `${safeName(title)}.png`)
+      await writeFile(path, new Uint8Array(image.toPNG()))
+      return { path, cut }
+    }
+    const res = await dialog.showSaveDialog(win(event)!, {
+      title: 'Export as Image',
+      defaultPath: `${safeName(title)}.png`,
+      filters: [{ name: 'PNG image', extensions: ['png'] }]
+    })
+    if (res.canceled || !res.filePath) return null
+    await writeFile(res.filePath, new Uint8Array(image.toPNG()))
+    return { path: res.filePath, cut }
   })
   // Dán chữ thuần (⌘⇧V): renderer bị sandbox nên đọc clipboard qua main
   ipcMain.handle('clipboard:readText', () => clipboard.readText())
