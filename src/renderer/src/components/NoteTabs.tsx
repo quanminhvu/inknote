@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { ArrowRightToLine, CopyX, ExternalLink, X } from 'lucide-react'
 import { useEditorPrefs } from '@/lib/editorPrefs'
 import { useStore } from '@/lib/store'
 import { closeOtherTabs, closeTab, closeTabsToRight, moveTab, useTabs } from '@/lib/tabs'
 import { cx, isMac } from '@/lib/util'
 import { openInNewWindow } from '@/lib/windowMode'
-import { openMenu } from './ContextMenu'
+import { mi, openMenu } from './ContextMenu'
 
 const TAB_MIME = 'application/x-inknote-tab'
 
@@ -93,11 +93,11 @@ export function NoteTabs(): React.JSX.Element | null {
             onClick={() => select(tab.id)}
             onContextMenu={(e) =>
               openMenu(e, [
-                { label: 'Close', hint: isMac() ? '⌘W' : 'Ctrl+W', onClick: () => closeTab(tab.id) },
-                { label: 'Close Others', onClick: () => closeOtherTabs(tab.id) },
-                { label: 'Close Tabs to the Right', onClick: () => closeTabsToRight(tab.id) },
+                { label: 'Close', icon: mi(X), hint: isMac() ? '⌘W' : 'Ctrl+W', onClick: () => closeTab(tab.id) },
+                { label: 'Close Others', icon: mi(CopyX), onClick: () => closeOtherTabs(tab.id) },
+                { label: 'Close Tabs to the Right', icon: mi(ArrowRightToLine), onClick: () => closeTabsToRight(tab.id) },
                 { separator: true },
-                ...(window.inknote ? [{ label: 'Open in New Window', onClick: () => openInNewWindow(tab.id) }] : [])
+                ...(window.inknote ? [{ label: 'Open in New Window', icon: mi(ExternalLink), onClick: () => openInNewWindow(tab.id) }] : [])
               ])
             }
           >

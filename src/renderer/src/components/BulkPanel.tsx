@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CircleDashed, Files, Pin, RotateCcw, Trash2, X, GitCompare } from 'lucide-react'
+import { CircleDashed, Files, GitCompare, Pin, RotateCcw, Trash2, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { openCompare } from './ComparePanel'
 import { NotebookPicker } from './NotebookPicker'
@@ -7,6 +7,7 @@ import { StatusIcon } from './StatusIcon'
 import { StatusPicker } from './StatusPicker'
 import { getStatuses } from '@/lib/statuses'
 import type { MenuItem } from './ContextMenu'
+import { mi } from './ContextMenu'
 
 const plural = (n: number): string => `${n} note${n === 1 ? '' : 's'}`
 
@@ -38,9 +39,9 @@ export function bulkMenu(ids: string[]): MenuItem[] {
   const inTrash = ids.every((id) => s.notes[id]?.trashed)
   if (inTrash) {
     return [
-      { label: `Restore ${plural(ids.length)}`, onClick: () => restoreMany(ids) },
+      { label: `Restore ${plural(ids.length)}`, icon: mi(RotateCcw), onClick: () => restoreMany(ids) },
       { separator: true },
-      { label: 'Delete Permanently', danger: true, onClick: () => deleteMany(ids) }
+      { label: 'Delete Permanently', icon: mi(Trash2), danger: true, onClick: () => deleteMany(ids) }
     ]
   }
   return [
@@ -51,7 +52,7 @@ export function bulkMenu(ids: string[]): MenuItem[] {
     })),
     { label: 'Clear Status', icon: <CircleDashed size={14} className="status-none" />, onClick: () => ids.forEach((id) => s.updateNote(id, { status: 'none' })) },
     { separator: true },
-    { label: `Move ${plural(ids.length)} to Trash`, danger: true, onClick: () => trashMany(ids) }
+    { label: `Move ${plural(ids.length)} to Trash`, icon: mi(Trash2), danger: true, onClick: () => trashMany(ids) }
   ]
 }
 

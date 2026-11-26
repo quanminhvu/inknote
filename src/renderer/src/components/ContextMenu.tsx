@@ -17,6 +17,9 @@ const useMenu = create<MenuState>(() => ({ open: false, x: 0, y: 0, items: [] })
 
 const close = (): void => useMenu.setState({ open: false })
 
+/** Icon cho một mục menu: cùng cỡ, cùng nét ở mọi menu */
+export const mi = (Icon: React.ComponentType<{ size?: number; strokeWidth?: number }>): React.ReactNode => <Icon size={14} strokeWidth={1.8} />
+
 /** Mở menu tại vị trí con trỏ (chuột phải) hoặc ngay dưới một nút bấm. */
 export function openMenu(event: React.MouseEvent, items: MenuItem[], anchorToTarget = false): void {
   event.preventDefault()

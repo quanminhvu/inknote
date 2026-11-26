@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { AlignLeft, ArrowUpDown, ExternalLink, CircleDashed, CopyPlus, FileCode, FileDown, FileText, Hash, History, ImageDown, Images, Link, ListChecks, ListFilter, Lock, LockOpen, PanelLeft, PanelTop, Pin, PinOff, Presentation, RotateCcw, SquarePen, Trash2, Waypoints, X } from 'lucide-react'
+import { AlignLeft, ArrowDownAZ, ArrowUpDown, CalendarClock, CalendarPlus, CircleDashed, Clock, CopyPlus, ExternalLink, FileCode, FileDown, FileText, Files, Hash, History, ImageDown, Images, Link, ListChecks, ListFilter, ListTodo, Lock, LockOpen, PanelLeft, PanelTop, Pin, PinOff, Presentation, RotateCcw, SquarePen, Trash2, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { visibleNotes } from '@/lib/selectors'
 import { highlightWords, parseQuery } from '@/lib/search'
@@ -20,16 +20,16 @@ import { openLockDialog } from './LockViews'
 import { exportNote } from '@/lib/actions'
 import { openHistory } from './HistoryPanel'
 import { copyId, copyNoteLink, noteLinkMarkdown } from '@/lib/clipboard'
-import { openMenu } from './ContextMenu'
+import { mi, openMenu } from './ContextMenu'
 import type { MenuItem } from './ContextMenu'
 import { NOTE_MIME } from './Sidebar'
 import { bulkMenu } from './BulkPanel'
 import { StatusIcon } from './StatusIcon'
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'updatedAt', label: 'Date Updated' },
-  { key: 'createdAt', label: 'Date Created' },
-  { key: 'title', label: 'Title' }
+const SORTS: { key: SortKey; label: string; icon: typeof Pin }[] = [
+  { key: 'updatedAt', label: 'Date Updated', icon: Clock },
+  { key: 'createdAt', label: 'Date Created', icon: CalendarPlus },
+  { key: 'title', label: 'Title', icon: ArrowDownAZ }
 ]
 
 function Highlight({ text, words }: { text: string; words: string[] }): React.JSX.Element {
@@ -119,11 +119,11 @@ function hasDueSoon(body: string): boolean {
   return false
 }
 
-const QUICK_FILTERS: { id: QuickFilter; label: string; test: (n: Note) => boolean }[] = [
-  { id: 'all', label: 'All', test: () => true },
-  { id: 'pinned', label: 'Pinned', test: (n) => n.pinned },
-  { id: 'tasks', label: 'Open tasks', test: (n) => OPEN_TASK.test(n.body) },
-  { id: 'due', label: 'Due soon', test: (n) => hasDueSoon(n.body) }
+const QUICK_FILTERS: { id: QuickFilter; label: string; icon: typeof Pin; test: (n: Note) => boolean }[] = [
+  { id: 'all', label: 'All', icon: Files, test: () => true },
+  { id: 'pinned', label: 'Pinned', icon: Pin, test: (n) => n.pinned },
+  { id: 'tasks', label: 'Open tasks', icon: ListTodo, test: (n) => OPEN_TASK.test(n.body) },
+  { id: 'due', label: 'Due soon', icon: CalendarClock, test: (n) => hasDueSoon(n.body) }
 ]
 
 /** Nhóm ngày cho danh sách: Today, Yesterday, This week, This month, rồi "November 2026" */
@@ -291,7 +291,7 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
               className={cx('icon-btn', quick !== 'all' && 'on')}
               title="Show only…"
               aria-label="Filter notes"
-              onClick={(e) => openMenu(e, QUICK_FILTERS.map((f) => ({ label: f.label === 'All' ? 'All notes' : f.label, checked: quick === f.id, onClick: () => setQuick(f.id) })), true)}
+              onClick={(e) => openMenu(e, QUICK_FILTERS.map((f) => ({ label: f.label === 'All' ? 'All notes' : f.label, icon: mi(f.icon), checked: quick === f.id, onClick: () => setQuick(f.id) })), true)}
             >
               <ListFilter size={15} />
             </button>
@@ -302,7 +302,7 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
             onClick={(e) =>
               openMenu(
                 e,
-                SORTS.map((s) => ({ label: s.label, checked: sort === s.key, onClick: () => setSort(s.key) })),
+                SORTS.map((s) => ({ label: s.label, icon: mi(s.icon), checked: sort === s.key, onClick: () => setSort(s.key) })),
                 true
               )
             }

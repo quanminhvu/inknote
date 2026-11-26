@@ -5,7 +5,7 @@ import { ResizeHandle, usePaneSize } from './ResizeHandle'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2, Languages, Timer, LockOpen } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Binary, BookOpen, Columns2, Dices, EllipsisVertical, Eye, Fingerprint, Images, KeyRound, KeySquare, Languages, LayoutTemplate, Link2, LockOpen, Maximize2, Minimize2, Pause, PenLine, Pencil, PictureInPicture2, Pin, Play, RotateCcw, ScanText, Search, SkipForward, Square, TableOfContents, TextCursorInput, Timer, Trash2 } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteTabs } from './NoteTabs'
@@ -20,7 +20,7 @@ import { onBackupStatus } from '@/lib/backup'
 import type { BackupStatus } from '@/lib/backup'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
-import { openMenu } from './ContextMenu'
+import { mi, openMenu } from './ContextMenu'
 import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { exportImage } from '@/lib/exportHtml'
@@ -29,6 +29,7 @@ import { lockAll, useLockSession } from '@/lib/noteLock'
 import { LockedNote } from './LockViews'
 import { mmss, remainingMs, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
+import type { Transform } from '@/lib/textTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
 import { noteMenu } from './NoteList'
@@ -47,6 +48,14 @@ const VIEW_MODES: { mode: ViewMode; label: string; title: string; icon: React.Re
 ]
 
 
+const TRANSFORM_ICONS: Record<Transform, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
+  jwt: KeySquare,
+  'base64-encode': Binary,
+  'base64-decode': Binary,
+  'url-encode': Link2,
+  'url-decode': Link2
+}
+
 /** Chuột phải lên chữ đang bôi đen (trong editor hoặc bản xem): dịch, tra từ điển, tìm trên Google */
 function selectionMenu(e: React.MouseEvent): void {
   const img = (e.target as HTMLElement).closest('img')
@@ -55,8 +64,8 @@ function selectionMenu(e: React.MouseEvent): void {
     const view = EditorView.findFromDOM(img)
     const src = img.currentSrc || img.src
     openMenu(e, [
-      { label: 'Copy Text from Image', onClick: () => void copyTextFromImage(src) },
-      ...(view && !view.state.readOnly ? [{ label: 'Insert Text Below Image', onClick: () => void insertTextFromImage(view, view.posAtDOM(img), src) }] : [])
+      { label: 'Copy Text from Image', icon: mi(ScanText), onClick: () => void copyTextFromImage(src) },
+      ...(view && !view.state.readOnly ? [{ label: 'Insert Text Below Image', icon: mi(TextCursorInput), onClick: () => void insertTextFromImage(view, view.posAtDOM(img), src) }] : [])
     ])
     return
   }
@@ -67,9 +76,9 @@ function selectionMenu(e: React.MouseEvent): void {
     // Không chọn gì, trong editor: chèn nhanh UUID / mật khẩu / chuỗi ngẫu nhiên
     if (!inEditor) return
     openMenu(e, [
-      { label: 'Insert UUID', onClick: () => insertText(uuid(), 'UUID') },
-      { label: 'Insert Random Password', onClick: () => insertText(password(), 'Password') },
-      { label: 'Insert Random String', onClick: () => insertText(randomString(), 'Random string') }
+      { label: 'Insert UUID', icon: mi(Fingerprint), onClick: () => insertText(uuid(), 'UUID') },
+      { label: 'Insert Random Password', icon: mi(KeyRound), onClick: () => insertText(password(), 'Password') },
+      { label: 'Insert Random String', icon: mi(Dices), onClick: () => insertText(randomString(), 'Random string') }
     ])
     return
   }
@@ -77,11 +86,11 @@ function selectionMenu(e: React.MouseEvent): void {
   const short = picked.text.replace(/\s+/g, ' ').trim()
   const quoted = short.length > 24 ? `${short.slice(0, 24)}…` : short
   openMenu(e, [
-    { label: 'Translate', hint: isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', onClick: () => translateSelection() },
-    { label: `Look Up “${quoted}”`, hint: isMac() ? '⌃⌘D' : undefined, onClick: () => lookUpSelection() },
-    { label: `Search with Google`, onClick: () => searchGoogle(picked.text) },
-    ...(transforms.length ? [{ separator: true as const }, ...transforms.map((t) => ({ label: t.label, onClick: () => transformSelection(t.kind) }))] : []),
-    ...(window.inknote ? [{ separator: true as const }, { label: 'Copy Selection as Image', onClick: () => void exportImage('selection', 'copy') }] : [])
+    { label: 'Translate', icon: mi(Languages), hint: isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', onClick: () => translateSelection() },
+    { label: `Look Up “${quoted}”`, icon: mi(BookOpen), hint: isMac() ? '⌃⌘D' : undefined, onClick: () => lookUpSelection() },
+    { label: `Search with Google`, icon: mi(Search), onClick: () => searchGoogle(picked.text) },
+    ...(transforms.length ? [{ separator: true as const }, ...transforms.map((t) => ({ label: t.label, icon: mi(TRANSFORM_ICONS[t.kind]), onClick: () => transformSelection(t.kind) }))] : []),
+    ...(window.inknote ? [{ separator: true as const }, { label: 'Copy Selection as Image', icon: mi(Images), onClick: () => void exportImage('selection', 'copy') }] : [])
   ])
 }
 
@@ -331,13 +340,13 @@ function FocusChip(): React.JSX.Element {
     openMenu(e, [
       ...(running
         ? [
-            { label: f.endsAt ? 'Pause' : 'Resume', onClick: () => (f.endsAt ? f.pause() : f.resume()) },
-            { label: f.phase === 'focus' ? 'Skip to Break' : 'Skip Break', onClick: () => f.skip() },
-            { label: 'Stop', onClick: () => f.stop() },
+            { label: f.endsAt ? 'Pause' : 'Resume', icon: mi(f.endsAt ? Pause : Play), onClick: () => (f.endsAt ? f.pause() : f.resume()) },
+            { label: f.phase === 'focus' ? 'Skip to Break' : 'Skip Break', icon: mi(SkipForward), onClick: () => f.skip() },
+            { label: 'Stop', icon: mi(Square), onClick: () => f.stop() },
             { separator: true as const }
           ]
         : []),
-      ...[15, 25, 50].map((m) => ({ label: `Focus for ${m} minutes`, checked: f.length === m, onClick: () => f.start(m) }))
+      ...[15, 25, 50].map((m) => ({ label: `Focus for ${m} minutes`, icon: mi(Timer), checked: f.length === m, onClick: () => f.start(m) }))
     ])
   }
   if (f.phase === 'idle') {

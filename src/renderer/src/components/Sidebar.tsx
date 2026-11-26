@@ -694,6 +694,7 @@ export function Sidebar(): React.JSX.Element {
             openMenu(e, [
               {
                 label: 'Empty Trash',
+                icon: <Trash2 size={14} />,
                 danger: true,
                 disabled: counts.trash === 0,
                 onClick: () => {
