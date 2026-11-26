@@ -5,7 +5,7 @@ import { ResizeHandle, usePaneSize } from './ResizeHandle'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2, Languages, Timer } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2, Languages, Timer, LockOpen } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteTabs } from './NoteTabs'
@@ -25,6 +25,8 @@ import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { exportImage } from '@/lib/exportHtml'
 import { useLiveTranslate } from '@/lib/liveTranslate'
+import { lockAll, useLockSession } from '@/lib/noteLock'
+import { LockedNote } from './LockViews'
 import { mmss, remainingMs, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
@@ -96,6 +98,8 @@ export function NotePane(): React.JSX.Element {
   const bodyRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLDivElement>(null)
   const outlineOpen = useOutline((s) => s.open)
+  // Ghi chú có khoá: số lần đã mở trong phiên này (undefined = đang đóng). Dùng làm key để dựng lại editor sau khi mở
+  const revealEpoch = useLockSession((s) => (note ? s.revealed[note._id] : undefined))
   const syncEnabled = !!note && !note.trashed && viewMode === 'split' && !isKanban(note.body) && multiCount <= 1
   useEffect(() => {
     if (!syncEnabled) return
@@ -132,6 +136,7 @@ export function NotePane(): React.JSX.Element {
   }
 
   const readOnly = note.trashed
+  const sealed = !!note.locked && revealEpoch === undefined
   const mode: ViewMode = readOnly ? 'preview' : viewMode
   const kanban = isKanban(note.body)
 
@@ -175,6 +180,11 @@ export function NotePane(): React.JSX.Element {
         >
           <TableOfContents size={16} />
         </button>
+        {note.locked && !sealed && (
+          <button className="icon-btn" title="Lock now (all open locked notes)" aria-label="Lock now" onClick={() => void lockAll().then(() => useStore.getState().showNotice('Locked.'))}>
+            <LockOpen size={15} />
+          </button>
+        )}
         {noteWindowId && <OnTopButton />}
         <button className="icon-btn" title="More actions" onClick={(e) => openMenu(e, noteMenu(note), true)}>
           <EllipsisVertical size={16} />
@@ -228,7 +238,7 @@ export function NotePane(): React.JSX.Element {
 
       </div>
 
-      {!readOnly && !note.title && !note.body && (
+      {!readOnly && !sealed && !note.title && !note.body && (
         <div className="template-hint">
           <button onClick={() => useStore.getState().setPalette('templates')}>
             <LayoutTemplate size={13} /> Choose a template
@@ -237,11 +247,15 @@ export function NotePane(): React.JSX.Element {
         </div>
       )}
 
+      {sealed ? (
+        <LockedNote note={note} />
+      ) : (
+      <>
       <div className="note-main" ref={mainRef}>
       <div ref={bodyRef} style={{ '--editor-split': `${Math.max(20, Math.min(80, split))}%` } as CSSProperties} className={cx('note-body', `mode-${mode}`)} onContextMenu={selectionMenu}>
         {mode !== 'preview' && (
           <div className="note-editor">
-            <MarkdownEditor key={note._id} docId={note._id} value={note.body} live={mode === 'live'} onChange={(body) => {
+            <MarkdownEditor key={`${note._id}:${revealEpoch ?? 0}`} docId={note._id} value={note.body} live={mode === 'live'} onChange={(body) => {
                 // Bỏ qua khi nội dung không đổi (ví dụ editor vừa nhận nội dung từ bên ngoài)
                 if (body !== useStore.getState().notes[note._id]?.body) updateNote(note._id, { body })
               }}
@@ -268,8 +282,10 @@ export function NotePane(): React.JSX.Element {
         <Outline body={note.body} scope={mainRef} preferPreview={mode === 'preview'} noteId={note._id} paused={!outlineOpen} />
       </div>
       </div>
-      {!readOnly && <Backlinks key={note._id} noteId={note._id} />}
-      <StatusBar body={note.body} updatedAt={note.updatedAt} showCursor={mode !== 'preview'} />
+      {!readOnly && !note.locked && <Backlinks key={note._id} noteId={note._id} />}
+      </>
+      )}
+      <StatusBar body={note.body} updatedAt={note.updatedAt} showCursor={mode !== 'preview' && !sealed} />
     </main>
   )
 }

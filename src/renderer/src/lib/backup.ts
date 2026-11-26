@@ -149,6 +149,14 @@ const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : 
 const num = (v: unknown, fallback: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
 const STATUS_IDS = ['none', 'active', 'onHold', 'completed', 'dropped']
 
+/** Nội dung mã hoá của ghi chú có khoá (giữ nguyên khi khôi phục, nếu không ghi chú thành rỗng) */
+function lockedOf(v: unknown): Note['locked'] | null {
+  if (!v || typeof v !== 'object') return null
+  const l = v as Record<string, unknown>
+  const b64 = (x: unknown): x is string => typeof x === 'string' && /^[A-Za-z0-9+/=]*$/.test(x)
+  return l.v === 1 && b64(l.salt) && b64(l.iv) && b64(l.data) ? { v: 1, salt: l.salt, iv: l.iv, data: l.data } : null
+}
+
 /** Chuẩn hóa document đọc từ file, để file bị sửa tay hay thiếu trường không làm hỏng app. */
 function normalize(raw: unknown): AnyDoc | null {
   if (!raw || typeof raw !== 'object') return null
@@ -165,7 +173,8 @@ function normalize(raw: unknown): AnyDoc | null {
       tags: Array.isArray(d.tags) ? d.tags.filter((t): t is string => typeof t === 'string') : [],
       status: ((STATUS_IDS.includes(d.status as string) || /^status:[A-Za-z0-9_-]{1,64}$/.test(str(d.status))) ? d.status : 'none') as Note['status'],
       pinned: d.pinned === true,
-      trashed: d.trashed === true
+      trashed: d.trashed === true,
+      ...(lockedOf(d.locked) ? { locked: lockedOf(d.locked)! } : {})
     }
   }
   if (d.type === 'book') {

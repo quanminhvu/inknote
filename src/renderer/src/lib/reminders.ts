@@ -75,6 +75,7 @@ export function startReminders(): () => void {
     const fired = readFired()
     let changed = false
     for (const t of collectTasks(notes)) {
+      if (notes[t.noteId]?.locked) continue
       if (t.done || t.dueAt === null || t.dueAt > now || now - t.dueAt > LATE_LIMIT) continue
       const key = `${t.noteId}|${t.text}|${t.dueAt}`
       if (fired[key]) continue

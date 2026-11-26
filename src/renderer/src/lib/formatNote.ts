@@ -51,7 +51,7 @@ export function startFormatOnLeave(): () => void {
     openedBody = openedId ? s.notes[openedId]?.body ?? null : null
     if (!leftId || !useEditorPrefs.getState().formatOnLeave) return
     const left = s.notes[leftId]
-    if (left && !left.trashed && left.body !== leftBody) void formatNote(leftId, true)
+    if (left && !left.trashed && !left.locked && left.body !== leftBody) void formatNote(leftId, true)
   })
 }
 

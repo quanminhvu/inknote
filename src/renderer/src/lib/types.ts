@@ -12,11 +12,21 @@ export interface CustomStatus {
   updatedAt: number
 }
 
+/** Nội dung đã mã hoá của ghi chú có khoá (base64). Xem lib/noteLock.ts */
+export interface LockedBody {
+  v: 1
+  salt: string
+  iv: string
+  data: string
+}
+
 export interface Note {
   _id: string // "note:<id>"
   type: 'note'
   title: string
+  /** Ghi chú có khoá: trên đĩa luôn rỗng (nội dung nằm trong `locked`) */
   body: string
+  locked?: LockedBody
   bookId: string
   tags: string[] // id của tag
   status: NoteStatus

@@ -1,5 +1,5 @@
 import PouchDB from 'pouchdb-browser'
-import type { AnyDoc } from './types'
+import type { AnyDoc, Note } from './types'
 
 // Local-first: mọi dữ liệu nằm trong PouchDB (IndexedDB). Giai đoạn 2 chỉ cần
 // db.sync(<CouchDB url>) là có đồng bộ, vì PouchDB nói cùng giao thức với CouchDB.
@@ -38,10 +38,25 @@ async function getOrNull(id: string): Promise<Stored<AnyDoc> | null> {
   }
 }
 
+// Ghi chú có khoá: lib/noteLock.ts đăng ký hàm mã hoá nội dung trước khi ghi (trả về null = không ghi).
+// Chạy bên trong hàng đợi ghi của từng ghi chú, nên thứ tự ghi và writesSettled() bao cả bước mã hoá.
+type Sealer = (doc: Note) => Promise<Note | null>
+let sealer: Sealer | null = null
+export function setNoteSealer(fn: Sealer): void {
+  sealer = fn
+}
+
 export function putDoc(doc: AnyDoc): Promise<void> {
   return enqueue(doc._id, async () => {
+    let out: AnyDoc = doc
+    if (doc.type === 'note' && doc.locked) {
+      // Không bao giờ ghi chữ thường của ghi chú có khoá: chưa có hàm mã hoá thì bỏ qua lần ghi
+      const sealed = sealer ? await sealer(doc) : null
+      if (!sealed) return
+      out = sealed
+    }
     const current = await getOrNull(doc._id)
-    await db.put({ ...doc, _rev: current?._rev } as PouchDB.Core.PutDocument<AnyDoc>)
+    await db.put({ ...out, _rev: current?._rev } as PouchDB.Core.PutDocument<AnyDoc>)
   })
 }
 

@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { loadAll, putDoc, removeDoc, watchChanges } from './db'
 import { STATUSES, TAG_COLORS } from './types'
 import { childrenByParent, visibleNotes } from './selectors'
-import type { AnyDoc, CustomStatus, Book, Note, NoteStatus, Selection, SortKey, Tag, Template, ViewMode } from './types'
+import type { AnyDoc, CustomStatus, Book, LockedBody, Note, NoteStatus, Selection, SortKey, Tag, Template, ViewMode } from './types'
 import { WELCOME_BODY, WELCOME_TITLE } from './welcome'
 import { noteWindowId } from './windowMode'
 
@@ -108,6 +108,12 @@ export interface State extends Prefs {
    */
   addDraftNote: (id: string, bookId: string | null) => void
   updateNote: (id: string, patch: Partial<Omit<Note, '_id' | 'type'>>) => void
+  /** Ghi chú có khoá vừa mở: đưa nội dung đã giải mã vào bộ nhớ (không lưu, không đổi ngày sửa) */
+  revealNote: (id: string, body: string) => void
+  /** Đóng ghi chú có khoá: xoá nội dung khỏi bộ nhớ (không lưu); `locked` = bản mã hoá mới nhất đã lưu */
+  sealNote: (id: string, locked?: LockedBody) => void
+  /** Lưu ngay thay đổi đang chờ của một ghi chú */
+  saveNoteNow: (id: string) => void
   duplicateNote: (id: string) => void
   trashNote: (id: string) => void
   restoreNote: (id: string) => void
@@ -435,9 +441,23 @@ export const useStore = create<State>((set, get) => {
       if (patch.bookId) set({ lastBookId: patch.bookId })
     },
 
+    revealNote: (id, body) =>
+      set((s) => (s.notes[id] ? { notes: { ...s.notes, [id]: { ...s.notes[id], body } } } : s)),
+    sealNote: (id, locked) => {
+      const timer = saveTimers.get(id)
+      if (timer) clearTimeout(timer)
+      saveTimers.delete(id)
+      set((s) => (s.notes[id] ? { notes: { ...s.notes, [id]: { ...s.notes[id], body: '', ...(locked ? { locked } : {}) } } } : s))
+    },
+    saveNoteNow: (id) => saveNoteNow(id),
+
     duplicateNote: (id) => {
       const note = get().notes[id]
       if (!note) return
+      if (note.locked) {
+        get().showNotice('Locked notes can’t be duplicated. Remove the lock first.')
+        return
+      }
       const now = Date.now()
       const copy: Note = {
         ...note,
@@ -692,6 +712,10 @@ export const useStore = create<State>((set, get) => {
     saveTemplate: (fromNoteId) => {
       const note = get().notes[fromNoteId]
       if (!note) return null
+      if (note.locked) {
+        get().showNotice('A locked note can’t be saved as a template.')
+        return null
+      }
       const now = Date.now()
       const template: Template = {
         _id: newId('template'),

@@ -16,6 +16,7 @@ async function loadAttachments(texts: string[]): Promise<{ names: Map<string, st
   return { names, list }
 }
 import { useStore } from './store'
+import { useLockSession } from './noteLock'
 import type { AnyDoc } from './types'
 
 // Các thao tác liên quan tới file (export, sao lưu, khôi phục), dùng chung cho
@@ -34,6 +35,10 @@ export async function exportNote(noteId: string | null = useStore.getState().sel
   const s = useStore.getState()
   const note = noteId ? s.notes[noteId] : undefined
   if (!b || !note) return
+  if (note.locked && !(note._id in useLockSession.getState().revealed)) {
+    s.showNotice('Unlock this note first to export it.')
+    return
+  }
   s.flush()
   const markdown = noteToMarkdown(note, s.books, s.tags)
   const { names, list } = await loadAttachments([markdown])
@@ -46,7 +51,9 @@ export async function exportNotes(bookId: string | null): Promise<void> {
   const s = useStore.getState()
   if (!b) return
   s.flush()
-  const files = buildExport(Object.values(s.notes), s.books, s.tags, bookId)
+  // Ghi chú có khoá không được xuất ra dạng chữ thường khi xuất hàng loạt
+  const lockedCount = Object.values(s.notes).filter((n) => n.locked && !n.trashed && (!bookId || n.bookId === bookId)).length
+  const files = buildExport(Object.values(s.notes).filter((n) => !n.locked), s.books, s.tags, bookId)
   if (!files.length) {
     s.showNotice('There are no notes to export.')
     return
@@ -56,7 +63,7 @@ export async function exportNotes(bookId: string | null): Promise<void> {
   const { names, list } = await loadAttachments(files.map((f) => f.content))
   const rewritten = files.map((f) => ({ ...f, content: rewriteAttachmentLinks(f.content, names, '../'.repeat(f.folders.length)) }))
   const res = await b.exporter.tree(label, rewritten, list)
-  if (res) s.showNotice(`Exported ${plural(res.count, 'note')} to ${res.path}`)
+  if (res) s.showNotice(`Exported ${plural(res.count, 'note')} to ${res.path}${lockedCount ? `. ${plural(lockedCount, 'locked note')} skipped` : ''}`)
 }
 
 export async function backupNow(): Promise<void> {

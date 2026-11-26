@@ -27,6 +27,7 @@ import { imageToolbar } from '@/lib/imageTools'
 import { alertBlocks, noWrapBlocks, strikeDoneTasks } from '@/lib/editorDecorations'
 import { useEditorPrefs } from '@/lib/editorPrefs'
 import { liveTranslate, useLiveTranslate } from '@/lib/liveTranslate'
+import { useStore } from '@/lib/store'
 import type { EditorPrefs } from '@/lib/editorPrefs'
 
 /** Các phần của editor đổi được khi người dùng đổi tùy chọn */
@@ -262,7 +263,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           ]),
           readOnlyConf.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
           liveConf.current.of(live ? livePreview : []),
-          translateConf.current.of(useLiveTranslate.getState().on && !readOnly ? liveTranslate : []),
+          translateConf.current.of(useLiveTranslate.getState().on && !readOnly && !(docId && useStore.getState().notes[docId]?.locked) ? liveTranslate : []),
           prefConf.current.spell.of(spellExt(useEditorPrefs.getState())),
           // Dán một URL lên chữ đang chọn thì biến chữ đó thành link Markdown
           EditorView.domEventHandlers({
@@ -437,9 +438,11 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
 
   // Dịch khi đang gõ: bật/tắt không cần dựng lại editor
   const translating = useLiveTranslate((s) => s.on)
+  // Ghi chú có khoá: không gửi nội dung đi dịch
+  const lockedNote = useStore((s) => !!(docId && s.notes[docId]?.locked))
   useEffect(() => {
-    viewRef.current?.dispatch({ effects: translateConf.current.reconfigure(translating && !readOnly ? liveTranslate : []) })
-  }, [translating, readOnly])
+    viewRef.current?.dispatch({ effects: translateConf.current.reconfigure(translating && !readOnly && !lockedNote ? liveTranslate : []) })
+  }, [translating, readOnly, lockedNote])
 
   useEffect(() => {
     viewRef.current?.dispatch({

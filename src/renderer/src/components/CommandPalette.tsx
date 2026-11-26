@@ -15,6 +15,8 @@ import { Preview } from './Preview'
 import { openPreferences } from './Preferences'
 import { openCompare } from './ComparePanel'
 import { openReview } from './FlashcardReview'
+import { openLockDialog } from './LockViews'
+import { lockAll } from '@/lib/noteLock'
 import { insertText, password, randomString, transformSelection, uuid } from '@/lib/textTools'
 import { lookUpSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { convertSelectionToTable } from '@/lib/editorKeys'
@@ -258,6 +260,11 @@ function commandItems(): Item[] {
       const v = getActiveEditor()
       if (!v || !convertSelectionToTable(v)) useStore.getState().showNotice('Select lines of CSV or spreadsheet data first.')
     }, '', 'csv tsv excel sheets spreadsheet markdown table'),
+    cmd('lock-note', 'Lock Note…', () => {
+      const n = useStore.getState().selectedNoteId
+      if (n) openLockDialog(n)
+    }, '', 'password encrypt protect secret private'),
+    cmd('lock-all', 'Lock All Notes Now', () => void lockAll().then((n) => useStore.getState().showNotice(n ? 'Locked.' : 'No locked note is open.')), '', 'password encrypt lock close'),
     cmd('review', 'Review Flashcards', () => openReview(), '', 'flashcards anki spaced repetition study learn cards'),
     cmd('focus-start', 'Start Focus Timer', () => useFocusTimer.getState().start(), '', 'pomodoro timer focus work session 25'),
     cmd('focus-pause', 'Pause or Resume Focus Timer', () => toggleFocus(), '', 'pomodoro timer'),

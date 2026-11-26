@@ -5,6 +5,7 @@ import { fileIdFromUrl, readFile } from './attachments'
 import { isNoteLink } from './noteLinks'
 import { useStore } from './store'
 import { getActiveEditor } from './editorCommands'
+import { useLockSession } from './noteLock'
 
 // Export một ghi chú thành một file HTML tự chứa: ảnh đính kèm được nhúng (data URL),
 // sơ đồ Mermaid thành SVG, khối code đã tô màu. Chỉ công thức toán cần tải font KaTeX từ CDN.
@@ -83,6 +84,10 @@ export async function exportNoteHtml(noteId: string | null = useStore.getState()
   const s = useStore.getState()
   const note = noteId ? s.notes[noteId] : undefined
   if (!note || !window.inknote) return
+  if (note.locked && !(note._id in useLockSession.getState().revealed)) {
+    s.showNotice('Unlock this note first to export it.')
+    return
+  }
   const html = await noteToHtml(note.title, note.body)
   const path = await window.inknote.exporter.html(note.title || 'Untitled', html)
   if (path) s.showNotice(`Exported “${note.title || 'Untitled'}” as HTML.`)
@@ -93,6 +98,10 @@ export async function exportNotePdf(noteId: string | null = useStore.getState().
   const s = useStore.getState()
   const note = noteId ? s.notes[noteId] : undefined
   if (!note || !window.inknote) return
+  if (note.locked && !(note._id in useLockSession.getState().revealed)) {
+    s.showNotice('Unlock this note first to export it.')
+    return
+  }
   const html = await noteToHtml(note.title, note.body, true)
   try {
     const path = await window.inknote.exporter.pdf(note.title || 'Untitled', html)
@@ -194,6 +203,10 @@ export async function exportImage(target: 'note' | 'selection', mode: 'save' | '
   const s = useStore.getState()
   const note = s.selectedNoteId ? s.notes[s.selectedNoteId] : undefined
   if (!note || !window.inknote) return
+  if (note.locked && !(note._id in useLockSession.getState().revealed)) {
+    s.showNotice('Unlock this note first to export it.')
+    return
+  }
   let title: string | null = note.title || 'Untitled'
   let body = note.body
   if (target === 'selection') {

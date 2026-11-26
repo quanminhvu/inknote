@@ -169,7 +169,17 @@ function list(args: Record<string, unknown>, key: string): string[] | undefined 
 }
 
 /** Tìm ghi chú theo id, link inknote://note/…, hoặc đúng tiêu đề (ghi chú sửa gần nhất nếu trùng) */
+/** Ghi chú có khoá: agent không được đọc hay sửa nội dung (kể cả khi người dùng đang mở khoá) */
+function guardLocked(note: Note): Note {
+  if (note.locked) throw new ToolError(`“${note.title || 'Untitled'}” is locked in Inknote. Its text is encrypted and not available to AI agents.`)
+  return note
+}
+
 function findNote(ref: unknown, includeTrashed = false): Note {
+  return guardLocked(findNoteAny(ref, includeTrashed))
+}
+
+function findNoteAny(ref: unknown, includeTrashed = false): Note {
   if (typeof ref !== 'string' || !ref.trim()) throw new ToolError('Missing "note".')
   const notes = state().notes
   const raw = ref.trim()
@@ -249,11 +259,13 @@ function run(tool: string, args: Record<string, unknown>, client: string): strin
       const query = text(args, 'query', 1000) ?? ''
       const limit = Math.max(1, Math.min(MAX_RESULTS, typeof args.limit === 'number' ? Math.floor(args.limit) : 20))
       const terms = parseQuery(query)
+      // Ghi chú có khoá: chỉ tìm theo tiêu đề, tag…, không đụng tới nội dung
       const found = Object.values(s.notes)
+        .map((n) => (n.locked ? { ...n, body: '' } : n))
         .filter((n) => !n.trashed && (!terms.length || matchesQuery(n, terms, s)))
         .sort((a, b) => b.updatedAt - a.updatedAt)
       const words = terms.filter((t) => !t.negate && (t.field === 'any' || t.field === 'body')).map((t) => t.value)
-      return json({ total: found.length, notes: found.slice(0, limit).map((n) => ({ ...describe(n), snippet: snippet(n, words) })) })
+      return json({ total: found.length, notes: found.slice(0, limit).map((n) => ({ ...describe(n), ...(n.locked ? { locked: true, snippet: '' } : { snippet: snippet(n, words) }) })) })
     }
     case 'read_note': {
       const note = findNote(args.note, true)
@@ -273,7 +285,7 @@ function run(tool: string, args: Record<string, unknown>, client: string): strin
       return json(getStatuses().map((x) => x.label))
     case 'get_backlinks': {
       const note = findNote(args.note, true)
-      const links = Object.values(s.notes).filter((n) => !n.trashed && n._id !== note._id && linkedNoteIds(n.body).has(note._id))
+      const links = Object.values(s.notes).filter((n) => !n.trashed && !n.locked && n._id !== note._id && linkedNoteIds(n.body).has(note._id))
       return json(links.map(describe))
     }
     case 'create_note': {
@@ -380,7 +392,7 @@ export async function handleMcp(op: string, tool: string, rawArgs: unknown, allo
   }
   if (op === 'resources') {
     return Object.values(state().notes)
-      .filter((n) => !n.trashed)
+      .filter((n) => !n.trashed && !n.locked)
       .sort((a, b) => b.updatedAt - a.updatedAt)
       .slice(0, RESOURCE_LIMIT)
       .map((n) => ({ uri: noteLinkUrl(n._id), name: n.title || 'Untitled', mimeType: 'text/markdown' }))

@@ -54,7 +54,8 @@ function queue(noteId: string, task: () => Promise<unknown>): Promise<unknown> {
 }
 
 /** Lưu một phiên bản nếu khác phiên bản gần nhất. */
-export function snapshot(note: Pick<Note, '_id' | 'title' | 'body'>): Promise<unknown> {
+export function snapshot(note: Pick<Note, '_id' | 'title' | 'body' | 'locked'>): Promise<unknown> {
+  if (note.locked) return Promise.resolve()
   const { _id: noteId, title, body } = note
   return queue(noteId, async () => {
     const last = await latest(noteId)
@@ -87,6 +88,12 @@ export function startHistory(): void {
     for (const [id, note] of Object.entries(state.notes)) {
       const before = prev.notes[id]
       if (!before || (before.body === note.body && before.title === note.title)) continue
+      // Ghi chú có khoá: không lưu phiên bản (lịch sử là chữ thường); mở / đóng khoá cũng không phải là sửa
+      if (note.locked || before.locked) {
+        clearTimeout(timers.get(id))
+        timers.delete(id)
+        continue
+      }
       // Đầu một đợt sửa: giữ lại bản trước khi sửa
       if (!timers.has(id)) void snapshot(before)
       clearTimeout(timers.get(id))
@@ -116,9 +123,16 @@ export function flushHistory(): void {
   for (const [id, timer] of timers) {
     clearTimeout(timer)
     const current = useStore.getState().notes[id]
-    if (current) void snapshot(current)
+    if (current && !current.locked) void snapshot(current)
   }
   timers.clear()
+}
+
+/** Khi khoá một ghi chú: bỏ phiên bản đang chờ lưu và xoá hết phiên bản cũ (chữ thường) của nó */
+export async function forgetHistory(noteId: string): Promise<void> {
+  clearTimeout(timers.get(noteId))
+  timers.delete(noteId)
+  await queue(noteId, () => removeAll(noteId))
 }
 
 /** Khôi phục một phiên bản (lưu bản hiện tại trước, để có thể hoàn tác). */

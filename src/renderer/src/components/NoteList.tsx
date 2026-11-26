@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpDown, CircleDashed, ListChecks, ListFilter, PanelLeft, Pin, SquarePen, Trash2, X } from 'lucide-react'
+import { ArrowUpDown, CircleDashed, ListChecks, ListFilter, Lock, PanelLeft, Pin, SquarePen, Trash2, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { visibleNotes } from '@/lib/selectors'
 import { highlightWords, parseQuery } from '@/lib/search'
@@ -15,6 +15,8 @@ import { formatNote } from '@/lib/formatNote'
 import { openGraph } from '@/lib/graph'
 import { exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
 import { exportImageOf } from '@/lib/exportHtml'
+import { isRevealed, lockAll, removeLock } from '@/lib/noteLock'
+import { openLockDialog } from './LockViews'
 import { exportNote } from '@/lib/actions'
 import { openHistory } from './HistoryPanel'
 import { copyId, copyNoteLink, noteLinkMarkdown } from '@/lib/clipboard'
@@ -74,6 +76,14 @@ export function noteMenu(note: Note): MenuItem[] {
         ]
       : []),
     { label: 'Version History…', onClick: () => openHistory(note._id) },
+    ...(!note.locked
+      ? [{ label: 'Lock Note…', onClick: () => openLockDialog(note._id) }]
+      : isRevealed(note._id)
+        ? [
+            { label: 'Lock Now', onClick: () => void lockAll() },
+            { label: 'Remove Lock', onClick: () => removeLock(note._id) }
+          ]
+        : []),
     { label: 'Copy Link', onClick: () => copyNoteLink(note._id) },
     { label: 'Copy Note ID', onClick: () => copyId(note._id) },
     { separator: true },
@@ -387,6 +397,7 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
                 <span className={cx('note-item-name', !note.title && 'untitled')}>
                   <Highlight text={note.title || 'Untitled'} words={words} />
                 </span>
+                {note.locked && <Lock size={12} className="pin-mark" aria-label="Locked" />}
                 {note.pinned && <Pin size={12} className="pin-mark" />}
               </div>
               {!note.trashed && (
@@ -411,7 +422,7 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
                 </div>
               )}
               <div className="note-item-snippet">
-                <Highlight text={snippet(note.body)} words={words} />
+                {note.locked ? <span className="locked-snippet">Locked</span> : <Highlight text={snippet(note.body)} words={words} />}
               </div>
               <div className="note-item-meta">
                 <span className="note-item-time">{relativeTime(sort === 'createdAt' ? note.createdAt : note.updatedAt)}</span>
