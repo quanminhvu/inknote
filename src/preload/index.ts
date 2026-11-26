@@ -49,7 +49,8 @@ contextBridge.exposeInMainWorld('inknote', {
   utilities: {
     translate: (text: string, target: string, source = 'auto') => ipcRenderer.invoke('util:translate', text, target, source),
     open: (url: string) => ipcRenderer.invoke('util:open', url),
-    lookUp: () => ipcRenderer.invoke('util:lookUp')
+    lookUp: () => ipcRenderer.invoke('util:lookUp'),
+    ocr: (image: Uint8Array | string) => ipcRenderer.invoke('util:ocr', image)
   },
   openDataFolder: () => ipcRenderer.invoke('app:openDataFolder'),
   readClipboardText: () => ipcRenderer.invoke('clipboard:readText'),

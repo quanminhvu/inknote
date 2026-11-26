@@ -17,6 +17,7 @@ import { editorSpot, saveEditorSpot } from '@/lib/viewMemory'
 import { emojiCompletions, fenceLanguageCompletions, slashCompletions } from '@/lib/completions'
 import { formatToolbar, toggleWrap } from '@/lib/formatToolbar'
 import { writingKeymap } from '@/lib/editorKeys'
+import { tsvToTable } from '@/lib/tableConvert'
 import { attachFiles, fileIdFromUrl, openAttachment } from '@/lib/attachments'
 import { extraSlashItems } from '@/lib/completions'
 import { setActiveEditor } from '@/lib/editorCommands'
@@ -301,6 +302,14 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
               const text = event.clipboardData?.getData('text/plain').trim() ?? ''
               const { main } = view.state.selection
               if (view.state.selection.ranges.length > 1) return false
+              // Ô copy từ Excel / Google Sheets / Numbers (chữ có tab): dán thành bảng Markdown
+              const table = inCode(view, main.from) ? null : tsvToTable(event.clipboardData?.getData('text/plain') ?? '')
+              if (table) {
+                event.preventDefault()
+                const { insert, anchor } = blockAware(view, main.from, main.to, table)
+                view.dispatch({ changes: { from: main.from, to: main.to, insert }, selection: { anchor }, userEvent: 'input.paste', scrollIntoView: true })
+                return true
+              }
               if (!/^https?:\/\/\S+$/.test(text)) {
                 // Văn bản có định dạng (web, Google Docs, Notion…): dán thành Markdown,
                 // trừ khi đang ở trong khối code hay code trong dòng

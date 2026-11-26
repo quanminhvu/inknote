@@ -1,5 +1,10 @@
-import type { KeyBinding } from '@codemirror/view'
+import { selectedCompletion } from '@codemirror/autocomplete'
+import { syntaxTree } from '@codemirror/language'
+import type { EditorState } from '@codemirror/state'
+import type { EditorView, KeyBinding } from '@codemirror/view'
+import { calculate } from './calc'
 import { insertLink, LIST_PREFIX, toggleLinePrefix, toggleWrap } from './formatToolbar'
+import { csvToTable } from './tableConvert'
 
 // Phím tắt định dạng trong editor (liệt kê cho người dùng ở lib/shortcuts.ts, nhóm "Writing").
 // Chỉ dùng tổ hợp chưa bị CodeMirror dùng, trừ Mod-Enter: ở dòng task thì tick/bỏ tick,
@@ -44,7 +49,47 @@ const plain: KeyBinding['run'] = (view) => {
   return true
 }
 
+function inCode(state: EditorState, pos: number): boolean {
+  for (let node: ReturnType<ReturnType<typeof syntaxTree>['resolveInner']> | null = syntaxTree(state).resolveInner(pos, -1); node; node = node.parent) {
+    if (/^(FencedCode|CodeBlock|InlineCode)$/.test(node.name)) return true
+  }
+  return false
+}
+
+/**
+ * Máy tính nhanh: Enter ở cuối dòng "= 1200*3.5 + 15%" hoặc "1200*3.5 + 15% =" → "1200*3.5 + 15% = 4,830".
+ * Con trỏ đứng lại cuối dòng; Enter lần nữa xuống dòng như thường. Không phải phép tính thì Enter như cũ.
+ */
+const calcLine: KeyBinding['run'] = (view) => {
+  const { state } = view
+  const sel = state.selection.main
+  if (state.selection.ranges.length > 1 || !sel.empty || selectedCompletion(state)) return false
+  const line = state.doc.lineAt(sel.head)
+  if (sel.head !== line.to || inCode(state, sel.head)) return false
+  const lead = /^\s*(?:[-*+]\s+|\d+[.)]\s+)?/.exec(line.text)![0]
+  const body = line.text.slice(lead.length)
+  const m = /^=\s*(.+?)\s*$/.exec(body) ?? /^([^=]*[^=\s])\s*=\s*$/.exec(body)
+  if (!m) return false
+  const result = calculate(m[1])
+  if (result === null) return false
+  const insert = `${lead}${m[1].trim()} = ${result}`
+  view.dispatch({ changes: { from: line.from, to: line.to, insert }, selection: { anchor: line.from + insert.length }, userEvent: 'input' })
+  return true
+}
+
+/** Biến vùng chọn dạng CSV / dữ liệu bảng tính thành bảng Markdown */
+export function convertSelectionToTable(view: EditorView): boolean {
+  const { from, to } = view.state.selection.main
+  const start = view.state.doc.lineAt(from).from
+  const end = view.state.doc.lineAt(to).to
+  const table = csvToTable(view.state.sliceDoc(start, end))
+  if (!table) return false
+  view.dispatch({ changes: { from: start, to: end, insert: table }, selection: { anchor: start + table.length }, userEvent: 'input' })
+  return true
+}
+
 export const writingKeymap: KeyBinding[] = [
+  { key: 'Enter', run: calcLine },
   { key: 'Mod-Shift-x', preventDefault: true, run: toggleWrap('~~') },
   { key: 'Mod-Shift-c', preventDefault: true, run: toggleWrap('`') },
   { key: 'Mod-Alt-k', preventDefault: true, run: insertLink },

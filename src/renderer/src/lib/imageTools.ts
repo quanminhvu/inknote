@@ -2,6 +2,7 @@ import { StateField } from '@codemirror/state'
 import type { EditorState, Extension } from '@codemirror/state'
 import { EditorView, showTooltip } from '@codemirror/view'
 import type { Tooltip } from '@codemirror/view'
+import { canRecognizeText, insertTextFromImage } from './ocr'
 
 // Kích thước ảnh ghi ngay trong chữ thay thế, giống Obsidian:
 //   ![ảnh](url)          tự động
@@ -23,12 +24,12 @@ export function parseImageAlt(alt: string): { alt: string; size: ImageSize } {
 
 const IMAGE = /!\[([^\]\n]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g
 
-function imageAt(state: EditorState, pos: number): { from: number; altFrom: number; altTo: number; alt: string } | null {
+function imageAt(state: EditorState, pos: number): { from: number; altFrom: number; altTo: number; alt: string; url: string } | null {
   const line = state.doc.lineAt(pos)
   for (const m of line.text.matchAll(IMAGE)) {
     const from = line.from + m.index
     const to = from + m[0].length
-    if (pos >= from && pos <= to) return { from, altFrom: from + 2, altTo: from + 2 + m[1].length, alt: m[1] }
+    if (pos >= from && pos <= to) return { from, altFrom: from + 2, altTo: from + 2 + m[1].length, alt: m[1], url: m[2] }
   }
   return null
 }
@@ -81,6 +82,19 @@ function compute(state: EditorState): Tooltip | null {
         px.className = 'tb-label'
         px.textContent = `${current}px`
         dom.appendChild(px)
+      }
+      // macOS: đọc chữ trong ảnh và chèn xuống dưới
+      if (canRecognizeText()) {
+        const ocr = document.createElement('button')
+        ocr.type = 'button'
+        ocr.className = 'tb-sep'
+        ocr.textContent = 'Extract text'
+        ocr.title = 'Read the text in this image and add it below'
+        ocr.addEventListener('mousedown', (e) => {
+          e.preventDefault()
+          void insertTextFromImage(view, img.from, img.url)
+        })
+        dom.appendChild(ocr)
       }
       return { dom }
     }

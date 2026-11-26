@@ -70,7 +70,8 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     items: [
       { label: 'Translate with Google Translate', keys: 'Cmd/Ctrl+Shift+Y' },
       { label: 'Look up in the dictionary', keys: '', mac: '⌃⌘D', other: 'Right-click → Look Up' },
-      { label: 'Search with Google', keys: '', mac: 'Right-click → Search with Google', other: 'Right-click → Search with Google' }
+      { label: 'Search with Google', keys: '', mac: 'Right-click → Search with Google', other: 'Right-click → Search with Google' },
+      { label: 'Text from an image (macOS)', keys: '', mac: 'Right-click the image', other: '—' }
     ]
   },
   {
@@ -92,7 +93,9 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { label: 'Find in note', keys: 'Cmd/Ctrl+F' },
       { label: 'Select next match', keys: 'Cmd/Ctrl+D' },
       { label: 'Move line up / down', keys: '', mac: '⌥↑  /  ⌥↓', other: 'Alt+↑ / Alt+↓' },
-      { label: 'Next cell in a table', keys: 'Tab' }
+      { label: 'Next cell in a table', keys: 'Tab' },
+      { label: 'Calculate: type “= 12*3” or “12*3 =”, then', keys: 'Enter' },
+      { label: 'Due time for a reminder: “@2026-12-01 09:00”', keys: '', mac: '@ date time', other: '@ date time' }
     ]
   }
 ]

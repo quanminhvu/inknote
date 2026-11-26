@@ -10,6 +10,7 @@ import type { ThemeInfo } from '@/lib/theme'
 import { cx } from '@/lib/util'
 import { SHORTCUT_GROUPS, shortcutText } from '@/lib/shortcuts'
 import { LANGUAGES, useTranslatePrefs } from '@/lib/utilities'
+import { useReminderPrefs } from '@/lib/reminders'
 import { relativeTime } from '@/lib/util'
 import { runImport } from '@/lib/importer'
 import { useEditorPrefs } from '@/lib/editorPrefs'
@@ -33,7 +34,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -427,6 +428,17 @@ function Appearance(): React.JSX.Element {
   )
 }
 
+function ReminderSettings(): React.JSX.Element {
+  const r = useReminderPrefs()
+  return (
+    <Group title="Reminders" note="Add a time after a task's due date, for example “- [ ] Call the bank @2026-12-01 09:00”. Inknote shows a notification at that time while it is running, or when it opens if it was closed then (up to 6 hours late).">
+      <Row label="Remind me about tasks with a time">
+        <Switch label="Remind me about tasks with a time" checked={r.enabled} onChange={r.setEnabled} />
+      </Row>
+    </Group>
+  )
+}
+
 function TranslateSettings(): React.JSX.Element {
   const t = useTranslatePrefs()
   const options = LANGUAGES.map((l) => (
@@ -485,6 +497,7 @@ function EditorSection(): React.JSX.Element {
           </select>
         </Row>
       </Group>
+      <ReminderSettings />
       <TranslateSettings />
     </>
   )

@@ -1,4 +1,8 @@
-import { BrowserWindow, ipcMain, net, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, net, shell } from 'electron'
+import { execFile } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 // Tiện ích: dịch (Google Dịch), tra từ điển macOS, mở trang tìm kiếm / dịch trên trình duyệt.
 // Chỉ gửi đi đúng đoạn chữ người dùng chọn, và chỉ khi họ bấm dịch.
@@ -72,7 +76,80 @@ export async function translate(raw: unknown, target: unknown, source: unknown =
 /** Chỉ mở các trang của tiện ích (dịch, tìm kiếm), không mở địa chỉ bất kỳ do renderer gửi */
 const ALLOWED = [/^https:\/\/translate\.google\.com\//, /^https:\/\/www\.google\.com\/search\?/]
 
+// ── Lấy chữ từ ảnh (macOS): dùng bộ nhận dạng chữ có sẵn của hệ thống (Vision, giống Live Text),
+// chạy trên máy, không gửi ảnh đi đâu. Gọi qua JavaScript for Automation nên không cần biên dịch gì.
+const OCR_SCRIPT = `ObjC.import('Vision'); ObjC.import('Foundation')
+function run(argv) {
+  const req = $.VNRecognizeTextRequest.alloc.init
+  req.recognitionLevel = 0
+  req.usesLanguageCorrection = true
+  const wanted = ['vi-VT', 'en-US']
+  const supported = ObjC.deepUnwrap(req.supportedRecognitionLanguagesAndReturnError(null)) || []
+  const langs = wanted.filter((l) => supported.indexOf(l) >= 0)
+  if (langs.length) req.recognitionLanguages = $(langs)
+  const handler = $.VNImageRequestHandler.alloc.initWithURLOptions($.NSURL.fileURLWithPath(argv[0]), $({}))
+  if (!handler.performRequestsError($([req]), null)) return JSON.stringify({ error: 'failed' })
+  const out = []
+  const results = req.results
+  for (let i = 0; i < results.count; i++) {
+    const top = results.objectAtIndex(i).topCandidates(1)
+    if (top.count) out.push(top.objectAtIndex(0).string.js)
+  }
+  return JSON.stringify({ lines: out })
+}`
+
+const MAX_IMAGE = 30 * 1024 * 1024
+
+function ocrDir(): string {
+  const dir = join(app.getPath('temp'), 'inknote-ocr')
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+async function imageBytes(input: unknown): Promise<Uint8Array | null> {
+  if (input instanceof Uint8Array) return input.byteLength <= MAX_IMAGE ? input : null
+  if (typeof input === 'string' && /^https?:\/\//.test(input)) {
+    const res = await net.fetch(input)
+    if (!res.ok || !/^image\//.test(res.headers.get('content-type') ?? '')) return null
+    const buf = new Uint8Array(await res.arrayBuffer())
+    return buf.byteLength <= MAX_IMAGE ? buf : null
+  }
+  return null
+}
+
+export async function recognizeText(input: unknown): Promise<{ text: string } | { error: string }> {
+  if (process.platform !== 'darwin') return { error: 'Text recognition is only available on macOS.' }
+  let bytes: Uint8Array | null
+  try {
+    bytes = await imageBytes(input)
+  } catch {
+    return { error: 'Could not load the image.' }
+  }
+  if (!bytes) return { error: 'Could not load the image (or it is larger than 30 MB).' }
+  const dir = ocrDir()
+  const script = join(dir, 'ocr.js')
+  const image = join(dir, `${randomUUID()}.img`)
+  writeFileSync(script, OCR_SCRIPT)
+  writeFileSync(image, bytes)
+  try {
+    const out = await new Promise<string>((resolve, reject) => {
+      // Lần đầu hệ thống nạp bộ nhận dạng có thể mất tới khoảng một phút
+      execFile('/usr/bin/osascript', ['-l', 'JavaScript', script, image], { timeout: 120_000, maxBuffer: 8 * 1024 * 1024 }, (err, stdout) =>
+        err ? reject(err) : resolve(stdout)
+      )
+    })
+    const data = JSON.parse(out.trim()) as { lines?: string[]; error?: string }
+    if (!data.lines) return { error: 'Could not read text from this image.' }
+    return { text: data.lines.join('\n') }
+  } catch {
+    return { error: 'Could not read text from this image.' }
+  } finally {
+    rmSync(image, { force: true })
+  }
+}
+
 export function registerUtilities(): void {
+  ipcMain.handle('util:ocr', (_e, input: unknown) => recognizeText(input))
   ipcMain.handle('util:translate', (_e, text: unknown, target: unknown, source: unknown) => translate(text, target, source))
   ipcMain.handle('util:open', (_e, url: unknown) => {
     if (typeof url !== 'string' || url.length > 8000 || !ALLOWED.some((r) => r.test(url))) return false

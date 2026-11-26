@@ -113,6 +113,8 @@ interface InknoteBridge {
     open(url: string): Promise<boolean>
     /** macOS: bảng tra từ điển cho đoạn đang bôi đen */
     lookUp(): Promise<boolean>
+    /** macOS: nhận dạng chữ trong ảnh (byte của ảnh, hoặc link http/https) */
+    ocr(image: Uint8Array | string): Promise<{ text: string } | { error: string }>
   }
   web: {
     /** Tiêu đề trang web (og:title hoặc <title>), null nếu không lấy được */

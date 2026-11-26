@@ -21,6 +21,8 @@ import type { BackupStatus } from '@/lib/backup'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
 import { openMenu } from './ContextMenu'
+import { EditorView } from '@codemirror/view'
+import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
 import { noteMenu } from './NoteList'
@@ -41,6 +43,17 @@ const VIEW_MODES: { mode: ViewMode; label: string; title: string; icon: React.Re
 
 /** Chuột phải lên chữ đang bôi đen (trong editor hoặc bản xem): dịch, tra từ điển, tìm trên Google */
 function selectionMenu(e: React.MouseEvent): void {
+  const img = (e.target as HTMLElement).closest('img')
+  if (img && canRecognizeText()) {
+    // Ảnh trong editor (chế độ Live): chèn được chữ xuống dưới ảnh; ở bản xem thì chép ra
+    const view = EditorView.findFromDOM(img)
+    const src = img.currentSrc || img.src
+    openMenu(e, [
+      { label: 'Copy Text from Image', onClick: () => void copyTextFromImage(src) },
+      ...(view && !view.state.readOnly ? [{ label: 'Insert Text Below Image', onClick: () => void insertTextFromImage(view, view.posAtDOM(img), src) }] : [])
+    ])
+    return
+  }
   if ((e.target as HTMLElement).closest('a, img, input, textarea, .cm-live-check')) return
   const picked = pickSelection()
   if (!picked || !picked.text.trim()) return

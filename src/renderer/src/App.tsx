@@ -26,6 +26,7 @@ import { IconPicker } from './components/BookIcon'
 import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
+import { startReminders } from './lib/reminders'
 import { TranslatePanel } from './components/TranslatePanel'
 import { lookUpSelection, translateSelection } from './lib/utilities'
 import { NoteList, stepNoteList } from './components/NoteList'
@@ -79,6 +80,8 @@ export function App(): React.JSX.Element {
   // Đóng/mở sidebar, chế độ tập trung: các cột trượt mượt (chỉ dịch vị trí, không tính lại bố cục)
   const appRef = useRef<HTMLDivElement>(null)
   usePaneSlide(appRef, sidebarHidden, distractionFree)
+  // Nhắc việc theo giờ của task: chỉ chạy ở cửa sổ chính (tránh nhắc trùng từ cửa sổ ghi chú riêng)
+  useEffect(() => (noteWindowId ? undefined : startReminders()), [])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {

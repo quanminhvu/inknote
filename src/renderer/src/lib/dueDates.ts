@@ -10,7 +10,8 @@ import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 
 export type DueState = 'overdue' | 'today' | 'soon' | 'later' | 'done'
 
-const DUE = /(^|[\s(])@(\d{4}-\d{2}-\d{2})(?=$|[\s.,;:!?)])/g
+// Giờ (tuỳ chọn) ngay sau ngày: "@2026-11-20 09:00" hoặc "@2026-11-20 9:30" → nhắc việc đúng giờ
+const DUE = /(^|[\s(])@(\d{4}-\d{2}-\d{2})(?: ([01]?\d|2[0-3]):([0-5]\d))?(?=$|[\s.,;:!?)])/g
 const TASK_LINE = /^\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[([ xX])\]\s/
 const DAY = 86_400_000
 
@@ -34,6 +35,18 @@ function daysFromToday(key: string, now = new Date()): number | null {
 /** Ngày hạn đầu tiên hợp lệ trong chữ của task */
 export function dueOf(text: string): string | null {
   for (const m of text.matchAll(DUE)) if (parseDay(m[2])) return m[2]
+  return null
+}
+
+/** Hạn chót có giờ: thời điểm (ms) của "@ngày giờ" đầu tiên hợp lệ, null nếu task không ghi giờ */
+export function dueTimeOf(text: string): number | null {
+  for (const m of text.matchAll(DUE)) {
+    const day = parseDay(m[2])
+    if (!day) continue
+    if (m[3] === undefined) return null
+    day.setHours(Number(m[3]), Number(m[4]), 0, 0)
+    return day.getTime()
+  }
   return null
 }
 
@@ -92,7 +105,7 @@ function buildDue(view: EditorView): DecorationSet {
           if (!parseDay(m[2])) continue
           const start = line.from + m.index + m[1].length
           if (inCode(view, start)) continue
-          out.push(markFor(dueState(m[2], task[1] !== ' ', now)).range(start, start + m[2].length + 1))
+          out.push(markFor(dueState(m[2], task[1] !== ' ', now)).range(start, start + m[0].length - m[1].length))
         }
       }
       pos = line.to + 1
@@ -180,10 +193,11 @@ export function decorateDueDates(root: HTMLElement): void {
         frag.append(text.slice(last, start))
         const badge = document.createElement('span')
         badge.className = `due due-${dueState(m[2], done, now)}`
-        badge.textContent = dueLabel(m[2], now, done)
-        badge.title = `Due ${m[2]}`
+        const time = m[3] !== undefined ? `${m[3].padStart(2, '0')}:${m[4]}` : ''
+        badge.textContent = time ? `${dueLabel(m[2], now, done)} ${time}` : dueLabel(m[2], now, done)
+        badge.title = time ? `Due ${m[2]} at ${time}` : `Due ${m[2]}`
         frag.append(badge)
-        last = start + m[2].length + 1
+        last = start + m[0].length - m[1].length
       }
       if (last === 0) continue
       frag.append(text.slice(last))

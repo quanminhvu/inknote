@@ -14,6 +14,7 @@ import { allTemplates, applyTemplate, fillPlaceholders } from '@/lib/templates'
 import { Preview } from './Preview'
 import { openPreferences } from './Preferences'
 import { lookUpSelection, searchGoogle, translateSelection } from '@/lib/utilities'
+import { convertSelectionToTable } from '@/lib/editorKeys'
 import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
@@ -230,6 +231,10 @@ function commandItems(): Item[] {
     cmd('live', 'Toggle Live Mode', () => s.setViewMode(useStore.getState().viewMode === 'live' ? 'edit' : 'live'), `${mod()}${shift()}L`, 'wysiwyg write formatted rich'),
     cmd('preview', 'Toggle Preview', () => s.setViewMode(useStore.getState().viewMode === 'preview' ? 'edit' : 'preview'), `${mod()}E`),
     cmd('split', 'Toggle Side-by-Side View', () => s.setViewMode(useStore.getState().viewMode === 'split' ? 'edit' : 'split'), `${mod()}P`, 'split'),
+    cmd('csv-table', 'Convert Selection to Table', () => {
+      const v = getActiveEditor()
+      if (!v || !convertSelectionToTable(v)) useStore.getState().showNotice('Select lines of CSV or spreadsheet data first.')
+    }, '', 'csv tsv excel sheets spreadsheet markdown table'),
     cmd('translate', 'Translate Selection', () => translateSelection(), isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', 'google translate language dịch'),
     cmd('lookup', 'Look Up Selection in Dictionary', () => lookUpSelection(), isMac() ? '⌃⌘D' : '', 'define dictionary meaning word'),
     cmd('google', 'Search Selection with Google', () => searchGoogle(), '', 'web search google'),
