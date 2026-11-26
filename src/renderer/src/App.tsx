@@ -25,6 +25,7 @@ import { ActivityPanel, isActivityOpen } from './components/ActivityPanel'
 import { IconPicker } from './components/BookIcon'
 import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
+import { TooltipHost } from './components/TooltipHost'
 import { NoteList } from './components/NoteList'
 import { NotePane } from './components/NotePane'
 import { Notice } from './components/Notice'
@@ -122,6 +123,10 @@ export function App(): React.JSX.Element {
       const s = useStore.getState()
       if (command === 'preferences') s.setPrefsOpen(true)
       else if (command === 'new-note') s.createNote()
+      else if (command === 'toggle-sidebar') {
+        if (s.distractionFree) s.toggleDistractionFree()
+        else s.toggleSidebar()
+      }
       else if (command === 'quick-note') {
         // Ghi chú mới mở trong cửa sổ Quick Note nhỏ, nổi trên app đang dùng (kiểu Apple Notes).
         // Chưa tạo ghi chú ở đây: cửa sổ Quick Note chỉ lưu khi người dùng bắt đầu viết.
@@ -286,6 +291,7 @@ export function App(): React.JSX.Element {
         <NotePane />
         {isQuickNoteWindow && <QuickNoteFooter />}
         <ContextMenuHost />
+        <TooltipHost />
         <CommandPalette />
         <HistoryPanel />
         <Notice />
@@ -307,6 +313,7 @@ export function App(): React.JSX.Element {
         </>
       )}
       <ContextMenuHost />
+      <TooltipHost />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />

@@ -21,6 +21,8 @@ export function relativeTime(timestamp: number, now = Date.now()): string {
 export function snippet(body: string, max = 140): string {
   // Bỏ front matter (ví dụ `view: kanban`) ở đầu ghi chú
   body = body.replace(/^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/, '')
+  // Bỏ chú thích HTML (<!-- ... -->) và thẻ HTML thông dụng (giữ nguyên chữ kiểu <token>)
+  body = body.replace(/<!--[\s\S]*?(?:-->|$)/g, '').replace(/<\/?(?:a|b|i|u|s|em|strong|span|div|p|br|hr|img|kbd|sub|sup|mark|small|details|summary|code|pre|center|font|table|thead|tbody|tr|td|th|ul|ol|li|h[1-6])\b[^>\n]*>/gi, '')
   let out = ''
   let inFence = false
   for (const raw of body.split('\n')) {

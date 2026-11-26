@@ -228,6 +228,7 @@ function commandItems(): Item[] {
     cmd('live', 'Toggle Live Mode', () => s.setViewMode(useStore.getState().viewMode === 'live' ? 'edit' : 'live'), `${mod()}${shift()}L`, 'wysiwyg write formatted rich'),
     cmd('preview', 'Toggle Preview', () => s.setViewMode(useStore.getState().viewMode === 'preview' ? 'edit' : 'preview'), `${mod()}E`),
     cmd('split', 'Toggle Side-by-Side View', () => s.setViewMode(useStore.getState().viewMode === 'split' ? 'edit' : 'split'), `${mod()}P`, 'split'),
+    cmd('sidebar', 'Toggle Sidebar', () => s.toggleSidebar(), `${mod()}\\`, 'navigation panel hide show'),
     cmd('focus', 'Toggle Distraction-Free Mode', () => s.toggleDistractionFree(), `${mod()}${shift()}D`, 'focus zen fullscreen'),
     cmd('activity', 'Show Activity', () => openActivity(), undefined, 'statistics stats streak heatmap calendar words'),
     cmd('tasks', 'Show Open Tasks…', () => s.setPalette('tasks'), undefined, 'todo to-do checklist checkbox'),

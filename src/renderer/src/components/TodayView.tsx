@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, PanelLeft, Plus } from 'lucide-react'
 import { ensureTodayNoteSilently, findTodayNote, openTodayNote } from '@/lib/dailyNote'
 import { dayKey, dueLabel, dueState, withoutDue } from '@/lib/dueDates'
 import { toggleTask } from '@/lib/markdown'
 import { useStore } from '@/lib/store'
 import { collectTasks } from '@/lib/tasks'
 import type { TaskItem } from '@/lib/tasks'
-import { cx, relativeTime } from '@/lib/util'
+import { cx, relativeTime, snippet } from '@/lib/util'
 
 // Trang "Today": việc cần làm có hạn chót (gom từ mọi ghi chú), ô ghi nhanh vào ghi chú hôm nay,
 // lịch tháng (ngày có ghi chú hằng ngày / có hạn chót), ghi chú vừa sửa và hoạt động trong tuần.
@@ -52,6 +52,7 @@ const fromNotes = (n: number): string => `from ${n} ${n === 1 ? 'note' : 'notes'
 
 export function TodayView(): React.JSX.Element {
   const notes = useStore((s) => s.notes)
+  const sidebarHidden = useStore((s) => s.sidebarHidden)
   const [capture, setCapture] = useState('')
   // Hướng trượt của lịch khi đổi tháng
   const [slide, setSlide] = useState<'next' | 'prev' | ''>('')
@@ -150,6 +151,11 @@ export function TodayView(): React.JSX.Element {
 
   return (
     <section className="today" aria-label="Today">
+      {sidebarHidden && (
+        <button className="icon-btn today-sidebar" title="Show sidebar (Cmd/Ctrl+\)" aria-label="Show sidebar" onClick={() => useStore.getState().toggleSidebar()}>
+          <PanelLeft size={16} />
+        </button>
+      )}
       <header className="today-header">
         <div className="today-heading">
           <h1>
@@ -184,111 +190,112 @@ export function TodayView(): React.JSX.Element {
       </form>
 
       <div className="today-grid">
-        <section className="today-card today-tasks" aria-label="Tasks due">
-          <div className="today-card-head">
-            <h2>Due soon</h2>
-            <span>{upcoming.length ? fromNotes(new Set(upcoming.map((t) => t.noteId)).size) : ''}</span>
-            <span className="flex-1" />
-            <button className="text-btn" onClick={() => useStore.getState().setPalette('tasks')}>
-              All tasks
-            </button>
-          </div>
-          {upcoming.length === 0 ? (
-            <p className="today-empty">No tasks with a due date in the next 7 days. Add one above, or write <code>@tomorrow</code> after a task in any note.</p>
-          ) : (
-            <ul>
-              {upcoming.map((t) => (
-                <li key={`${t.noteId}:${t.index}`}>
-                  <input type="checkbox" aria-label={withoutDue(t.text)} checked={t.done} onChange={() => toggle(t)} />
-                  <button className="today-task-text" onClick={() => openFromToday(t.noteId, t.line)}>
-                    <span>{withoutDue(t.text) || 'Untitled task'}</span>
-                    <small>{t.noteTitle || 'Untitled'}</small>
-                  </button>
-                  <span className={cx('due', `due-${dueState(t.due!, false, now)}`)}>{dueLabel(t.due!, now)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="today-card today-calendar" aria-label="Calendar">
-          <div className="today-card-head">
-            <h2>{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
-            <span className="flex-1" />
-            <button className="icon-btn" aria-label="Previous month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>
-              <ChevronLeft size={15} />
-            </button>
-            <button className="icon-btn" aria-label="Next month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>
-              <ChevronRight size={15} />
-            </button>
-          </div>
-          <div className="cal-grid cal-weekdays" aria-hidden="true">
-            {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((d) => (
-              <span key={d}>{d}</span>
-            ))}
-          </div>
-          <div className={cx('cal-grid', slide && `cal-slide-${slide}`)} key={`${month.getFullYear()}-${month.getMonth()}`}>
-            {cells.map((d, i) => {
-              if (!d) return <span key={i} />
-              const key = dayKey(d)
-              const daily = dailyDays.get(key)
-              return (
-                <button
-                  key={i}
-                  className={cx('cal-day', key === todayKey && 'is-today', daily && 'has-note', dueDays.has(key) && 'has-due')}
-                  title={[daily && 'Daily note', dueDays.has(key) && 'Tasks due'].filter(Boolean).join(' · ') || 'Create a daily note for this day'}
-                  onClick={() => {
-                    useStore.getState().select({ kind: 'all' })
-                    if (daily) useStore.getState().openNote(daily)
-                    else openTodayNote(d)
-                  }}
-                >
-                  {d.getDate()}
-                  <span className="cal-dot" aria-hidden="true" />
-                </button>
-              )
-            })}
-          </div>
-          <div className="cal-legend">
-            <span><i className="lg-note" />Daily note</span>
-            <span><i className="lg-due" />Due date</span>
-          </div>
-        </section>
-
-        <section className="today-card today-recent" aria-label="Continue writing">
-          <div className="today-card-head">
-            <h2>Continue writing</h2>
-          </div>
-          <div className="today-recent-grid">
-            {recent.map((n) => (
-              <button key={n._id} className="today-recent-item" onClick={() => openFromToday(n._id)}>
-                <small>{relativeTime(n.updatedAt)}</small>
-                <strong>{n.title || 'Untitled'}</strong>
-                <span>{n.body.replace(/[#>*_`\-[\]()]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180)}</span>
+        <div className="today-col">
+          <section className="today-card today-tasks" aria-label="Tasks due">
+            <div className="today-card-head">
+              <h2>Due soon</h2>
+              <span>{upcoming.length ? fromNotes(new Set(upcoming.map((t) => t.noteId)).size) : ''}</span>
+              <span className="flex-1" />
+              <button className="text-btn" onClick={() => useStore.getState().setPalette('tasks')}>
+                All tasks
               </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="today-card today-week" aria-label="This week">
-          <div className="today-card-head">
-            <h2>This week</h2>
-            <span className="flex-1" />
-            <strong className="today-week-total">{week.days.reduce((n, d) => n + d.edited, 0)}</strong>
-            <span>notes edited</span>
-          </div>
-          <div className="week-bars" role="img" aria-label="Notes edited per day over the last 7 days">
-            {week.days.map((d, i) => (
-              <span key={i} className="week-bar">
-                <span className={cx('week-fill', i === 6 && 'now')} style={{ height: `${Math.max(4, Math.round((d.edited / week.max) * 72))}px` }} title={`${d.edited} edited`} />
-                <small>{d.date.toLocaleDateString('en-US', { weekday: 'narrow' })}</small>
-              </span>
-            ))}
-          </div>
-          <span className="today-week-note">
-            {week.created} new {week.created === 1 ? 'note' : 'notes'} · {tasks.filter((t) => t.done).length} tasks done in all notes
-          </span>
-        </section>
+            </div>
+            {upcoming.length === 0 ? (
+              <p className="today-empty">No tasks with a due date in the next 7 days. Add one above, or write <code>@tomorrow</code> after a task in any note.</p>
+            ) : (
+              <ul>
+                {upcoming.map((t) => (
+                  <li key={`${t.noteId}:${t.index}`}>
+                    <input type="checkbox" aria-label={withoutDue(t.text)} checked={t.done} onChange={() => toggle(t)} />
+                    <button className="today-task-text" onClick={() => openFromToday(t.noteId, t.line)}>
+                      <span>{withoutDue(t.text) || 'Untitled task'}</span>
+                      <small>{t.noteTitle || 'Untitled'}</small>
+                    </button>
+                    <span className={cx('due', `due-${dueState(t.due!, false, now)}`)}>{dueLabel(t.due!, now)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section className="today-card today-recent" aria-label="Continue writing">
+            <div className="today-card-head">
+              <h2>Continue writing</h2>
+            </div>
+            <div className="today-recent-grid">
+              {recent.map((n) => (
+                <button key={n._id} className="today-recent-item" onClick={() => openFromToday(n._id)}>
+                  <small>{relativeTime(n.updatedAt)}</small>
+                  <strong>{n.title || 'Untitled'}</strong>
+                  <span>{snippet(n.body, 180)}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+        <div className="today-col today-side">
+          <section className="today-card today-calendar" aria-label="Calendar">
+            <div className="today-card-head">
+              <h2>{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
+              <span className="flex-1" />
+              <button className="icon-btn" aria-label="Previous month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>
+                <ChevronLeft size={15} />
+              </button>
+              <button className="icon-btn" aria-label="Next month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>
+                <ChevronRight size={15} />
+              </button>
+            </div>
+            <div className="cal-grid cal-weekdays" aria-hidden="true">
+              {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </div>
+            <div className={cx('cal-grid', slide && `cal-slide-${slide}`)} key={`${month.getFullYear()}-${month.getMonth()}`}>
+              {cells.map((d, i) => {
+                if (!d) return <span key={i} />
+                const key = dayKey(d)
+                const daily = dailyDays.get(key)
+                return (
+                  <button
+                    key={i}
+                    className={cx('cal-day', key === todayKey && 'is-today', daily && 'has-note', dueDays.has(key) && 'has-due')}
+                    title={[daily && 'Daily note', dueDays.has(key) && 'Tasks due'].filter(Boolean).join(' · ') || 'Create a daily note for this day'}
+                    onClick={() => {
+                      useStore.getState().select({ kind: 'all' })
+                      if (daily) useStore.getState().openNote(daily)
+                      else openTodayNote(d)
+                    }}
+                  >
+                    {d.getDate()}
+                    <span className="cal-dot" aria-hidden="true" />
+                  </button>
+                )
+              })}
+            </div>
+            <div className="cal-legend">
+              <span><i className="lg-note" />Daily note</span>
+              <span><i className="lg-due" />Due date</span>
+            </div>
+          </section>
+          <section className="today-card today-week" aria-label="This week">
+            <div className="today-card-head">
+              <h2>This week</h2>
+              <span className="flex-1" />
+              <strong className="today-week-total">{week.days.reduce((n, d) => n + d.edited, 0)}</strong>
+              <span>notes edited</span>
+            </div>
+            <div className="week-bars" role="img" aria-label="Notes edited per day over the last 7 days">
+              {week.days.map((d, i) => (
+                <span key={i} className="week-bar">
+                  <span className={cx('week-fill', i === 6 && 'now')} style={{ height: `${Math.max(4, Math.round((d.edited / week.max) * 72))}px` }} title={`${d.edited} edited`} />
+                  <small>{d.date.toLocaleDateString('en-US', { weekday: 'narrow' })}</small>
+                </span>
+              ))}
+            </div>
+            <span className="today-week-note">
+              {week.created} new {week.created === 1 ? 'note' : 'notes'} · {tasks.filter((t) => t.done).length} tasks done in all notes
+            </span>
+          </section>
+        </div>
       </div>
       {findTodayNote() === null && <p className="today-foot">Today&rsquo;s note doesn&rsquo;t exist yet; adding a task creates it from your daily template.</p>}
     </section>

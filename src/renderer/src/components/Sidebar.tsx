@@ -462,7 +462,7 @@ export function Sidebar(): React.JSX.Element {
         <div
           className={cx('side-row', selectionKind === 'today' && 'selected')}
           style={{ paddingLeft: 10 }}
-          title={`Tasks due, quick capture and calendar. Today's note: ${isMac() ? '⌘⇧T' : 'Ctrl+Shift+T'}`}
+          title="Tasks due, quick capture and calendar"
           onClick={() => actions.select({ kind: 'today' })}
           onDoubleClick={() => openTodayNote()}
         >
@@ -479,7 +479,7 @@ export function Sidebar(): React.JSX.Element {
             </span>
           )}
         </div>
-        <div className="side-row" style={{ paddingLeft: 10 }} title={`Graph of linked notes (${isMac() ? '⌘⇧G' : 'Ctrl+Shift+G'})`} onClick={() => openGraph()}>
+        <div className="side-row" style={{ paddingLeft: 10 }} title="Graph of linked notes (Cmd/Ctrl+Shift+G)" onClick={() => openGraph()}>
           <span className="side-icon">
             <Waypoints size={15} />
           </span>
@@ -705,7 +705,7 @@ export function Sidebar(): React.JSX.Element {
             ])
           }
         />
-        <button className="icon-btn" title="Preferences (⌘,)" aria-label="Preferences" onClick={() => actions.setPrefsOpen(true)}>
+        <button className="icon-btn" title="Preferences (Cmd/Ctrl+,)" aria-label="Preferences" onClick={() => actions.setPrefsOpen(true)}>
           <Settings size={16} />
         </button>
         </div>

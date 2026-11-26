@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu } from 'electron'
 import type { MenuItemConstructorOptions } from 'electron'
 import { getMainWindow } from './windows'
 
-export type MenuCommand = 'preferences' | 'new-note' | 'import' | 'export-note' | 'export-all' | 'backup-now' | 'restore' | 'back' | 'forward' | 'import-apple-notes' | 'import-kindle' | 'export-html' | 'export-pdf' | 'close-tab'
+export type MenuCommand = 'preferences' | 'new-note' | 'import' | 'export-note' | 'export-all' | 'backup-now' | 'restore' | 'back' | 'forward' | 'import-apple-notes' | 'import-kindle' | 'export-html' | 'export-pdf' | 'close-tab' | 'toggle-sidebar'
 
 const send = (command: MenuCommand) => (): void => {
   // Lệnh menu luôn chạy ở cửa sổ chính (cửa sổ ghi chú riêng không có danh sách ghi chú)
@@ -83,6 +83,9 @@ export function buildMenu(): void {
       label: 'View',
       submenu: [
         ...(app.isPackaged ? [] : ([{ role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' }] as MenuItemConstructorOptions[])),
+        // Ẩn/hiện sidebar: phím tắt chỉ đăng ký ở đây (renderer không tự bắt), nên không chạy hai lần
+        { label: 'Toggle Sidebar', accelerator: 'CmdOrCtrl+\\', click: send('toggle-sidebar') },
+        { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
         { role: 'zoomOut' },

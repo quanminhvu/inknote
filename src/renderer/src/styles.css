@@ -6970,3 +6970,87 @@ html.resizing-panes .notepane-header {
 @media (prefers-reduced-motion: reduce) {
   .notelist-header, .notelist-title, .notepane-header { transition: none !important; }
 }
+
+/* ══ Công thái học ══ */
+
+/* Trang Today: hai cột độc lập, mỗi thẻ chỉ cao đúng bằng nội dung (không còn thẻ trống kéo dài theo lịch) */
+.today-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.today-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.today-grid .today-tasks,
+.today-grid .today-recent {
+  grid-column: auto;
+}
+@media (max-width: 1000px) {
+  .today-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.today-empty {
+  margin: 0;
+}
+/* Nút hiện sidebar trên trang Today (khi sidebar đang ẩn), đặt cạnh ba nút cửa sổ */
+.today {
+  position: relative;
+}
+.today-sidebar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+.app.mac .today-sidebar {
+  left: 78px;
+}
+.app.mac.sidebar-hidden .today {
+  padding-top: 48px;
+}
+
+/* Danh sách ghi chú: giờ sửa dùng màu chữ phụ, màu nhấn chỉ dành cho chỗ đang chọn và trạng thái */
+.note-item-time {
+  color: var(--ink-3);
+}
+
+/* Điều khiển bằng bàn phím: thấy rõ đang ở đâu (chỉ hiện khi dùng bàn phím, không hiện khi bấm chuột) */
+:where(button, [role='button'], a, .side-row, .note-item, .pal-item, summary):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--syn-link) 70%, transparent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+/* Chú thích khi rê chuột (TooltipHost): hiện ngay, không mờ dần */
+.tip {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #2a2a2e;
+  color: #f2f2f4;
+  font-size: 12px;
+  line-height: 18px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+  white-space: normal;
+}
+.tip[hidden] {
+  display: none;
+}
+.tip kbd {
+  flex: none;
+  font: inherit;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: #a6a6ad;
+}
