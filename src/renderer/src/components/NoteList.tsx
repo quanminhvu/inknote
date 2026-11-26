@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpDown, CircleDashed, ListChecks, ListFilter, PanelLeft, Pin, SquarePen, X } from 'lucide-react'
+import { ArrowUpDown, CircleDashed, ListChecks, ListFilter, PanelLeft, Pin, SquarePen, Trash2, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { visibleNotes } from '@/lib/selectors'
 import { highlightWords, parseQuery } from '@/lib/search'
@@ -382,6 +382,27 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
                 </span>
                 {note.pinned && <Pin size={12} className="pin-mark" />}
               </div>
+              {!note.trashed && (
+                // Rê chuột vào ghi chú: ghim / bỏ ghim và chuyển vào Thùng rác ngay tại chỗ
+                <div className="note-item-actions" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+                  <button
+                    className={cx('icon-btn', note.pinned && 'on')}
+                    title={note.pinned ? 'Unpin from top (Cmd/Ctrl+Shift+P)' : 'Pin to top (Cmd/Ctrl+Shift+P)'}
+                    aria-label={note.pinned ? 'Unpin from top' : 'Pin to top'}
+                    onClick={() => useStore.getState().updateNote(note._id, { pinned: !note.pinned })}
+                  >
+                    <Pin size={14} />
+                  </button>
+                  <button
+                    className="icon-btn"
+                    title="Move to Trash (Cmd/Ctrl+Backspace)"
+                    aria-label="Move to Trash"
+                    onClick={() => useStore.getState().trashNote(note._id)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
               <div className="note-item-snippet">
                 <Highlight text={snippet(note.body)} words={words} />
               </div>

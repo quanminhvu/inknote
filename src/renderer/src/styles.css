@@ -7077,3 +7077,54 @@ kbd.keys {
   color: var(--ink-2);
   white-space: pre;
 }
+
+/* Danh sách ghi chú: nút ghim / xoá hiện ra khi rê chuột (hoặc khi đang dùng bàn phím trong ô đó).
+   Dòng tiêu đề chừa chỗ cho hai nút để chữ không bị đè. Hiện ngay, không mờ dần. */
+.note-item-actions {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  display: none;
+  gap: 2px;
+}
+.note-item:hover .note-item-actions,
+.note-item:focus-within .note-item-actions {
+  display: flex;
+}
+.note-item:hover .note-item-title,
+.note-item:focus-within .note-item-title {
+  padding-right: 58px;
+}
+.note-item-actions .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+.note-item-actions .icon-btn.on {
+  color: var(--ink);
+}
+
+/* Đầu danh sách ghi chú khi cột hẹp: bỏ số đếm và thu nút lại để tên mục không bị cắt */
+.notelist {
+  container: notelist / inline-size;
+}
+/* (chỉ khi sidebar ẩn trên macOS: lúc đó đầu cột phải chừa 70px cho ba nút cửa sổ) */
+@container notelist (max-width: 340px) {
+  .app.mac.sidebar-hidden .notelist-count,
+  .app.mac.sidebar-hidden .notelist-filter {
+    display: none;
+  }
+  .app.mac.sidebar-hidden .notelist-title {
+    gap: 2px;
+  }
+  .app.mac.sidebar-hidden .notelist-title > .icon-btn {
+    width: 26px;
+  }
+}
+
+/* Live: chú thích HTML nhạt màu, chữ nhỏ hơn, không nghiêng (vẫn sửa được như thường) */
+.cm-live .cm-live-comment,
+.cm-live .cm-live-comment * {
+  color: var(--ink-3) !important;
+  font-style: normal !important;
+  font-size: 0.85em;
+}

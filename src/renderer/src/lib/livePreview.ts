@@ -64,6 +64,7 @@ const bullet = Decoration.replace({ widget: new BulletWidget() })
 const rule = Decoration.replace({ widget: new RuleWidget() })
 const linkText = Decoration.mark({ class: 'cm-live-link' })
 const fence = Decoration.mark({ class: 'cm-live-fence' })
+const comment = Decoration.mark({ class: 'cm-live-comment' })
 const headingLine = [1, 2, 3, 4, 5, 6].map((n) => Decoration.line({ class: `cm-live-h cm-live-h${n}` }))
 const quoteLine = Decoration.line({ class: 'cm-live-quote' })
 const codeLine = Decoration.line({ class: 'cm-live-code' })
@@ -120,6 +121,11 @@ function build(view: EditorView): DecorationSet {
           const last = doc.lineAt(node.to).number
           for (let n = first; n <= last; n++) out.push(quoteLine.range(doc.line(n).from))
           return
+        }
+        // Chú thích HTML (<!-- … -->): giữ nguyên chữ nhưng làm nhạt, trừ dòng đang sửa
+        if (name === 'CommentBlock' || name === 'Comment') {
+          if (!isActive(node.from) && node.to > node.from) out.push(comment.range(node.from, node.to))
+          return false
         }
         if (isActive(node.from)) return
         switch (name) {
