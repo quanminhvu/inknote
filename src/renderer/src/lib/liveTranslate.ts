@@ -9,9 +9,12 @@ import { useStore } from './store'
 
 // Dịch khi đang gõ: bật chế độ này thì mỗi dòng vừa viết (ngừng gõ khoảng 0,6 giây) được dịch
 // bằng Google Dịch và hiện ngay bên dưới, chữ nhạt. Dòng dịch chỉ để xem, không nằm trong ghi chú;
-// muốn giữ thì bấm "Insert" trên dòng dịch. Chỉ gửi những dòng vừa sửa, mỗi lần một yêu cầu.
+// muốn giữ thì bấm "Insert" trên dòng dịch. Lúc bật, các dòng đang thấy trên màn hình cũng được dịch;
+// sau đó chỉ gửi những dòng vừa sửa, mỗi lần một yêu cầu.
 
 const IDLE_MS = 600
+/** Số dòng đang thấy được dịch ngay khi bật */
+const VISIBLE_MAX = 40
 
 // ── Bật / tắt (nhớ trên máy) ──
 const KEY = 'inknote:live-translate'
@@ -190,7 +193,23 @@ const watcher = ViewPlugin.fromClass(
     pending = new Set<number>() // đầu dòng (vị trí) cần dịch
     timer = 0
     busy = false
-    constructor(readonly view: EditorView) {}
+    constructor(readonly view: EditorView) {
+      // Vừa bật (hoặc mở ghi chú khi đang bật): dịch luôn những dòng đang thấy trên màn hình,
+      // từ trên xuống, tối đa VISIBLE_MAX dòng để không gửi quá nhiều một lúc
+      const { state } = view
+      let count = 0
+      for (const { from, to } of view.visibleRanges) {
+        for (let pos = from; pos <= to && count < VISIBLE_MAX; ) {
+          const line = state.doc.lineAt(pos)
+          if (sourceOf(state, line.from)) {
+            this.pending.add(line.from)
+            count++
+          }
+          pos = line.to + 1
+        }
+      }
+      if (count) this.timer = window.setTimeout(() => void this.flush(), 150)
+    }
     update(u: ViewUpdate): void {
       if (!u.docChanged) return
       // Vị trí cũ dời theo thay đổi
