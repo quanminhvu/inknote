@@ -35,7 +35,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -469,7 +469,17 @@ function TranslateSettings(): React.JSX.Element {
 
 function EditorSection(): React.JSX.Element {
   const p = useEditorPrefs()
-  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList'
+  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList' | 'thumbnails'
+  const sizes = [
+    <option key={0} value={0}>
+      Default
+    </option>,
+    ...[12, 13, 14, 15, 16, 17, 18, 20, 22, 24].map((n) => (
+      <option key={n} value={n}>
+        {n} px
+      </option>
+    ))
+  ]
   const toggle = (key: Key, label: string, detail?: string): React.JSX.Element => (
     <Row label={label} detail={detail}>
       <Switch label={label} checked={p[key]} onChange={(v) => p.set({ [key]: v })} />
@@ -490,6 +500,27 @@ function EditorSection(): React.JSX.Element {
         {toggle('codeLineNumbers', 'Line numbers in preview code blocks')}
         {toggle('tabs', 'Open notes in tabs', 'Double-click a note in the list to keep it open in a tab')}
         {toggle('compactList', 'Compact note list', 'Show only the title and date of each note, no preview text')}
+        {toggle('thumbnails', 'Image thumbnails in the note list', 'Show the first image of a note next to it in the list')}
+        <Row label="Editor font size">
+          <select className="settings-select" value={p.editorFontSize} onChange={(e) => p.set({ editorFontSize: Number(e.target.value) })}>
+            {sizes}
+          </select>
+        </Row>
+        <Row label="Preview font size">
+          <select className="settings-select" value={p.previewFontSize} onChange={(e) => p.set({ previewFontSize: Number(e.target.value) })}>
+            {sizes}
+          </select>
+        </Row>
+        <Row label="Column ruler" detail="A thin line at this column in Write view, to keep lines short">
+          <select className="settings-select" value={p.ruler} onChange={(e) => p.set({ ruler: Number(e.target.value) })}>
+            <option value={0}>Off</option>
+            {[72, 80, 100, 120].map((c) => (
+              <option key={c} value={c}>
+                Column {c}
+              </option>
+            ))}
+          </select>
+        </Row>
       </Group>
       <Group title="Writing">
         {toggle('spellcheck', 'Check spelling')}

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 // Renderer chỉ gửi dữ liệu; mọi đường dẫn file đều do main process quyết định
 // (thư mục sao lưu đã cấu hình, hoặc đường dẫn người dùng chọn qua hộp thoại).
@@ -51,7 +51,8 @@ contextBridge.exposeInMainWorld('inknote', {
     translate: (text: string, target: string, source = 'auto') => ipcRenderer.invoke('util:translate', text, target, source),
     open: (url: string) => ipcRenderer.invoke('util:open', url),
     lookUp: () => ipcRenderer.invoke('util:lookUp'),
-    ocr: (image: Uint8Array | string) => ipcRenderer.invoke('util:ocr', image)
+    ocr: (image: Uint8Array | string) => ipcRenderer.invoke('util:ocr', image),
+    runCode: (lang: 'js' | 'python', code: string) => ipcRenderer.invoke('util:runCode', lang, code)
   },
   openDataFolder: () => ipcRenderer.invoke('app:openDataFolder'),
   readClipboardText: () => ipcRenderer.invoke('clipboard:readText'),
@@ -61,6 +62,8 @@ contextBridge.exposeInMainWorld('inknote', {
   showInMain: (id: string) => ipcRenderer.send('window:showInMain', id),
   importer: {
     pick: () => ipcRenderer.invoke('import:pick'),
+    /** Kéo thả: đọc các file / thư mục được thả vào cửa sổ */
+    paths: (files: File[]) => ipcRenderer.invoke('import:paths', files.map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
     appleNotes: () => ipcRenderer.invoke('import:appleNotes'),
     kindlePick: () => ipcRenderer.invoke('import:kindlePick')
   },

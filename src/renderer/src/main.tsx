@@ -22,11 +22,21 @@ syncCodeLn(useEditorPrefs.getState().codeLineNumbers)
 setLineBreaks(useEditorPrefs.getState().breaks)
 const syncCompact = (on: boolean): void => void document.documentElement.classList.toggle('compact-list', on)
 syncCompact(useEditorPrefs.getState().compactList)
+// Cỡ chữ riêng cho editor và bản xem (0 = theo theme)
+const syncSizes = (editor: number, preview: number): void => {
+  const root = document.documentElement
+  root.classList.toggle('custom-editor-size', editor > 0)
+  root.classList.toggle('custom-preview-size', preview > 0)
+  root.style.setProperty('--editor-font-size', editor ? `${editor}px` : '')
+  root.style.setProperty('--preview-font-size', preview ? `${preview}px` : '')
+}
+syncSizes(useEditorPrefs.getState().editorFontSize, useEditorPrefs.getState().previewFontSize)
 useEditorPrefs.subscribe((s) => {
   syncStrike(s.strikeDone)
   syncCodeLn(s.codeLineNumbers)
   setLineBreaks(s.breaks)
   syncCompact(s.compactList)
+  syncSizes(s.editorFontSize, s.previewFontSize)
 })
 
 createRoot(document.getElementById('root')!).render(

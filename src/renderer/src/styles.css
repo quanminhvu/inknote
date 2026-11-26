@@ -7699,3 +7699,386 @@ details.code-collapse > pre {
   border: 0;
   outline: none;
 }
+
+/* Cỡ chữ riêng (Preferences → Editor) */
+html.custom-editor-size .note-body .cm-editor .cm-scroller {
+  font-size: var(--editor-font-size) !important;
+}
+html.custom-preview-size .note-preview .markdown-body,
+html.custom-preview-size .note-body.mode-preview .markdown-body {
+  font-size: var(--preview-font-size) !important;
+}
+
+/* Vạch cột trong editor */
+.cm-scroller {
+  position: relative;
+}
+.cm-column-ruler {
+  position: absolute;
+  top: 0;
+  width: 0;
+  border-left: 1px dashed color-mix(in srgb, var(--ink-3) 35%, transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ảnh thu nhỏ trong danh sách ghi chú */
+.note-item-thumb {
+  float: right;
+  width: 52px;
+  height: 52px;
+  margin: 2px 0 4px 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--hover);
+}
+.note-item-thumb:empty {
+  background: transparent;
+}
+.note-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+html.compact-list .note-item-thumb {
+  width: 34px;
+  height: 34px;
+}
+
+/* Chạy code: nút Run và kết quả */
+.markdown-body pre .code-run {
+  position: absolute;
+  top: 6px;
+  right: 58px;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font: 11px/1.6 var(--font-ui, -apple-system, system-ui, sans-serif);
+  color: var(--ink-2);
+  background: var(--hover);
+  opacity: 1;
+}
+.markdown-body pre .code-run:hover {
+  color: var(--ink);
+}
+.markdown-body pre .code-run:disabled {
+  color: var(--ink-3);
+}
+.code-output {
+  margin: -0.6em 0 1em;
+  border: 1px solid var(--line);
+  border-radius: 0 0 8px 8px;
+  font-size: 12.5px;
+}
+.code-output-head {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+}
+.code-output.error .code-output-head {
+  color: var(--status-dropped, #e5484d);
+}
+.code-output-close {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.code-output pre {
+  margin: 0;
+  padding: 8px 12px;
+  max-height: 320px;
+  overflow: auto;
+  background: transparent;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 12.5px/1.55 var(--font-mono);
+  color: var(--ink);
+}
+
+/* Bảng trạng thái và thư viện file: khung lớn */
+.board-modal,
+.library-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(1180px, calc(100vw - 40px));
+  height: min(760px, calc(100vh - 60px));
+  padding: 0;
+  overflow: hidden;
+}
+.board-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.board-head h2 {
+  margin: 0 6px 0 0;
+  font-size: 15px;
+}
+.board-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink-3);
+}
+.board-search input {
+  width: 160px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+.board-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.board-columns {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  overflow-x: auto;
+}
+.board-column {
+  flex: 0 0 250px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.board-column.drop {
+  border-color: color-mix(in srgb, var(--syn-link) 60%, var(--line));
+  background: color-mix(in srgb, var(--syn-link) 6%, var(--surface));
+}
+.board-column-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.board-count {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.board-cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 8px 10px;
+}
+.board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  cursor: default;
+}
+.board-card:hover {
+  border-color: color-mix(in srgb, var(--ink-3) 50%, var(--line));
+}
+.board-card-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.board-card-meta {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-empty,
+.board-more {
+  margin: 6px 4px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.library-meta {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.library-warning {
+  margin: 0;
+  padding: 8px 18px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: color-mix(in srgb, var(--status-onHold, #f0a020) 12%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.library-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  align-content: start;
+  gap: 12px;
+  padding: 14px;
+}
+.library-item {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.library-item.unused {
+  border-style: dashed;
+}
+.library-thumb {
+  display: grid;
+  place-items: center;
+  height: 120px;
+  color: var(--ink-3);
+  background: var(--hover);
+}
+.library-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.library-item figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 9px 6px;
+}
+.library-name {
+  font-size: 12.5px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.library-sub {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.library-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+.library-actions .text-btn {
+  font-size: 12px;
+  padding: 1px 4px;
+}
+
+/* Ghi chú HTML */
+.html-note {
+  flex: 1;
+  width: 100%;
+  min-height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+/* Máy nhắc chữ */
+.prompter {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: #0b0b0c;
+  color: #f4f4f5;
+}
+.prompter-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.prompter-scroll::-webkit-scrollbar {
+  display: none;
+}
+.prompter-text {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40vh 6vw 70vh;
+  line-height: 1.45;
+  color: #f4f4f5 !important;
+}
+.prompter-text * {
+  color: inherit !important;
+  background: transparent !important;
+}
+.prompter-text h1 {
+  font-size: 1.1em;
+  opacity: 1;
+}
+.prompter-text.mirror {
+  transform: scaleX(-1);
+}
+.prompter-guide {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 38vh;
+  height: 0;
+  border-top: 2px solid rgba(255, 196, 0, 0.55);
+  pointer-events: none;
+}
+.prompter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #151517;
+  border-top: 1px solid #26262a;
+  color: #c8c8cc;
+}
+.prompter-bar .icon-btn {
+  color: #c8c8cc;
+}
+.prompter-bar .icon-btn:hover,
+.prompter-bar .icon-btn.on {
+  background: #26262a;
+  color: #fff;
+}
+.prompter-label {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #8a8a90;
+}
+.prompter-value {
+  min-width: 28px;
+  text-align: center;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}

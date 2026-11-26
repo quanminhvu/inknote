@@ -33,6 +33,13 @@ export interface EditorPrefs {
   breaks: boolean
   /** Danh sách ghi chú gọn: chỉ tiêu đề và ngày, không có đoạn trích */
   compactList: boolean
+  /** Ảnh thu nhỏ (ảnh đầu tiên của ghi chú) trong danh sách ghi chú */
+  thumbnails: boolean
+  /** Cỡ chữ editor / bản xem (px); 0 = mặc định của theme */
+  editorFontSize: number
+  previewFontSize: number
+  /** Vạch dọc ở cột này trong editor (chế độ Write); 0 = tắt */
+  ruler: number
 }
 
 const KEY = 'nibmark:editor'
@@ -49,7 +56,11 @@ const defaults: EditorPrefs = {
   formatOnLeave: false,
   vim: false,
   breaks: false,
-  compactList: false
+  compactList: false,
+  thumbnails: true,
+  editorFontSize: 0,
+  previewFontSize: 0,
+  ruler: 0
 }
 
 function read(): EditorPrefs {
@@ -58,6 +69,10 @@ function read(): EditorPrefs {
     const merged = { ...defaults, ...saved }
     if (!['all', 'prose', 'none'].includes(merged.wrap)) merged.wrap = 'all'
     if (!['title', 'url', 'plain'].includes(merged.pasteLink)) merged.pasteLink = 'title'
+    const px = (v: unknown): number => (typeof v === 'number' && v >= 10 && v <= 32 ? Math.round(v) : 0)
+    merged.editorFontSize = px(merged.editorFontSize)
+    merged.previewFontSize = px(merged.previewFontSize)
+    merged.ruler = [0, 72, 80, 100, 120].includes(merged.ruler as number) ? merged.ruler : 0
     return merged
   } catch {
     return defaults
@@ -86,7 +101,11 @@ useEditorPrefs.subscribe((s) => {
     formatOnLeave: s.formatOnLeave,
     vim: s.vim,
     breaks: s.breaks,
-    compactList: s.compactList
+    compactList: s.compactList,
+    thumbnails: s.thumbnails,
+    editorFontSize: s.editorFontSize,
+    previewFontSize: s.previewFontSize,
+    ruler: s.ruler
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(prefs))

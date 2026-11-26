@@ -117,6 +117,8 @@ interface InknoteBridge {
     lookUp(): Promise<boolean>
     /** macOS: nhận dạng chữ trong ảnh (byte của ảnh, hoặc link http/https) */
     ocr(image: Uint8Array | string): Promise<{ text: string } | { error: string }>
+    /** Chạy khối code JavaScript / Python (chỉ khi người dùng bấm Run) */
+    runCode(lang: 'js' | 'python', code: string): Promise<{ ok: boolean; output: string; ms: number }>
   }
   web: {
     /** Tiêu đề trang web (og:title hoặc <title>), null nếu không lấy được */
@@ -145,6 +147,8 @@ interface InknoteBridge {
   importer: {
     /** null = người dùng hủy */
     pick(): Promise<InknoteImportScan | null>
+    /** Đọc các file / thư mục người dùng kéo thả vào cửa sổ */
+    paths(files: File[]): Promise<InknoteImportScan | null>
     /** Đọc Apple Notes (macOS sẽ hỏi quyền ở lần đầu) */
     appleNotes(): Promise<InknoteImportScan | { error: string }>
     /** Chọn và đọc file "My Clippings.txt" */

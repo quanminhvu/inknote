@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, nativeImage, screen, shell } from 'electro
 import { isAbsolute, join, resolve } from 'node:path'
 import { registerIpc, settingsView } from './ipc'
 import { registerUtilities } from './utilities'
+import { registerCodeRunner } from './codeRunner'
 import { getMainWindow, setMainWindow } from './windows'
 import { buildMenu } from './menu'
 import { registerShortcuts } from './shortcuts'
@@ -145,6 +146,7 @@ app.whenReady().then(() => {
   reportMigrationError(migrationError)
   registerIpc(openNoteWindow)
   registerUtilities()
+  registerCodeRunner()
   buildMenu()
   createWindow()
   const shortcutActions = registerShortcuts(getOrCreateWindow, getOrCreateHiddenWindow)

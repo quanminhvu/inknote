@@ -158,6 +158,13 @@ export function registerIpc(openNoteWindow: (noteId: string, quick?: { bookId?: 
     return scanImport(res.filePaths)
   })
 
+  // Kéo thả file / thư mục vào cửa sổ: chỉ nhận đường dẫn tuyệt đối có thật (do chính người dùng thả vào)
+  ipcMain.handle('import:paths', (_e, paths: unknown) => {
+    if (!Array.isArray(paths)) return null
+    const list = paths.filter((p): p is string => typeof p === 'string' && p.startsWith('/') && p.length < 4096 && existsSync(p)).slice(0, 200)
+    return list.length ? scanImport(list) : null
+  })
+
   ipcMain.handle('web:title', (_e, url: unknown) => fetchTitle(url))
   ipcMain.handle('web:githubSnippet', (_e, url: unknown) => fetchGithubSnippet(url))
   // Apple Notes: hồ sơ thử nghiệm có thể dùng dữ liệu mẫu thay cho Notes thật

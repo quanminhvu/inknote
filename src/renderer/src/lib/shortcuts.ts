@@ -78,6 +78,16 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     ]
   },
   {
+    title: 'Tools',
+    items: [
+      { label: 'Board: notes by status, drag to change the status', keys: '', mac: 'Sidebar → Board', other: 'Sidebar → Board' },
+      { label: 'Attachments: images and files, clean up unused ones', keys: '', mac: 'Sidebar → Attachments', other: 'Sidebar → Attachments' },
+      { label: 'Run a JavaScript or Python code block', keys: '', mac: 'Read view → Run', other: 'Read view → Run' },
+      { label: 'Import Markdown / HTML files or a folder', keys: '', mac: 'Drop them on the window', other: 'Drop them on the window' },
+      { label: 'Teleprompter: start / speed / size / mirror', keys: '', mac: 'Space  ↑↓  +−  M', other: 'Space ↑↓ +− M' }
+    ]
+  },
+  {
     title: 'Writing',
     items: [
       { label: 'Bold', keys: 'Cmd/Ctrl+B' },

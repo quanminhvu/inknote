@@ -40,7 +40,7 @@ export async function noteToHtml(title: string, body: string, forPrint = false):
     })
     // Code nhúng từ GitHub: giữ lại link (không tải mạng khi export)
     host.querySelectorAll('.gh-embed').forEach((e) => e.classList.remove('gh-embed'))
-    host.querySelectorAll('.code-copy').forEach((b) => b.remove())
+    host.querySelectorAll('.code-copy, .code-run').forEach((b) => b.remove())
     // Ảnh và file đính kèm
     for (const el of host.querySelectorAll<HTMLElement>('img[src], a[href]')) {
       const attr = el.tagName === 'IMG' ? 'src' : 'href'

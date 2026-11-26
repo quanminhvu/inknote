@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useEditorPrefs } from '@/lib/editorPrefs'
 import { decorateToc } from '@/lib/toc'
+import { runCodeBlock } from '@/lib/codeRun'
 import { X } from 'lucide-react'
 import { renderMermaidIn } from '@/lib/mermaid'
 import { fillGithubEmbeds, renderMarkdown } from '@/lib/markdown'
@@ -111,6 +112,11 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
     const diagram = target.closest('.mermaid-block.rendered .mermaid-out')
     if (diagram) {
       setViewer(diagram.innerHTML)
+      return
+    }
+
+    if (target instanceof HTMLButtonElement && target.classList.contains('code-run')) {
+      void runCodeBlock(target)
       return
     }
 

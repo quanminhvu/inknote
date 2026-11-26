@@ -71,7 +71,7 @@ export function TooltipHost(): null {
       if (el === owner) return
       const warm = !tip.hidden || performance.now() - lastHidden < WARM
       hide()
-      if (!el || e.pointerType === 'touch') return
+      if (!el || e.pointerType === 'touch' || el.tagName === 'IFRAME') return
       const text = el.getAttribute('title') ?? el.dataset.tip ?? ''
       if (!text.trim()) return
       owner = el

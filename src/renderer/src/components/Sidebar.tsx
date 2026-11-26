@@ -2,12 +2,14 @@ import { AppearancePicker } from './AppearancePicker'
 import type { AppearanceTarget } from './AppearancePicker'
 import { useMemo, useState } from 'react'
 import { openActivity } from './ActivityPanel'
-import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, FileText, FolderPlus, LayoutTemplate, LibraryBig, LogIn, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, Trash2, Upload, Waypoints, X } from 'lucide-react'
+import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, FileText, FolderPlus, Images, LayoutTemplate, LibraryBig, LogIn, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, SquareKanban, Trash2, Upload, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { bookTree, childrenByParent, descendantIds } from '@/lib/selectors'
 import { getStatuses } from '@/lib/statuses'
 import type { Book, NoteStatus, Selection } from '@/lib/types'
 import { cx, isMac } from '@/lib/util'
+import { openBoard } from './StatusBoard'
+import { openLibrary } from './AttachmentLibrary'
 import { openTodayNote } from '@/lib/dailyNote'
 import { collectTasks, dueCounts } from '@/lib/tasks'
 import { dayKey } from '@/lib/dueDates'
@@ -484,6 +486,18 @@ export function Sidebar(): React.JSX.Element {
             <Waypoints size={15} />
           </span>
           <span className="side-label">Graph</span>
+        </div>
+        <div className="side-row" style={{ paddingLeft: 10 }} title="All notes by status, as a board" onClick={() => openBoard()}>
+          <span className="side-icon">
+            <SquareKanban size={15} />
+          </span>
+          <span className="side-label">Board</span>
+        </div>
+        <div className="side-row" style={{ paddingLeft: 10 }} title="Images and files in your notes" onClick={() => openLibrary()}>
+          <span className="side-icon">
+            <Images size={15} />
+          </span>
+          <span className="side-label">Attachments</span>
         </div>
         </>)}
 

@@ -103,7 +103,10 @@ export function renderCodeBlock(code: string, rawLang: string, attrs = '', start
       })
       .join('\n')
   }
-  const pre = `<pre class="hljs${title ? ' has-head' : ''}${marked.size || diff ? ' has-lines' : ''}">${head}<button class="code-copy" type="button" title="Copy code">Copy</button><span class="code-body"><span class="code-gutter" aria-hidden="true">${gutter}</span><code>${body}</code></span></pre>`
+  // Chạy được: JavaScript, Python
+  const runLang = /^(js|javascript|mjs)$/i.test(lang) ? 'js' : /^(py|python|python3)$/i.test(lang) ? 'python' : ''
+  const run = runLang ? `<button class="code-run" type="button" data-run="${runLang}" title="Run this code">Run</button>` : ''
+  const pre = `<pre class="hljs${title ? ' has-head' : ''}${marked.size || diff ? ' has-lines' : ''}">${head}${run}<button class="code-copy" type="button" title="Copy code">Copy</button><span class="code-body"><span class="code-gutter" aria-hidden="true">${gutter}</span><code>${body}</code></span></pre>`
   if (!collapse) return pre
   const label = escapeHtml(title || lang || 'Code')
   return `<details class="code-collapse"><summary><span class="code-collapse-title">${label}</span><span class="code-collapse-count">${lines} line${lines === 1 ? '' : 's'}</span></summary>${pre}</details>`

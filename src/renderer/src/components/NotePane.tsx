@@ -56,6 +56,9 @@ const TRANSFORM_ICONS: Record<Transform, React.ComponentType<{ size?: number; st
   'url-decode': Link2
 }
 
+/** Ghi chú là một trang HTML đầy đủ (giống plugin html-viewer): hiện như trang web, trong khung cô lập không chạy script */
+const isHtmlPage = (body: string): boolean => /^\s*(?:<!doctype html|<html[\s>])/i.test(body)
+
 /** Chuột phải lên chữ đang bôi đen (trong editor hoặc bản xem): dịch, tra từ điển, tìm trên Google */
 function selectionMenu(e: React.MouseEvent): void {
   const img = (e.target as HTMLElement).closest('img')
@@ -277,11 +280,15 @@ export function NotePane(): React.JSX.Element {
             {kanban ? (
               <KanbanBoard source={note.body} onChange={readOnly ? undefined : (body) => updateNote(note._id, { body })} />
             ) : (
+              isHtmlPage(note.body) ? (
+                <iframe className="html-note" title={note.title || 'HTML page'} sandbox="" srcDoc={note.body} />
+              ) : (
               <Preview
                 findable
                 source={note.body}
                 onToggleTask={readOnly ? undefined : (index) => updateNote(note._id, { body: toggleTask(note.body, index) })}
               />
+              )
             )}
           </div>
         )}

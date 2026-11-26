@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { AlignLeft, ArrowDownAZ, ArrowUpDown, CalendarClock, CalendarPlus, CircleDashed, Clock, CopyPlus, ExternalLink, FileCode, FileDown, FileText, Files, Hash, History, ImageDown, Images, Link, ListChecks, ListFilter, ListTodo, Lock, LockOpen, PanelLeft, PanelTop, Pin, PinOff, Presentation, RotateCcw, SquarePen, Trash2, Waypoints, X } from 'lucide-react'
+import { AlignLeft, ArrowDownAZ, ArrowUpDown, CalendarClock, CalendarPlus, CircleDashed, Clock, CopyPlus, ExternalLink, FileCode, FileDown, FileText, Files, Hash, History, ImageDown, Images, Link, ListChecks, ListFilter, ListTodo, Lock, LockOpen, PanelLeft, PanelTop, Pin, PinOff, Presentation, RotateCcw, ScrollText, SquarePen, Trash2, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { visibleNotes } from '@/lib/selectors'
 import { highlightWords, parseQuery } from '@/lib/search'
@@ -17,6 +17,9 @@ import { exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
 import { exportImageOf } from '@/lib/exportHtml'
 import { isRevealed, lockAll, removeLock } from '@/lib/noteLock'
 import { openLockDialog } from './LockViews'
+import { useEditorPrefs } from '@/lib/editorPrefs'
+import { firstImageId, NoteThumb } from './NoteThumb'
+import { openTeleprompter } from './Teleprompter'
 import { exportNote } from '@/lib/actions'
 import { openHistory } from './HistoryPanel'
 import { copyId, copyNoteLink, noteLinkMarkdown } from '@/lib/clipboard'
@@ -67,6 +70,7 @@ export function noteMenu(note: Note): MenuItem[] {
     ...(tabsEnabled() ? [{ label: 'Open in New Tab', icon: i(PanelTop), onClick: () => openInTab(note._id) }] : []),
     ...(window.inknote ? [{ label: 'Open in New Window', icon: i(ExternalLink), onClick: () => openInNewWindow(note._id) }] : []),
     { label: 'Present', icon: i(Presentation), onClick: () => presentNote(note._id) },
+    { label: 'Teleprompter', icon: i(ScrollText), onClick: () => openTeleprompter(note._id) },
     { label: 'Show in Graph', icon: i(Waypoints), onClick: () => openGraph('local', note._id) },
     { separator: true },
     { label: 'Format Document', icon: i(AlignLeft), hint: isMac() ? '⌥⇧F' : 'Alt+Shift+F', onClick: () => void formatNote(note._id) },
@@ -146,6 +150,7 @@ export function stepNoteList(dir: 1 | -1): boolean {
 }
 
 export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputElement | null> }): React.JSX.Element {
+  const showThumbs = useEditorPrefs((p) => p.thumbnails)
   useStore((s) => s.statuses)
   const notes = useStore((s) => s.notes)
   const books = useStore((s) => s.books)
@@ -398,6 +403,7 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
                 openMenu(e, noteMenu(note))
               }}
             >
+              {showThumbs && !note.locked && firstImageId(note.body) && <NoteThumb fileId={firstImageId(note.body)!} />}
               <div className="note-item-title">
                 <StatusIcon status={note.status} />
                 <span className={cx('note-item-name', !note.title && 'untitled')}>

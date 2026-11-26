@@ -600,9 +600,20 @@ function notifyReport(report: ImportReport): void {
 /** Mở hộp thoại chọn file rồi import; báo kết quả bằng thông báo */
 export async function runImport(targetBookId: string | null = null): Promise<ImportReport | null> {
   const bridge = window.inknote
-  const s = useStore.getState()
   if (!bridge) return null
-  const scan = await bridge.importer.pick()
+  return importFromScan(await bridge.importer.pick(), targetBookId)
+}
+
+/** Kéo thả file Markdown / HTML / thư mục / .zip / .enex vào cửa sổ (ngoài editor) để import */
+export async function importDropped(files: File[]): Promise<ImportReport | null> {
+  const bridge = window.inknote
+  if (!bridge || !files.length) return null
+  useStore.getState().showNotice('Importing…')
+  return importFromScan(await bridge.importer.paths(files), null)
+}
+
+async function importFromScan(scan: InknoteImportScan | null, targetBookId: string | null): Promise<ImportReport | null> {
+  const s = useStore.getState()
   if (!scan) return null
   if (!scan.docs.length) {
     s.showNotice(scan.skipped[0]?.reason ? `Nothing to import: ${scan.skipped[0].reason}.` : 'Nothing to import.', 'error')

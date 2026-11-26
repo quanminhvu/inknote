@@ -5,7 +5,7 @@ import { newNoteId, useStore } from '@/lib/store'
 import { cx, isMac } from '@/lib/util'
 import { backupNow, exportNote, exportNotes, restoreFromBackup } from '@/lib/actions'
 import { flushBackup, startBackup } from '@/lib/backup'
-import { runAppleNotesImport, runImport } from '@/lib/importer'
+import { importDropped, runAppleNotesImport, runImport } from '@/lib/importer'
 import { runKindleImport } from '@/lib/kindle'
 import { exportNoteHtml, exportNotePdf } from '@/lib/exportHtml'
 import { toggleOutline } from '@/lib/outline'
@@ -34,6 +34,9 @@ import { TranslatePanel } from './components/TranslatePanel'
 import { ComparePanel, isCompareOpen } from './components/ComparePanel'
 import { FlashcardReview, isReviewOpen } from './components/FlashcardReview'
 import { isLockDialogOpen, LockDialog } from './components/LockViews'
+import { isBoardOpen, StatusBoard } from './components/StatusBoard'
+import { AttachmentLibrary, isLibraryOpen } from './components/AttachmentLibrary'
+import { isTeleprompterOpen, Teleprompter } from './components/Teleprompter'
 import './lib/noteLock'
 import { lookUpSelection, translateSelection } from './lib/utilities'
 import { useLiveTranslate } from './lib/liveTranslate'
@@ -184,7 +187,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {
       const s = useStore.getState()
-      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
+      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isBoardOpen() || isLibraryOpen() || isTeleprompterOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
       // Esc trong một ô chọn/ô nhập nổi (notebook, status, tag…) chỉ đóng ô đó, không thoát chế độ tập trung
       const inPopover = !!(document.activeElement as HTMLElement | null)?.closest?.('.nbp-pop, .stp-pop, .tag-field, .kanban-input, .preview-find')
       const vimInEditor = useEditorPrefs.getState().vim && !!(document.activeElement as HTMLElement | null)?.closest?.('.cm-editor')
@@ -328,8 +331,20 @@ export function App(): React.JSX.Element {
       e.stopPropagation()
     }
     // Thả file ra ngoài editor: chặn trình duyệt mở file đó thay cho app
+    // Thả file ghi chú (.md, .html, thư mục, .zip, .enex…) ra ngoài editor: import vào Inknote
+    const IMPORTABLE = /\.(md|markdown|txt|html?|enex|zip|textbundle)$/i
     const blockFileDrop = (e: DragEvent): void => {
-      if (e.dataTransfer?.types.includes('Files') && !e.defaultPrevented) e.preventDefault()
+      if (!e.dataTransfer?.types.includes('Files') || e.defaultPrevented) return
+      e.preventDefault()
+      if (e.type !== 'drop' || noteWindowId) return
+      const files = [...e.dataTransfer.files]
+      // Thư mục: type rỗng và không có đuôi file
+      const usable = files.filter((f) => IMPORTABLE.test(f.name) || (!f.type && !/\.[a-z0-9]{1,8}$/i.test(f.name)))
+      if (!usable.length) {
+        if (files.length) useStore.getState().showNotice('Drop Markdown or HTML files, a folder, a .zip or an .enex file to import them. Drop images into a note to attach them.')
+        return
+      }
+      void importDropped(usable)
     }
     window.addEventListener('dragover', blockFileDrop)
     window.addEventListener('drop', blockFileDrop)
@@ -387,6 +402,9 @@ export function App(): React.JSX.Element {
       <ComparePanel />
       <FlashcardReview />
       <LockDialog />
+      <StatusBoard />
+      <AttachmentLibrary />
+      <Teleprompter />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />
