@@ -46,6 +46,11 @@ contextBridge.exposeInMainWorld('inknote', {
     title: (url: string) => ipcRenderer.invoke('web:title', url),
     githubSnippet: (url: string) => ipcRenderer.invoke('web:githubSnippet', url)
   },
+  utilities: {
+    translate: (text: string, target: string, source = 'auto') => ipcRenderer.invoke('util:translate', text, target, source),
+    open: (url: string) => ipcRenderer.invoke('util:open', url),
+    lookUp: () => ipcRenderer.invoke('util:lookUp')
+  },
   openDataFolder: () => ipcRenderer.invoke('app:openDataFolder'),
   readClipboardText: () => ipcRenderer.invoke('clipboard:readText'),
   openNoteWindow: (id: string) => ipcRenderer.send('window:openNote', id),

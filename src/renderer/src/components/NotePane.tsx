@@ -21,6 +21,7 @@ import type { BackupStatus } from '@/lib/backup'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
 import { openMenu } from './ContextMenu'
+import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
 import { noteMenu } from './NoteList'
 import { Preview } from './Preview'
@@ -37,6 +38,20 @@ const VIEW_MODES: { mode: ViewMode; label: string; title: string; icon: React.Re
   { mode: 'preview', label: 'Read', title: 'Read (Cmd/Ctrl+E)', icon: <Eye size={14} /> }
 ]
 
+
+/** Chuột phải lên chữ đang bôi đen (trong editor hoặc bản xem): dịch, tra từ điển, tìm trên Google */
+function selectionMenu(e: React.MouseEvent): void {
+  if ((e.target as HTMLElement).closest('a, img, input, textarea, .cm-live-check')) return
+  const picked = pickSelection()
+  if (!picked || !picked.text.trim()) return
+  const short = picked.text.replace(/\s+/g, ' ').trim()
+  const quoted = short.length > 24 ? `${short.slice(0, 24)}…` : short
+  openMenu(e, [
+    { label: 'Translate', hint: isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', onClick: () => translateSelection() },
+    { label: `Look Up “${quoted}”`, hint: isMac() ? '⌃⌘D' : undefined, onClick: () => lookUpSelection() },
+    { label: `Search with Google`, onClick: () => searchGoogle(picked.text) }
+  ])
+}
 
 export function NotePane(): React.JSX.Element {
   const [split, setSplit] = usePaneSize('nibmark:editor-split', 50)
@@ -193,7 +208,7 @@ export function NotePane(): React.JSX.Element {
       )}
 
       <div className="note-main" ref={mainRef}>
-      <div ref={bodyRef} style={{ '--editor-split': `${Math.max(20, Math.min(80, split))}%` } as CSSProperties} className={cx('note-body', `mode-${mode}`)}>
+      <div ref={bodyRef} style={{ '--editor-split': `${Math.max(20, Math.min(80, split))}%` } as CSSProperties} className={cx('note-body', `mode-${mode}`)} onContextMenu={selectionMenu}>
         {mode !== 'preview' && (
           <div className="note-editor">
             <MarkdownEditor key={note._id} docId={note._id} value={note.body} live={mode === 'live'} onChange={(body) => {

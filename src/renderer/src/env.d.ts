@@ -106,6 +106,14 @@ interface InknoteBridge {
   setOnTop(onTop: boolean): Promise<boolean>
   /** Đưa cửa sổ chính lên trước và mở ghi chú này */
   showInMain(id: string): void
+  utilities: {
+    /** Dịch bằng Google Dịch; `from` là ngôn ngữ nguồn Google đoán ra */
+    translate(text: string, target: string, source?: string): Promise<{ text: string; from: string } | { error: string }>
+    /** Mở trang Google Dịch / Google tìm kiếm trên trình duyệt */
+    open(url: string): Promise<boolean>
+    /** macOS: bảng tra từ điển cho đoạn đang bôi đen */
+    lookUp(): Promise<boolean>
+  }
   web: {
     /** Tiêu đề trang web (og:title hoặc <title>), null nếu không lấy được */
     title(url: string): Promise<string | null>

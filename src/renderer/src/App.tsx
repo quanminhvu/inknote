@@ -26,6 +26,8 @@ import { IconPicker } from './components/BookIcon'
 import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
+import { TranslatePanel } from './components/TranslatePanel'
+import { lookUpSelection, translateSelection } from './lib/utilities'
 import { NoteList, stepNoteList } from './components/NoteList'
 import { NotePane } from './components/NotePane'
 import { Notice } from './components/Notice'
@@ -224,6 +226,13 @@ export function App(): React.JSX.Element {
         stepNoteList(step)
         return
       }
+      // ⌃⌘D (macOS): tra từ điển cho đoạn đang bôi đen (chuẩn của macOS)
+      if (isMac() && e.ctrlKey && e.metaKey && !e.altKey && !e.shiftKey && e.code === 'KeyD') {
+        e.preventDefault()
+        e.stopPropagation()
+        lookUpSelection()
+        return
+      }
       if (e.altKey) return
       const key = e.key.toLowerCase()
       const inField = !!(document.activeElement as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable="true"]')
@@ -264,6 +273,8 @@ export function App(): React.JSX.Element {
         } else if (key === 'h') {
           if (!current || current.trashed) return
           openHistory(current._id)
+        } else if (key === 'y') {
+          translateSelection()
         } else if (key === 'l') s.setViewMode(s.viewMode === 'live' ? 'edit' : 'live')
         else if (key === 'f') {
           if (s.distractionFree) s.toggleDistractionFree()
@@ -326,6 +337,7 @@ export function App(): React.JSX.Element {
         {isQuickNoteWindow && <QuickNoteFooter />}
         <ContextMenuHost />
         <TooltipHost />
+        <TranslatePanel />
         <CommandPalette />
         <HistoryPanel />
         <Notice />
@@ -348,6 +360,7 @@ export function App(): React.JSX.Element {
       )}
       <ContextMenuHost />
       <TooltipHost />
+      <TranslatePanel />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />

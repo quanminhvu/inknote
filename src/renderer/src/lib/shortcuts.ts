@@ -66,6 +66,14 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     ]
   },
   {
+    title: 'Selected text',
+    items: [
+      { label: 'Translate with Google Translate', keys: 'Cmd/Ctrl+Shift+Y' },
+      { label: 'Look up in the dictionary', keys: '', mac: '⌃⌘D', other: 'Right-click → Look Up' },
+      { label: 'Search with Google', keys: '', mac: 'Right-click → Search with Google', other: 'Right-click → Search with Google' }
+    ]
+  },
+  {
     title: 'Writing',
     items: [
       { label: 'Bold', keys: 'Cmd/Ctrl+B' },

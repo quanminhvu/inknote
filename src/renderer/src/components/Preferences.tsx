@@ -9,6 +9,7 @@ import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
 import type { ThemeInfo } from '@/lib/theme'
 import { cx } from '@/lib/util'
 import { SHORTCUT_GROUPS, shortcutText } from '@/lib/shortcuts'
+import { LANGUAGES, useTranslatePrefs } from '@/lib/utilities'
 import { relativeTime } from '@/lib/util'
 import { runImport } from '@/lib/importer'
 import { useEditorPrefs } from '@/lib/editorPrefs'
@@ -32,7 +33,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -426,6 +427,29 @@ function Appearance(): React.JSX.Element {
   )
 }
 
+function TranslateSettings(): React.JSX.Element {
+  const t = useTranslatePrefs()
+  const options = LANGUAGES.map((l) => (
+    <option key={l.code} value={l.code}>
+      {l.name}
+    </option>
+  ))
+  return (
+    <Group title="Translate" note="Select text, then press ⌘⇧Y (Ctrl+Shift+Y) or choose Translate from the right-click menu. Only the selected text is sent to Google Translate, and only when you ask.">
+      <Row label="Translate to">
+        <select className="settings-select" value={t.target} onChange={(e) => t.set({ target: e.target.value })}>
+          {options}
+        </select>
+      </Row>
+      <Row label="When the text is already in that language" detail="Translate it to this language instead">
+        <select className="settings-select" value={t.fallback} onChange={(e) => t.set({ fallback: e.target.value })}>
+          {options}
+        </select>
+      </Row>
+    </Group>
+  )
+}
+
 function EditorSection(): React.JSX.Element {
   const p = useEditorPrefs()
   type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave'
@@ -461,6 +485,7 @@ function EditorSection(): React.JSX.Element {
           </select>
         </Row>
       </Group>
+      <TranslateSettings />
     </>
   )
 }

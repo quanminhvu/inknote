@@ -3,6 +3,7 @@ import { EditorSelection, EditorState, StateEffect, StateField } from '@codemirr
 import type { StateCommand, Extension } from '@codemirror/state'
 import { EditorView, showTooltip, ViewPlugin } from '@codemirror/view'
 import type { Tooltip } from '@codemirror/view'
+import { translateSelection } from './utilities'
 
 // Thanh công cụ nổi hiện ra khi bôi đen chữ (không hiện khi đang kéo chuột,
 // khi ghi chú chỉ đọc, hoặc khi đang có danh sách gợi ý).
@@ -113,7 +114,8 @@ const BUTTONS: ToolbarButton[] = [
   { label: '•', title: 'Bulleted list', run: (v) => toggleLinePrefix('- ', LIST_PREFIX)(v) },
   { label: '☐', title: 'Task list', run: (v) => toggleLinePrefix('- [ ] ', LIST_PREFIX)(v) },
   { label: '❝', title: 'Quote', run: (v) => toggleLinePrefix('> ', LIST_PREFIX)(v) },
-  { label: '!', title: 'Alert (note, tip, warning…)', className: 'tb-alert', run: insertAlert() }
+  { label: '!', title: 'Alert (note, tip, warning…)', className: 'tb-alert', run: insertAlert() },
+  { label: '文A', title: 'Translate (⌘⇧Y)', className: 'tb-sep tb-translate', run: () => (translateSelection(), true) }
 ]
 
 const setPointerDown = StateEffect.define<boolean>()
