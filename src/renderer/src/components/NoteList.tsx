@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpDown, CircleDashed, ListChecks, ListFilter, Lock, PanelLeft, Pin, SquarePen, Trash2, X } from 'lucide-react'
+import { AlignLeft, ArrowUpDown, ExternalLink, CircleDashed, CopyPlus, FileCode, FileDown, FileText, Hash, History, ImageDown, Images, Link, ListChecks, ListFilter, Lock, LockOpen, PanelLeft, PanelTop, Pin, PinOff, Presentation, RotateCcw, SquarePen, Trash2, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { visibleNotes } from '@/lib/selectors'
 import { highlightWords, parseQuery } from '@/lib/search'
@@ -45,12 +45,14 @@ function Highlight({ text, words }: { text: string; words: string[] }): React.JS
 
 export function noteMenu(note: Note): MenuItem[] {
   const a = useStore.getState()
+  const i = (Icon: typeof Pin): React.ReactNode => <Icon size={14} strokeWidth={1.8} />
   if (note.trashed) {
     return [
-      { label: 'Restore', onClick: () => a.restoreNote(note._id) },
+      { label: 'Restore', icon: i(RotateCcw), onClick: () => a.restoreNote(note._id) },
       { separator: true },
       {
         label: 'Delete Permanently',
+        icon: i(Trash2),
         danger: true,
         onClick: () => {
           if (window.confirm(`Permanently delete "${note.title || 'Untitled'}"? This cannot be undone.`)) a.deleteNoteForever(note._id)
@@ -59,33 +61,37 @@ export function noteMenu(note: Note): MenuItem[] {
     ]
   }
   return [
-    { label: note.pinned ? 'Unpin from Top' : 'Pin to Top', onClick: () => a.updateNote(note._id, { pinned: !note.pinned }) },
-    { label: 'Duplicate', onClick: () => a.duplicateNote(note._id) },
-    ...(tabsEnabled() ? [{ label: 'Open in New Tab', onClick: () => openInTab(note._id) }] : []),
-    ...(window.inknote ? [{ label: 'Open in New Window', onClick: () => openInNewWindow(note._id) }] : []),
-    { label: 'Format Document', hint: isMac() ? '⌥⇧F' : 'Alt+Shift+F', onClick: () => void formatNote(note._id) },
-    { label: 'Present', onClick: () => presentNote(note._id) },
-    { label: 'Show in Graph', onClick: () => openGraph('local', note._id) },
-    { label: 'Export as Markdown…', onClick: () => void exportNote(note._id) },
-    { label: 'Export as HTML…', onClick: () => void exportNoteHtml(note._id) },
-    ...(window.inknote ? [{ label: 'Export as PDF…', onClick: () => void exportNotePdf(note._id) }] : []),
-    ...(window.inknote
-      ? [
-          { label: 'Export as Image…', onClick: () => void exportImageOf(note._id, 'save') },
-          { label: 'Copy as Image', onClick: () => void exportImageOf(note._id, 'copy') }
-        ]
-      : []),
-    { label: 'Version History…', onClick: () => openHistory(note._id) },
+    { label: note.pinned ? 'Unpin from Top' : 'Pin to Top', icon: i(note.pinned ? PinOff : Pin), onClick: () => a.updateNote(note._id, { pinned: !note.pinned }) },
+    { label: 'Duplicate', icon: i(CopyPlus), onClick: () => a.duplicateNote(note._id) },
+    { separator: true },
+    ...(tabsEnabled() ? [{ label: 'Open in New Tab', icon: i(PanelTop), onClick: () => openInTab(note._id) }] : []),
+    ...(window.inknote ? [{ label: 'Open in New Window', icon: i(ExternalLink), onClick: () => openInNewWindow(note._id) }] : []),
+    { label: 'Present', icon: i(Presentation), onClick: () => presentNote(note._id) },
+    { label: 'Show in Graph', icon: i(Waypoints), onClick: () => openGraph('local', note._id) },
+    { separator: true },
+    { label: 'Format Document', icon: i(AlignLeft), hint: isMac() ? '⌥⇧F' : 'Alt+Shift+F', onClick: () => void formatNote(note._id) },
+    { label: 'Version History…', icon: i(History), onClick: () => openHistory(note._id) },
     ...(!note.locked
-      ? [{ label: 'Lock Note…', onClick: () => openLockDialog(note._id) }]
+      ? [{ label: 'Lock Note…', icon: i(Lock), onClick: () => openLockDialog(note._id) }]
       : isRevealed(note._id)
         ? [
-            { label: 'Lock Now', onClick: () => void lockAll() },
-            { label: 'Remove Lock', onClick: () => removeLock(note._id) }
+            { label: 'Lock Now', icon: i(Lock), onClick: () => void lockAll() },
+            { label: 'Remove Lock', icon: i(LockOpen), onClick: () => removeLock(note._id) }
           ]
         : []),
-    { label: 'Copy Link', onClick: () => copyNoteLink(note._id) },
-    { label: 'Copy Note ID', onClick: () => copyId(note._id) },
+    { separator: true },
+    { label: 'Export as Markdown…', icon: i(FileDown), onClick: () => void exportNote(note._id) },
+    { label: 'Export as HTML…', icon: i(FileCode), onClick: () => void exportNoteHtml(note._id) },
+    ...(window.inknote ? [{ label: 'Export as PDF…', icon: i(FileText), onClick: () => void exportNotePdf(note._id) }] : []),
+    ...(window.inknote
+      ? [
+          { label: 'Export as Image…', icon: i(ImageDown), onClick: () => void exportImageOf(note._id, 'save') },
+          { label: 'Copy as Image', icon: i(Images), onClick: () => void exportImageOf(note._id, 'copy') }
+        ]
+      : []),
+    { separator: true },
+    { label: 'Copy Link', icon: i(Link), onClick: () => copyNoteLink(note._id) },
+    { label: 'Copy Note ID', icon: i(Hash), onClick: () => copyId(note._id) },
     { separator: true },
     { label: 'No Status', icon: <CircleDashed size={14} className="status-none" />, checked: note.status === 'none', onClick: () => a.updateNote(note._id, { status: 'none' }) },
     ...getStatuses().map((s) => ({
@@ -95,7 +101,7 @@ export function noteMenu(note: Note): MenuItem[] {
       onClick: () => a.updateNote(note._id, { status: s.id })
     })),
     { separator: true },
-    { label: 'Move to Trash', danger: true, onClick: () => a.trashNote(note._id) }
+    { label: 'Move to Trash', icon: i(Trash2), danger: true, onClick: () => a.trashNote(note._id) }
   ]
 }
 
