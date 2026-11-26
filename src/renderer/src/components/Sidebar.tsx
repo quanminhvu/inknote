@@ -2,7 +2,7 @@ import { AppearancePicker } from './AppearancePicker'
 import type { AppearanceTarget } from './AppearancePicker'
 import { useMemo, useState } from 'react'
 import { openActivity } from './ActivityPanel'
-import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, FileText, FolderPlus, Images, LayoutTemplate, LibraryBig, LogIn, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, SquareKanban, Trash2, Upload, Waypoints, X } from 'lucide-react'
+import { ArrowUpToLine, CalendarDays, ChartNoAxesColumn, ChevronDown, ChevronRight, Copy, Download, Eraser, FileText, FolderPlus, Images, LayoutTemplate, LibraryBig, LogIn, MoreHorizontal, Palette, Pencil, Plus, Search, Settings, Smile, SquareKanban, Trash2, Upload, Waypoints, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { bookTree, childrenByParent, descendantIds } from '@/lib/selectors'
 import { getStatuses } from '@/lib/statuses'
@@ -10,6 +10,7 @@ import type { Book, NoteStatus, Selection } from '@/lib/types'
 import { cx, isMac } from '@/lib/util'
 import { openBoard } from './StatusBoard'
 import { openLibrary } from './AttachmentLibrary'
+import { openTagCleanup } from './TagCleanup'
 import { openTodayNote } from '@/lib/dailyNote'
 import { collectTasks, dueCounts } from '@/lib/tasks'
 import { dayKey } from '@/lib/dueDates'
@@ -194,6 +195,8 @@ function SectionHeading({
   onSearch,
   onAdd,
   addTitle,
+  onManage,
+  manageTitle,
   dropProps,
   dropOver
 }: {
@@ -203,6 +206,9 @@ function SectionHeading({
   onSearch?: () => void
   onAdd?: () => void
   addTitle?: string
+  /** Nút thứ ba (ví dụ dọn tag) */
+  onManage?: () => void
+  manageTitle?: string
   dropProps?: React.HTMLAttributes<HTMLDivElement>
   dropOver?: boolean
 }): React.JSX.Element {
@@ -213,6 +219,11 @@ function SectionHeading({
         <ChevronDown size={12} className={cx('side-heading-chevron', collapsed && 'collapsed')} />
       </button>
       <span className="side-heading-actions">
+        {onManage && !collapsed && (
+          <button title={manageTitle} onClick={onManage}>
+            <Eraser size={13} />
+          </button>
+        )}
         {onSearch && !collapsed && (
           <button title={`Filter ${title.toLowerCase()}`} onClick={onSearch}>
             <Search size={13} />
@@ -617,6 +628,8 @@ export function Sidebar(): React.JSX.Element {
 
         <SectionHeading
             title="Tags"
+            onManage={openTagCleanup}
+            manageTitle="Clean up tags…"
             addTitle="New tag" onAdd={() => { setSections((s) => ({ ...s, tags: false })); setTagFilter(null); setEditing({ kind: 'newTag' }) }}
             collapsed={!!sections.tags}
             onToggle={() => toggleSection('tags')}

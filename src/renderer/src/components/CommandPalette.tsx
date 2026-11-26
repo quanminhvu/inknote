@@ -19,6 +19,7 @@ import { openScratchpad } from '@/lib/scratchpad'
 import { openBoard } from './StatusBoard'
 import { openLibrary } from './AttachmentLibrary'
 import { openTeleprompter } from './Teleprompter'
+import { openTagCleanup } from './TagCleanup'
 import { foldAll, unfoldAll } from '@codemirror/language'
 import { useEditorPrefs } from '@/lib/editorPrefs'
 import { openLockDialog } from './LockViews'
@@ -273,6 +274,7 @@ function commandItems(): Item[] {
     cmd('lock-all', 'Lock All Notes Now', () => void lockAll().then((n) => useStore.getState().showNotice(n ? 'Locked.' : 'No locked note is open.')), '', 'password encrypt lock close'),
     cmd('board', 'Open Status Board', () => openBoard(), '', 'kanban status board columns'),
     cmd('attachments', 'Open Attachments', () => openLibrary(), '', 'images files gallery unused clean up storage'),
+    cmd('tag-cleanup', 'Clean Up Tags…', () => openTagCleanup(), '', 'delete tags unused bulk remove'),
     cmd('teleprompter', 'Teleprompter', () => openTeleprompter(), '', 'prompter read aloud video scroll'),
     cmd('scratchpad', 'Open Scratchpad', () => openScratchpad(), '', 'scratch quick throwaway temporary draft'),
     cmd('toc', 'Insert Table of Contents', () => insertText('[[toc]]\n', 'Table of contents'), '', 'toc contents outline headings'),

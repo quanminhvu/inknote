@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useEditorPrefs } from '@/lib/editorPrefs'
 import { decorateToc } from '@/lib/toc'
+import { decorateFolding } from '@/lib/previewFold'
 import { runCodeBlock } from '@/lib/codeRun'
 import { X } from 'lucide-react'
 import { renderMermaidIn } from '@/lib/mermaid'
@@ -28,6 +29,8 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
   const html = useMemo(() => resolveFileUrls(rendered), [rendered, fileTick])
   const rootRef = useRef<HTMLDivElement>(null)
   const generation = useRef(0)
+  // Mục đã gập ở bản xem (giữ qua các lần dựng lại khi đang sửa)
+  const folded = useRef(new Set<string>())
   const [viewer, setViewer] = useState<string | null>(null)
   const [finding, setFinding] = useState(false)
 
@@ -56,6 +59,7 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
     fillGithubEmbeds(root)
     decorateDueDates(root)
     decorateToc(root)
+    decorateFolding(root, folded.current)
   }, [html])
 
   // Đổi theme: vẽ lại sơ đồ với màu mới

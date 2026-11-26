@@ -17,7 +17,17 @@ export const BUILTIN_THEMES: ThemeInfo[] = [
   { id: 'paper', name: 'Paper', dark: false, base: 'paper' },
   { id: 'stone', name: 'Stone', dark: false, base: 'stone' },
   { id: 'ink', name: 'Ink', dark: true, base: 'ink' },
-  { id: 'indigo', name: 'Indigo', dark: true, base: 'indigo' }
+  { id: 'indigo', name: 'Indigo', dark: true, base: 'indigo' },
+  // Bảng màu quen thuộc (giống tab Theme của Inkdrop). Màu riêng nằm trong themes.css theo data-theme-id
+  { id: 'catppuccin-latte', name: 'Catppuccin Latte', dark: false, base: 'mist' },
+  { id: 'catppuccin-mocha', name: 'Catppuccin Mocha', dark: true, base: 'night' },
+  { id: 'tokyo-night', name: 'Tokyo Night', dark: true, base: 'night' },
+  { id: 'kanagawa', name: 'Kanagawa', dark: true, base: 'night' },
+  { id: 'nord', name: 'Nord', dark: true, base: 'night' },
+  { id: 'dracula', name: 'Dracula', dark: true, base: 'night' },
+  { id: 'monokai-pro', name: 'Monokai Pro', dark: true, base: 'night' },
+  { id: 'solarized-light', name: 'Solarized Light', dark: false, base: 'mist' },
+  { id: 'solarized-dark', name: 'Solarized Dark', dark: true, base: 'night' }
 ]
 
 const DARK_BASES: BaseThemeId[] = ['night', 'ink', 'indigo']

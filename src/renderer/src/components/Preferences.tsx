@@ -365,7 +365,7 @@ function ThemeSwatch({ theme, selected, onPick }: { theme: ThemeInfo | null; sel
   const base = theme?.base ?? 'mist'
   return (
     <button className={cx('theme-swatch', selected && 'selected')} onClick={onPick} title={theme ? theme.name : 'Match macOS appearance'}>
-      <span className="theme-sample" data-theme={base} data-user-theme={theme?.id.startsWith('user:') ? theme.id.slice(5) : undefined}>
+      <span className="theme-sample" data-theme={base} data-theme-id={theme && !theme.id.startsWith('user:') ? theme.id : undefined} data-user-theme={theme?.id.startsWith('user:') ? theme.id.slice(5) : undefined}>
         <span className="ts-side" />
         <span className="ts-list" />
         <span className="ts-body">

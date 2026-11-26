@@ -8082,3 +8082,98 @@ html.compact-list .note-item-thumb {
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
 }
+
+/* Gập mục ở bản xem */
+.markdown-body > :is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+}
+.heading-fold {
+  position: absolute;
+  left: -22px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  visibility: hidden;
+}
+.heading-fold::before {
+  content: '›';
+  display: block;
+  font-size: 15px;
+  line-height: 18px;
+  text-align: center;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease-out;
+}
+.markdown-body > :is(h1, h2, h3, h4, h5, h6):hover .heading-fold,
+.markdown-body > .folded .heading-fold {
+  visibility: visible;
+}
+.heading-fold:hover {
+  color: var(--ink);
+  background: var(--hover);
+}
+.markdown-body > .folded .heading-fold::before {
+  transform: none;
+}
+.markdown-body > .folded::after {
+  content: ' ⋯';
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.markdown-body > .fold-hidden {
+  display: none !important;
+}
+
+/* Dọn tag */
+.tag-cleanup {
+  display: flex;
+  flex-direction: column;
+  width: min(480px, calc(100vw - 48px));
+  max-height: min(620px, calc(100vh - 80px));
+  padding: 0 20px 16px;
+}
+.tag-cleanup-tools {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.tag-cleanup-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -8px 14px;
+  padding: 0 8px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.tag-cleanup-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.tag-cleanup-row:hover {
+  background: var(--hover);
+}
+.tag-cleanup-row.picked {
+  background: var(--selected);
+}
+.tag-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.tag-cleanup-name {
+  flex: 1;
+  color: var(--ink);
+}
+.tag-cleanup-count {
+  font-size: 12px;
+  color: var(--ink-3);
+}

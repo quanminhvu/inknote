@@ -104,7 +104,7 @@ export function renderCodeBlock(code: string, rawLang: string, attrs = '', start
       .join('\n')
   }
   // Chạy được: JavaScript, Python
-  const runLang = /^(js|javascript|mjs)$/i.test(lang) ? 'js' : /^(py|python|python3)$/i.test(lang) ? 'python' : ''
+  const runLang = diff ? '' : /^(js|javascript|mjs)$/i.test(lang) ? 'js' : /^(py|python|python3)$/i.test(lang) ? 'python' : ''
   const run = runLang ? `<button class="code-run" type="button" data-run="${runLang}" title="Run this code">Run</button>` : ''
   const pre = `<pre class="hljs${title ? ' has-head' : ''}${marked.size || diff ? ' has-lines' : ''}">${head}${run}<button class="code-copy" type="button" title="Copy code">Copy</button><span class="code-body"><span class="code-gutter" aria-hidden="true">${gutter}</span><code>${body}</code></span></pre>`
   if (!collapse) return pre
@@ -290,6 +290,15 @@ export function linkedNoteIds(source: string): Set<string> {
   }
   walk(md.parse(source, {}))
   return ids
+}
+
+// Khối code thu gọn (<details>): markdown-it bọc mọi thứ không bắt đầu bằng <pre> trong <pre><code>; gỡ lớp bọc thừa
+const baseFence = md.renderer.rules.fence!
+md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+  const out = baseFence(tokens, idx, options, env, self)
+  const m = /^<pre(?: data-source-line="(\d+)")?[^>]*><code[^>]*>(<details class="code-collapse">[\s\S]*<\/details>)<\/code><\/pre>\n?$/.exec(out)
+  // Giữ dòng nguồn (để cuộn editor ↔ bản xem khớp nhau) trên chính khối <details>
+  return m ? `${m[2].replace('<details class="code-collapse">', `<details class="code-collapse" data-source-line="${m[1] ?? 0}">`)}\n` : out
 }
 
 /** Tùy chọn "Keep line breaks": xuống dòng trong đoạn văn thành <br> */

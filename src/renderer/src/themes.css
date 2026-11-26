@@ -226,3 +226,311 @@
   --syn-heading: #ff7aa2;
   --syn-mark: #6aa7ff;
 }
+
+/* ══ Bảng màu quen thuộc ══
+   Mỗi theme dựa trên Mist (sáng) hoặc Night (tối) và chỉ thay màu. Áp theo data-theme-id
+   (trên <html>, và trên ô xem trước trong Preferences). */
+
+/* Catppuccin Latte */
+:root[data-theme-id='catppuccin-latte'],
+[data-theme-id='catppuccin-latte'] {
+  color-scheme: light;
+  --paper: #dce0e8;
+  --surface: #e6e9ef;
+  --surface-2: #eff1f5;
+  --selection-row: rgba(30, 102, 245, 0.13);
+  --ink: #4c4f69;
+  --ink-2: #5c5f77;
+  --ink-3: #8c8fa1;
+  --line: rgba(76, 79, 105, 0.12);
+  --hover: rgba(76, 79, 105, 0.06);
+  --selected: rgba(76, 79, 105, 0.1);
+  --accent: #1e66f5;
+  --accent-soft: rgba(30, 102, 245, 0.12);
+  --code-bg: #e6e9ef;
+  --mark: rgba(223, 142, 29, 0.28);
+  --status-active: #1e66f5;
+  --status-onhold: #fe640b;
+  --status-completed: #40a02b;
+  --status-dropped: #d20f39;
+  --syn-keyword: #8839ef;
+  --syn-string: #40a02b;
+  --syn-number: #fe640b;
+  --syn-function: #1e66f5;
+  --syn-type: #df8e1d;
+  --syn-attr: #179299;
+  --syn-link: #1e66f5;
+  --syn-heading: #d20f39;
+  --syn-mark: #1e66f5;
+}
+
+/* Catppuccin Mocha */
+:root[data-theme-id='catppuccin-mocha'],
+[data-theme-id='catppuccin-mocha'] {
+  color-scheme: dark;
+  --paper: #181825;
+  --surface: #1e1e2e;
+  --surface-2: #1e1e2e;
+  --selection-row: rgba(137, 180, 250, 0.16);
+  --ink: #cdd6f4;
+  --ink-2: #bac2de;
+  --ink-3: #7f849c;
+  --line: rgba(205, 214, 244, 0.1);
+  --hover: rgba(205, 214, 244, 0.05);
+  --selected: rgba(205, 214, 244, 0.09);
+  --accent: #89b4fa;
+  --accent-soft: rgba(137, 180, 250, 0.18);
+  --on-accent: #11111b;
+  --code-bg: #181825;
+  --mark: rgba(249, 226, 175, 0.25);
+  --status-active: #89b4fa;
+  --status-onhold: #fab387;
+  --status-completed: #a6e3a1;
+  --status-dropped: #f38ba8;
+  --syn-keyword: #cba6f7;
+  --syn-string: #a6e3a1;
+  --syn-number: #fab387;
+  --syn-function: #89b4fa;
+  --syn-type: #f9e2af;
+  --syn-attr: #94e2d5;
+  --syn-link: #89b4fa;
+  --syn-heading: #f38ba8;
+  --syn-mark: #b4befe;
+}
+
+/* Tokyo Night */
+:root[data-theme-id='tokyo-night'],
+[data-theme-id='tokyo-night'] {
+  color-scheme: dark;
+  --paper: #16161e;
+  --surface: #1a1b26;
+  --surface-2: #1a1b26;
+  --selection-row: rgba(122, 162, 247, 0.16);
+  --ink: #c0caf5;
+  --ink-2: #a9b1d6;
+  --ink-3: #565f89;
+  --line: rgba(192, 202, 245, 0.09);
+  --hover: rgba(192, 202, 245, 0.05);
+  --selected: rgba(192, 202, 245, 0.09);
+  --accent: #7aa2f7;
+  --accent-soft: rgba(122, 162, 247, 0.18);
+  --on-accent: #16161e;
+  --code-bg: #16161e;
+  --mark: rgba(224, 175, 104, 0.25);
+  --status-active: #7aa2f7;
+  --status-onhold: #ff9e64;
+  --status-completed: #9ece6a;
+  --status-dropped: #f7768e;
+  --syn-keyword: #bb9af7;
+  --syn-string: #9ece6a;
+  --syn-number: #ff9e64;
+  --syn-function: #7aa2f7;
+  --syn-type: #e0af68;
+  --syn-attr: #7dcfff;
+  --syn-link: #7aa2f7;
+  --syn-heading: #f7768e;
+  --syn-mark: #7dcfff;
+}
+
+/* Kanagawa (Wave) */
+:root[data-theme-id='kanagawa'],
+[data-theme-id='kanagawa'] {
+  color-scheme: dark;
+  --paper: #16161d;
+  --surface: #1f1f28;
+  --surface-2: #1f1f28;
+  --selection-row: rgba(126, 156, 216, 0.16);
+  --ink: #dcd7ba;
+  --ink-2: #c8c093;
+  --ink-3: #727169;
+  --line: rgba(220, 215, 186, 0.09);
+  --hover: rgba(220, 215, 186, 0.05);
+  --selected: rgba(220, 215, 186, 0.09);
+  --accent: #7e9cd8;
+  --accent-soft: rgba(126, 156, 216, 0.18);
+  --on-accent: #16161d;
+  --code-bg: #16161d;
+  --mark: rgba(230, 195, 132, 0.25);
+  --status-active: #7e9cd8;
+  --status-onhold: #ffa066;
+  --status-completed: #98bb6c;
+  --status-dropped: #e46876;
+  --syn-keyword: #957fb8;
+  --syn-string: #98bb6c;
+  --syn-number: #d27e99;
+  --syn-function: #7e9cd8;
+  --syn-type: #e6c384;
+  --syn-attr: #7fb4ca;
+  --syn-link: #7fb4ca;
+  --syn-heading: #e46876;
+  --syn-mark: #7e9cd8;
+}
+
+/* Nord */
+:root[data-theme-id='nord'],
+[data-theme-id='nord'] {
+  color-scheme: dark;
+  --paper: #2a303b;
+  --surface: #2e3440;
+  --surface-2: #2e3440;
+  --selection-row: rgba(136, 192, 208, 0.16);
+  --ink: #eceff4;
+  --ink-2: #d8dee9;
+  --ink-3: #7b88a1;
+  --line: rgba(216, 222, 233, 0.1);
+  --hover: rgba(216, 222, 233, 0.05);
+  --selected: rgba(216, 222, 233, 0.09);
+  --accent: #88c0d0;
+  --accent-soft: rgba(136, 192, 208, 0.18);
+  --on-accent: #2e3440;
+  --code-bg: #3b4252;
+  --mark: rgba(235, 203, 139, 0.25);
+  --status-active: #81a1c1;
+  --status-onhold: #d08770;
+  --status-completed: #a3be8c;
+  --status-dropped: #bf616a;
+  --syn-keyword: #81a1c1;
+  --syn-string: #a3be8c;
+  --syn-number: #b48ead;
+  --syn-function: #88c0d0;
+  --syn-type: #8fbcbb;
+  --syn-attr: #ebcb8b;
+  --syn-link: #88c0d0;
+  --syn-heading: #d08770;
+  --syn-mark: #88c0d0;
+}
+
+/* Dracula */
+:root[data-theme-id='dracula'],
+[data-theme-id='dracula'] {
+  color-scheme: dark;
+  --paper: #21222c;
+  --surface: #282a36;
+  --surface-2: #282a36;
+  --selection-row: rgba(189, 147, 249, 0.18);
+  --ink: #f8f8f2;
+  --ink-2: #e2e2dc;
+  --ink-3: #6272a4;
+  --line: rgba(248, 248, 242, 0.09);
+  --hover: rgba(248, 248, 242, 0.05);
+  --selected: rgba(248, 248, 242, 0.09);
+  --accent: #bd93f9;
+  --accent-soft: rgba(189, 147, 249, 0.2);
+  --on-accent: #21222c;
+  --code-bg: #21222c;
+  --mark: rgba(241, 250, 140, 0.22);
+  --status-active: #8be9fd;
+  --status-onhold: #ffb86c;
+  --status-completed: #50fa7b;
+  --status-dropped: #ff5555;
+  --syn-keyword: #ff79c6;
+  --syn-string: #f1fa8c;
+  --syn-number: #bd93f9;
+  --syn-function: #50fa7b;
+  --syn-type: #8be9fd;
+  --syn-attr: #ffb86c;
+  --syn-link: #8be9fd;
+  --syn-heading: #ff79c6;
+  --syn-mark: #bd93f9;
+}
+
+/* Monokai Pro */
+:root[data-theme-id='monokai-pro'],
+[data-theme-id='monokai-pro'] {
+  color-scheme: dark;
+  --paper: #221f22;
+  --surface: #2d2a2e;
+  --surface-2: #2d2a2e;
+  --selection-row: rgba(255, 216, 102, 0.14);
+  --ink: #fcfcfa;
+  --ink-2: #d3d1d2;
+  --ink-3: #939293;
+  --line: rgba(252, 252, 250, 0.09);
+  --hover: rgba(252, 252, 250, 0.05);
+  --selected: rgba(252, 252, 250, 0.09);
+  --accent: #ffd866;
+  --accent-soft: rgba(255, 216, 102, 0.16);
+  --on-accent: #221f22;
+  --code-bg: #221f22;
+  --mark: rgba(255, 216, 102, 0.22);
+  --status-active: #78dce8;
+  --status-onhold: #fc9867;
+  --status-completed: #a9dc76;
+  --status-dropped: #ff6188;
+  --syn-keyword: #ff6188;
+  --syn-string: #ffd866;
+  --syn-number: #ab9df2;
+  --syn-function: #a9dc76;
+  --syn-type: #78dce8;
+  --syn-attr: #fc9867;
+  --syn-link: #78dce8;
+  --syn-heading: #ff6188;
+  --syn-mark: #ffd866;
+}
+
+/* Solarized Light */
+:root[data-theme-id='solarized-light'],
+[data-theme-id='solarized-light'] {
+  color-scheme: light;
+  --paper: #eee8d5;
+  --surface: #f5efdc;
+  --surface-2: #fdf6e3;
+  --selection-row: rgba(38, 139, 210, 0.13);
+  --ink: #586e75;
+  --ink-2: #657b83;
+  --ink-3: #93a1a1;
+  --line: rgba(88, 110, 117, 0.14);
+  --hover: rgba(88, 110, 117, 0.06);
+  --selected: rgba(88, 110, 117, 0.1);
+  --accent: #268bd2;
+  --accent-soft: rgba(38, 139, 210, 0.13);
+  --code-bg: #eee8d5;
+  --mark: rgba(181, 137, 0, 0.22);
+  --status-active: #268bd2;
+  --status-onhold: #cb4b16;
+  --status-completed: #859900;
+  --status-dropped: #dc322f;
+  --syn-keyword: #859900;
+  --syn-string: #2aa198;
+  --syn-number: #d33682;
+  --syn-function: #268bd2;
+  --syn-type: #b58900;
+  --syn-attr: #6c71c4;
+  --syn-link: #268bd2;
+  --syn-heading: #cb4b16;
+  --syn-mark: #268bd2;
+}
+
+/* Solarized Dark */
+:root[data-theme-id='solarized-dark'],
+[data-theme-id='solarized-dark'] {
+  color-scheme: dark;
+  --paper: #00212b;
+  --surface: #002b36;
+  --surface-2: #002b36;
+  --selection-row: rgba(38, 139, 210, 0.18);
+  --ink: #93a1a1;
+  --ink-2: #839496;
+  --ink-3: #586e75;
+  --line: rgba(147, 161, 161, 0.12);
+  --hover: rgba(147, 161, 161, 0.06);
+  --selected: rgba(147, 161, 161, 0.1);
+  --accent: #268bd2;
+  --accent-soft: rgba(38, 139, 210, 0.2);
+  --on-accent: #fdf6e3;
+  --code-bg: #073642;
+  --mark: rgba(181, 137, 0, 0.25);
+  --status-active: #268bd2;
+  --status-onhold: #cb4b16;
+  --status-completed: #859900;
+  --status-dropped: #dc322f;
+  --syn-keyword: #859900;
+  --syn-string: #2aa198;
+  --syn-number: #d33682;
+  --syn-function: #268bd2;
+  --syn-type: #b58900;
+  --syn-attr: #6c71c4;
+  --syn-link: #268bd2;
+  --syn-heading: #cb4b16;
+  --syn-mark: #268bd2;
+}
