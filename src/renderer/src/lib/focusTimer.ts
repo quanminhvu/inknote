@@ -10,7 +10,10 @@ export type Phase = 'idle' | 'focus' | 'break'
 const LENGTHS_KEY = 'inknote:focus-length'
 const COUNT_KEY = 'inknote:focus-count'
 
-const today = (): string => new Date().toISOString().slice(0, 10)
+const today = (): string => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 function readCount(): number {
   try {

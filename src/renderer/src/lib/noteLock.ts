@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { db, setNoteSealer, writesSettled } from './db'
 import { forgetHistory } from './history'
-import { useStore } from './store'
+import { forgetReminders } from './reminders'
+import { setSealedCheck, useStore } from './store'
+import { setWindowGuard } from './windowMode'
 import type { LockedBody, Note } from './types'
 
 // Khoá ghi chú bằng mật khẩu.
@@ -75,6 +77,13 @@ setNoteSealer(async (doc) => {
   return doc
 })
 
+setSealedCheck((note) => !!note.locked && !isRevealed(note._id))
+setWindowGuard((id) => {
+  if (!useStore.getState().notes[id]?.locked) return false
+  useStore.getState().showNotice('Locked notes open only in the main window.')
+  return true
+})
+
 const store = (): ReturnType<typeof useStore.getState> => useStore.getState()
 
 /** Đặt khoá cho ghi chú (đang mở bình thường). Ghi chú vẫn mở cho tới khi bấm Lock Now. */
@@ -87,8 +96,9 @@ export async function lockNote(id: string, password: string): Promise<void> {
   keys.set(id, { key, salt })
   if (!remembered.includes(password)) remembered.push(password)
   markRevealed(id)
-  // Xoá các phiên bản cũ (chữ thường) của ghi chú khỏi lịch sử
+  // Xoá các phiên bản cũ (chữ thường) của ghi chú khỏi lịch sử, và các mục nhắc việc đã lưu (chứa chữ của task)
   await forgetHistory(id)
+  forgetReminders(id)
   // Đánh dấu có khoá: lớp lưu sẽ mã hoá nội dung trước khi ghi
   store().updateNote(id, { locked: { v: 1, salt, iv: '', data: '' } })
 }

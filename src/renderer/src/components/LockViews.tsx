@@ -69,7 +69,14 @@ export function LockedNote({ note }: { note: Note }): React.JSX.Element {
 
 // ── Hộp đặt khoá ──
 const useLockDialog = create<{ noteId: string | null }>(() => ({ noteId: null }))
-export const openLockDialog = (noteId: string): void => useLockDialog.setState({ noteId })
+export const openLockDialog = (noteId: string): void => {
+  const note = useStore.getState().notes[noteId]
+  if (note?.locked) {
+    useStore.getState().showNotice('This note is already locked.')
+    return
+  }
+  useLockDialog.setState({ noteId })
+}
 const close = (): void => useLockDialog.setState({ noteId: null })
 export const isLockDialogOpen = (): boolean => useLockDialog.getState().noteId !== null
 

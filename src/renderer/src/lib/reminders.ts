@@ -93,3 +93,16 @@ export function startReminders(): () => void {
     window.clearInterval(timer)
   }
 }
+
+/** Xoá các mục "đã nhắc" của một ghi chú (khi khoá ghi chú, vì khoá của mục chứa chữ của task) */
+export function forgetReminders(noteId: string): void {
+  const fired = readFired()
+  let changed = false
+  for (const k of Object.keys(fired)) {
+    if (k.startsWith(`${noteId}|`)) {
+      delete fired[k]
+      changed = true
+    }
+  }
+  if (changed) saveFired(fired, Date.now())
+}

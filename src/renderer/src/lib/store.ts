@@ -139,6 +139,13 @@ export interface State extends Prefs {
   deleteTemplate: (id: string) => void
 }
 
+// Ghi chú có khoá đang đóng: không được nhận nội dung mới (lib/noteLock.ts đăng ký hàm kiểm tra).
+// Nếu không, chữ thêm vào (ví dụ từ trang Today hay Quick Note) sẽ mất khi mở khoá.
+let sealedCheck: ((note: Note) => boolean) | null = null
+export function setSealedCheck(fn: (note: Note) => boolean): void {
+  sealedCheck = fn
+}
+
 // Nội dung ghi chú được lưu trễ một nhịp để không ghi DB theo từng phím gõ.
 const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -434,6 +441,12 @@ export const useStore = create<State>((set, get) => {
     updateNote: (id, patch) => {
       const note = get().notes[id]
       if (!note) return
+      if ('body' in patch && sealedCheck?.(note)) {
+        get().showNotice(`“${note.title || 'Untitled'}” is locked. Unlock it first to change its text.`)
+        const { body: _dropped, ...rest } = patch
+        if (!Object.keys(rest).length) return
+        patch = rest
+      }
       const next: Note = { ...note, ...patch, updatedAt: Date.now() }
       // Chỉ nội dung/tiêu đề mới cần lưu trễ; các thay đổi khác ghi ngay
       const typing = Object.keys(patch).every((k) => k === 'body' || k === 'title')

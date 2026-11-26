@@ -16,7 +16,7 @@ async function loadAttachments(texts: string[]): Promise<{ names: Map<string, st
   return { names, list }
 }
 import { useStore } from './store'
-import { useLockSession } from './noteLock'
+import { lockAll, useLockSession } from './noteLock'
 import type { AnyDoc } from './types'
 
 // Các thao tác liên quan tới file (export, sao lưu, khôi phục), dùng chung cho
@@ -85,6 +85,8 @@ export async function restoreFromBackup(): Promise<void> {
   const b = bridge()
   const s = useStore.getState()
   if (!b) return
+  // Ghi chú có khoá đang mở: khoá lại trước, để bản khôi phục không đè lên chữ đang mở trong bộ nhớ
+  await lockAll()
   const res = await b.backup.pickAndRead()
   if (!res) return
   if (res.error) {
