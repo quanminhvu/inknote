@@ -27,6 +27,12 @@ export interface EditorPrefs {
   tabs: boolean
   /** Tự format Markdown của ghi chú vừa sửa khi chuyển sang ghi chú khác */
   formatOnLeave: boolean
+  /** Phím tắt kiểu Vim trong editor */
+  vim: boolean
+  /** Xuống dòng trong editor là xuống dòng ở bản xem (không cần hai dấu cách cuối dòng) */
+  breaks: boolean
+  /** Danh sách ghi chú gọn: chỉ tiêu đề và ngày, không có đoạn trích */
+  compactList: boolean
 }
 
 const KEY = 'nibmark:editor'
@@ -40,7 +46,10 @@ const defaults: EditorPrefs = {
   pasteLink: 'title',
   codeLineNumbers: true,
   tabs: true,
-  formatOnLeave: false
+  formatOnLeave: false,
+  vim: false,
+  breaks: false,
+  compactList: false
 }
 
 function read(): EditorPrefs {
@@ -74,7 +83,10 @@ useEditorPrefs.subscribe((s) => {
     pasteLink: s.pasteLink,
     codeLineNumbers: s.codeLineNumbers,
     tabs: s.tabs,
-    formatOnLeave: s.formatOnLeave
+    formatOnLeave: s.formatOnLeave,
+    vim: s.vim,
+    breaks: s.breaks,
+    compactList: s.compactList
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(prefs))

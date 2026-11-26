@@ -1,4 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEditorPrefs } from '@/lib/editorPrefs'
+import { decorateToc } from '@/lib/toc'
 import { X } from 'lucide-react'
 import { renderMermaidIn } from '@/lib/mermaid'
 import { fillGithubEmbeds, renderMarkdown } from '@/lib/markdown'
@@ -17,7 +19,9 @@ interface Props {
 }
 
 export function Preview({ source, onToggleTask, findable }: Props): React.JSX.Element {
-  const rendered = useMemo(() => renderMarkdown(source), [source])
+  // Đổi tùy chọn xuống dòng thì dựng lại
+  const breaks = useEditorPrefs((p) => p.breaks)
+  const rendered = useMemo(() => renderMarkdown(source), [source, breaks])
   const fileTick = useFileTick((s) => s.tick)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const html = useMemo(() => resolveFileUrls(rendered), [rendered, fileTick])
@@ -50,6 +54,7 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
     renderMermaidIn(root, () => generation.current === gen)
     fillGithubEmbeds(root)
     decorateDueDates(root)
+    decorateToc(root)
   }, [html])
 
   // Đổi theme: vẽ lại sơ đồ với màu mới

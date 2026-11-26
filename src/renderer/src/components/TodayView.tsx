@@ -9,6 +9,7 @@ import type { TaskItem } from '@/lib/tasks'
 import { cx, relativeTime, snippet } from '@/lib/util'
 import { collectCards, dueCards } from '@/lib/flashcards'
 import { openReview } from './FlashcardReview'
+import { HabitsCard } from './HabitsCard'
 
 // Trang "Today": việc cần làm có hạn chót (gom từ mọi ghi chú), ô ghi nhanh vào ghi chú hôm nay,
 // lịch tháng (ngày có ghi chú hằng ngày / có hạn chót), ghi chú vừa sửa và hoạt động trong tuần.
@@ -301,6 +302,7 @@ export function TodayView(): React.JSX.Element {
               {week.created} new {week.created === 1 ? 'note' : 'notes'} · {tasks.filter((t) => t.done).length} tasks done in all notes
             </span>
           </section>
+          <HabitsCard />
           {cards.total > 0 && (
             <section className="today-card today-cards" aria-label="Flashcards">
               <div className="today-card-head">

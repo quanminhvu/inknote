@@ -15,6 +15,9 @@ import { Preview } from './Preview'
 import { openPreferences } from './Preferences'
 import { openCompare } from './ComparePanel'
 import { openReview } from './FlashcardReview'
+import { openScratchpad } from '@/lib/scratchpad'
+import { foldAll, unfoldAll } from '@codemirror/language'
+import { useEditorPrefs } from '@/lib/editorPrefs'
 import { openLockDialog } from './LockViews'
 import { lockAll } from '@/lib/noteLock'
 import { insertText, password, randomString, transformSelection, uuid } from '@/lib/textTools'
@@ -265,6 +268,21 @@ function commandItems(): Item[] {
       if (n) openLockDialog(n)
     }, '', 'password encrypt protect secret private'),
     cmd('lock-all', 'Lock All Notes Now', () => void lockAll().then((n) => useStore.getState().showNotice(n ? 'Locked.' : 'No locked note is open.')), '', 'password encrypt lock close'),
+    cmd('scratchpad', 'Open Scratchpad', () => openScratchpad(), '', 'scratch quick throwaway temporary draft'),
+    cmd('toc', 'Insert Table of Contents', () => insertText('[[toc]]\n', 'Table of contents'), '', 'toc contents outline headings'),
+    cmd('fold-all', 'Fold All Sections', () => {
+      const v = getActiveEditor()
+      if (v) foldAll(v)
+    }, isMac() ? '⌃⌥[' : 'Ctrl+Alt+[', 'collapse fold headings code'),
+    cmd('unfold-all', 'Unfold All Sections', () => {
+      const v = getActiveEditor()
+      if (v) unfoldAll(v)
+    }, isMac() ? '⌃⌥]' : 'Ctrl+Alt+]', 'expand unfold headings code'),
+    cmd('vim', 'Toggle Vim Keybindings', () => {
+      const p = useEditorPrefs.getState()
+      p.set({ vim: !p.vim })
+      useStore.getState().showNotice(p.vim ? 'Vim keybindings off.' : 'Vim keybindings on.')
+    }, '', 'vim modal keys normal insert'),
     cmd('review', 'Review Flashcards', () => openReview(), '', 'flashcards anki spaced repetition study learn cards'),
     cmd('focus-start', 'Start Focus Timer', () => useFocusTimer.getState().start(), '', 'pomodoro timer focus work session 25'),
     cmd('focus-pause', 'Pause or Resume Focus Timer', () => toggleFocus(), '', 'pomodoro timer'),

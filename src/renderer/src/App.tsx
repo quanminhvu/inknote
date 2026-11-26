@@ -27,7 +27,9 @@ import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
 import { startReminders } from './lib/reminders'
+import { useEditorPrefs } from './lib/editorPrefs'
 import { startFocusClock } from './lib/focusTimer'
+import { startScratchpadSweep } from './lib/scratchpad'
 import { TranslatePanel } from './components/TranslatePanel'
 import { ComparePanel, isCompareOpen } from './components/ComparePanel'
 import { FlashcardReview, isReviewOpen } from './components/FlashcardReview'
@@ -89,6 +91,7 @@ export function App(): React.JSX.Element {
   // Nhắc việc theo giờ của task: chỉ chạy ở cửa sổ chính (tránh nhắc trùng từ cửa sổ ghi chú riêng)
   useEffect(() => (noteWindowId ? undefined : startReminders()), [])
   useEffect(() => (noteWindowId ? undefined : startFocusClock()), [])
+  useEffect(() => (noteWindowId ? undefined : startScratchpadSweep()), [])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -184,7 +187,8 @@ export function App(): React.JSX.Element {
       if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
       // Esc trong một ô chọn/ô nhập nổi (notebook, status, tag…) chỉ đóng ô đó, không thoát chế độ tập trung
       const inPopover = !!(document.activeElement as HTMLElement | null)?.closest?.('.nbp-pop, .stp-pop, .tag-field, .kanban-input, .preview-find')
-      if (e.key === 'Escape' && s.distractionFree && !e.defaultPrevented && !inPopover) {
+      const vimInEditor = useEditorPrefs.getState().vim && !!(document.activeElement as HTMLElement | null)?.closest?.('.cm-editor')
+      if (e.key === 'Escape' && s.distractionFree && !e.defaultPrevented && !inPopover && !vimInEditor) {
         s.toggleDistractionFree()
         return
       }
@@ -197,6 +201,8 @@ export function App(): React.JSX.Element {
         return
       }
       if (!(e.metaKey || e.ctrlKey)) return
+      // macOS: phím tắt của app dùng ⌘; Ctrl để cho editor (Vim: Ctrl-d, Ctrl-u, Ctrl-v…; phím soạn thảo kiểu Emacs của macOS)
+      if (isMac() && !e.metaKey && e.key !== 'Tab') return
       // Ctrl+Tab / Ctrl+Shift+Tab: chuyển tab; Cmd/Ctrl+1…9: nhảy tới tab
       if (tabsEnabled() && !e.altKey) {
         if (e.ctrlKey && e.key === 'Tab') {

@@ -39,7 +39,7 @@ export function snippet(body: string, max = 140): string {
       .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
       .replace(/[*_`~]/g, '')
       .trim()
-    if (!line || /^[-|:\s]+$/.test(line)) continue
+    if (!line || /^[-|:\s]+$/.test(line) || /^\[\[?toc\]?\]$/i.test(line)) continue
     out += (out ? ' ' : '') + line
     if (out.length >= max) break
   }

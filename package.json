@@ -49,6 +49,7 @@
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
     "@lezer/highlight": "^1.2.5",
+    "@replit/codemirror-vim": "6.4.0",
     "@vscode/markdown-it-katex": "^1.1.2",
     "codemirror": "^6.0.2",
     "diff": "^9.0.0",

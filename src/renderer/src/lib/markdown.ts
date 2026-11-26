@@ -20,8 +20,45 @@ hljs.registerAliases(['sh', 'zsh', 'console'], { languageName: 'bash' })
 hljs.registerAliases(['dockerfile', 'docker'], { languageName: 'dockerfile' })
 hljs.registerAliases(['tf', 'hcl'], { languageName: 'ini' })
 
+/** Các dòng được đánh dấu: "{1,3-5}" → {1,3,4,5} */
+function lineSet(attrs: string): Set<number> {
+  const out = new Set<number>()
+  const m = /\{([\d,\s-]+)\}/.exec(attrs)
+  if (!m) return out
+  for (const part of m[1].split(',')) {
+    const [a, b] = part.trim().split('-').map(Number)
+    if (!Number.isFinite(a)) continue
+    for (let n = a; n <= (Number.isFinite(b) ? Math.min(b, a + 2000) : a); n++) out.add(n)
+  }
+  return out
+}
+
+/** Tách HTML đã tô màu thành từng dòng mà không làm gãy thẻ <span> kéo dài qua nhiều dòng */
+function splitLines(html: string): string[] {
+  const lines: string[] = []
+  const open: string[] = []
+  let line = ''
+  for (const m of html.matchAll(/<span[^>]*>|<\/span>|\n|[^<\n]+|</g)) {
+    const t = m[0]
+    if (t === '\n') {
+      lines.push(line + '</span>'.repeat(open.length))
+      line = open.join('')
+    } else if (t.startsWith('<span')) {
+      open.push(t)
+      line += t
+    } else if (t === '</span>') {
+      open.pop()
+      line += t
+    } else line += t
+  }
+  lines.push(line + '</span>'.repeat(open.length))
+  return lines
+}
+
 /**
  * Khối code: ```js title="app.js" (hoặc ```js:app.js) có thanh tên file.
+ * Thêm (giống awesome-codeblock): {1,3-5} tô sáng dòng · "diff" (hoặc ```diff, ```diff-js) tô dòng +/− ·
+ * "collapse" thu gọn khối, bấm để mở.
  * Luôn có cột số dòng; ẩn/hiện bằng tùy chọn (class trên <html>).
  */
 export function renderCodeBlock(code: string, rawLang: string, attrs = '', startLine = 1): string {
@@ -34,6 +71,15 @@ export function renderCodeBlock(code: string, rawLang: string, attrs = '', start
     lang = colon[1]
     title = title ?? colon[2]
   }
+  // ```diff-js: tô màu theo js, đánh dấu dòng +/−
+  let diff = /(?:^|\s)diff(?:\s|$)/.test(attrs) || lang === 'diff'
+  const diffLang = /^diff-(.+)$/.exec(lang)
+  if (diffLang) {
+    lang = diffLang[1]
+    diff = true
+  }
+  const collapse = /(?:^|\s)(?:collapse|collapsed|fold)(?:\s|$)/.test(attrs)
+  const marked = lineSet(attrs)
   const language = lang && hljs.getLanguage(lang) ? lang : null
   const html = language ? hljs.highlight(code, { language, ignoreIllegals: true }).value : escapeHtml(code)
   const lines = Math.max(1, code.replace(/\n$/, '').split('\n').length)
@@ -43,7 +89,24 @@ export function renderCodeBlock(code: string, rawLang: string, attrs = '', start
   const head = title
     ? `<span class="code-head"><span class="code-icon" data-lang="${escapeHtml(lang.toLowerCase())}" data-family="${key}"></span><span class="code-title">${escapeHtml(title)}</span>${langLabel}</span>`
     : langLabel
-  return `<pre class="hljs${title ? ' has-head' : ''}">${head}<button class="code-copy" type="button" title="Copy code">Copy</button><span class="code-body"><span class="code-gutter" aria-hidden="true">${gutter}</span><code>${html}</code></span></pre>`
+  // Có dòng cần đánh dấu: bọc từng dòng để tô nền cả dòng
+  let body = html
+  if (marked.size || diff) {
+    const raw = code.replace(/\n$/, '').split('\n')
+    body = splitLines(html.replace(/\n$/, ''))
+      .map((l, i) => {
+        const cls = ['code-line']
+        if (marked.has(i + 1)) cls.push('hl')
+        if (diff && /^\+/.test(raw[i] ?? '') && !/^\+\+\+/.test(raw[i] ?? '')) cls.push('add')
+        if (diff && /^-/.test(raw[i] ?? '') && !/^---/.test(raw[i] ?? '')) cls.push('del')
+        return `<span class="${cls.join(' ')}">${l || ' '}</span>`
+      })
+      .join('\n')
+  }
+  const pre = `<pre class="hljs${title ? ' has-head' : ''}${marked.size || diff ? ' has-lines' : ''}">${head}<button class="code-copy" type="button" title="Copy code">Copy</button><span class="code-body"><span class="code-gutter" aria-hidden="true">${gutter}</span><code>${body}</code></span></pre>`
+  if (!collapse) return pre
+  const label = escapeHtml(title || lang || 'Code')
+  return `<details class="code-collapse"><summary><span class="code-collapse-title">${label}</span><span class="code-collapse-count">${lines} line${lines === 1 ? '' : 's'}</span></summary>${pre}</details>`
 }
 
 const md = new MarkdownIt({
@@ -224,4 +287,9 @@ export function linkedNoteIds(source: string): Set<string> {
   }
   walk(md.parse(source, {}))
   return ids
+}
+
+/** Tùy chọn "Keep line breaks": xuống dòng trong đoạn văn thành <br> */
+export function setLineBreaks(on: boolean): void {
+  md.set({ breaks: on })
 }

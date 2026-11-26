@@ -35,7 +35,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -469,7 +469,7 @@ function TranslateSettings(): React.JSX.Element {
 
 function EditorSection(): React.JSX.Element {
   const p = useEditorPrefs()
-  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave'
+  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList'
   const toggle = (key: Key, label: string, detail?: string): React.JSX.Element => (
     <Row label={label} detail={detail}>
       <Switch label={label} checked={p[key]} onChange={(v) => p.set({ [key]: v })} />
@@ -489,10 +489,13 @@ function EditorSection(): React.JSX.Element {
         </Row>
         {toggle('codeLineNumbers', 'Line numbers in preview code blocks')}
         {toggle('tabs', 'Open notes in tabs', 'Double-click a note in the list to keep it open in a tab')}
+        {toggle('compactList', 'Compact note list', 'Show only the title and date of each note, no preview text')}
       </Group>
       <Group title="Writing">
         {toggle('spellcheck', 'Check spelling')}
         {toggle('strikeDone', 'Strike through completed tasks')}
+        {toggle('vim', 'Vim keybindings', 'Normal, insert and visual modes, :w to save. The mode shows below the editor')}
+        {toggle('breaks', 'Keep line breaks', 'A new line in the editor is a new line in the preview, without two spaces at the end')}
         {toggle('formatOnLeave', 'Format when leaving a note', `Tidy the Markdown of a note you edited. ${isMacFormat()}.`)}
         <Row label="Pasting a URL" detail={p.pasteLink === 'title' ? 'Inknote fetches the page once to read its title' : undefined}>
           <select className="settings-select" value={p.pasteLink} onChange={(e) => p.set({ pasteLink: e.target.value as PasteLink })}>
