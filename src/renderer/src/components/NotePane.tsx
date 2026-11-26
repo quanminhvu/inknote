@@ -24,6 +24,7 @@ import { openMenu } from './ContextMenu'
 import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { exportImage } from '@/lib/exportHtml'
+import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
 import { noteMenu } from './NoteList'
@@ -57,13 +58,25 @@ function selectionMenu(e: React.MouseEvent): void {
   }
   if ((e.target as HTMLElement).closest('a, img, input, textarea, .cm-live-check')) return
   const picked = pickSelection()
-  if (!picked || !picked.text.trim()) return
+  const inEditor = !!(e.target as HTMLElement).closest('.cm-editor')
+  if (!picked || !picked.text.trim()) {
+    // Không chọn gì, trong editor: chèn nhanh UUID / mật khẩu / chuỗi ngẫu nhiên
+    if (!inEditor) return
+    openMenu(e, [
+      { label: 'Insert UUID', onClick: () => insertText(uuid(), 'UUID') },
+      { label: 'Insert Random Password', onClick: () => insertText(password(), 'Password') },
+      { label: 'Insert Random String', onClick: () => insertText(randomString(), 'Random string') }
+    ])
+    return
+  }
+  const transforms = picked.view && !picked.view.state.readOnly ? transformsFor(picked.text) : []
   const short = picked.text.replace(/\s+/g, ' ').trim()
   const quoted = short.length > 24 ? `${short.slice(0, 24)}…` : short
   openMenu(e, [
     { label: 'Translate', hint: isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', onClick: () => translateSelection() },
     { label: `Look Up “${quoted}”`, hint: isMac() ? '⌃⌘D' : undefined, onClick: () => lookUpSelection() },
     { label: `Search with Google`, onClick: () => searchGoogle(picked.text) },
+    ...(transforms.length ? [{ separator: true as const }, ...transforms.map((t) => ({ label: t.label, onClick: () => transformSelection(t.kind) }))] : []),
     ...(window.inknote ? [{ separator: true as const }, { label: 'Copy Selection as Image', onClick: () => void exportImage('selection', 'copy') }] : [])
   ])
 }

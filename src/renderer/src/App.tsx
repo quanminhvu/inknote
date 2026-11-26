@@ -28,6 +28,7 @@ import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
 import { startReminders } from './lib/reminders'
 import { TranslatePanel } from './components/TranslatePanel'
+import { ComparePanel, isCompareOpen } from './components/ComparePanel'
 import { lookUpSelection, translateSelection } from './lib/utilities'
 import { NoteList, stepNoteList } from './components/NoteList'
 import { NotePane } from './components/NotePane'
@@ -174,7 +175,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {
       const s = useStore.getState()
-      if (s.prefsOpen || s.palette || isHistoryOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
+      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
       // Esc trong một ô chọn/ô nhập nổi (notebook, status, tag…) chỉ đóng ô đó, không thoát chế độ tập trung
       const inPopover = !!(document.activeElement as HTMLElement | null)?.closest?.('.nbp-pop, .stp-pop, .tag-field, .kanban-input, .preview-find')
       if (e.key === 'Escape' && s.distractionFree && !e.defaultPrevented && !inPopover) {
@@ -364,6 +365,7 @@ export function App(): React.JSX.Element {
       <ContextMenuHost />
       <TooltipHost />
       <TranslatePanel />
+      <ComparePanel />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />

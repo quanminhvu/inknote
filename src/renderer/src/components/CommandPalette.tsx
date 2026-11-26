@@ -13,6 +13,8 @@ import { useStore } from '@/lib/store'
 import { allTemplates, applyTemplate, fillPlaceholders } from '@/lib/templates'
 import { Preview } from './Preview'
 import { openPreferences } from './Preferences'
+import { openCompare } from './ComparePanel'
+import { insertText, password, randomString, transformSelection, uuid } from '@/lib/textTools'
 import { lookUpSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { convertSelectionToTable } from '@/lib/editorKeys'
 import { KanbanBoard } from './KanbanBoard'
@@ -164,6 +166,19 @@ function noteActionItems(id: string, withTargets = false): Item[] {
     }),
     ...(noteWindowId ? [] : [cmd('local-graph', 'Show Note in Graph', () => openGraph('local', id), undefined, 'links network map connections local')]),
     cmd('format', 'Format Document', () => void formatNote(id), isMac() ? '⌥⇧F' : 'Alt+Shift+F', 'prettier markdown tidy clean beautify'),
+    cmd('uuid', 'Insert UUID', () => insertText(uuid(), 'UUID'), '', 'guid id random generate'),
+    cmd('password', 'Insert Random Password', () => insertText(password(), 'Password'), '', 'generate secret random strong'),
+    cmd('random', 'Insert Random String', () => insertText(randomString(), 'Random string'), '', 'token key generate'),
+    cmd('b64e', 'Base64 Encode Selection', () => transformSelection('base64-encode'), '', 'encode base64'),
+    cmd('b64d', 'Base64 Decode Selection', () => transformSelection('base64-decode'), '', 'decode base64'),
+    cmd('urle', 'URL Encode Selection', () => transformSelection('url-encode'), '', 'percent encode uri'),
+    cmd('urld', 'URL Decode Selection', () => transformSelection('url-decode'), '', 'percent decode uri'),
+    cmd('jwt', 'Decode JWT', () => transformSelection('jwt'), '', 'token bearer json web token inspect'),
+    cmd('compare', 'Compare Two Selected Notes', () => {
+      const ids = useStore.getState().multi
+      if (ids.length === 2) openCompare(ids[0], ids[1])
+      else useStore.getState().showNotice('Select exactly two notes in the list (⌘-click), then compare.')
+    }, '', 'diff difference versions'),
     cmd('image-save', 'Export Note as Image…', () => void exportImage('note', 'save'), '', 'png picture screenshot share'),
     cmd('image-copy', 'Copy Note as Image', () => void exportImage('note', 'copy'), '', 'png picture screenshot share chat clipboard'),
     cmd('image-selection', 'Copy Selection as Image', () => void exportImage('selection', 'copy'), '', 'png picture screenshot share chat clipboard'),

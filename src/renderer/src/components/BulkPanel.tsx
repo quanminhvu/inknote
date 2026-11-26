@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { CircleDashed, Files, Pin, RotateCcw, Trash2, X } from 'lucide-react'
+import { CircleDashed, Files, Pin, RotateCcw, Trash2, X, GitCompare } from 'lucide-react'
 import { useStore } from '@/lib/store'
+import { openCompare } from './ComparePanel'
 import { NotebookPicker } from './NotebookPicker'
 import { StatusIcon } from './StatusIcon'
 import { StatusPicker } from './StatusPicker'
@@ -135,6 +136,11 @@ export function BulkPanel(): React.JSX.Element {
               />
             </div>
             <div className="bulk-actions">
+              {selected.length === 2 && (
+                <button className="btn" title="Show the differences between the two notes" onClick={() => openCompare(selected[0]._id, selected[1]._id)}>
+                  <GitCompare size={13} /> Compare
+                </button>
+              )}
               <button className="btn" onClick={() => selected.forEach((n) => s.updateNote(n._id, { pinned: !allPinned }))}>
                 <Pin size={13} /> {allPinned ? 'Unpin' : 'Pin to Top'}
               </button>

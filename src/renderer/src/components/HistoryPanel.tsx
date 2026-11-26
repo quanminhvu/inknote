@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { History, RotateCcw, X } from 'lucide-react'
-import { diffLines } from 'diff'
 import { create } from 'zustand'
 import { flushHistory, listRevisions, restoreRevision } from '@/lib/history'
 import type { Revision } from '@/lib/history'
 import { useStore } from '@/lib/store'
 import { cx, relativeTime } from '@/lib/util'
+import { Diff } from './Diff'
 
 const useHistoryPanel = create<{ noteId: string | null }>(() => ({ noteId: null }))
 
@@ -18,51 +18,19 @@ const close = (): void => useHistoryPanel.setState({ noteId: null })
 
 export const isHistoryOpen = (): boolean => useHistoryPanel.getState().noteId !== null
 
-/** So sánh từng dòng giữa phiên bản cũ và bản hiện tại */
-function Diff({ from, to }: { from: string; to: string }): React.JSX.Element {
-  const parts = useMemo(() => diffLines(from, to, { ignoreNewlineAtEof: true }), [from, to])
-  const changed = parts.some((p) => p.added || p.removed)
-  if (!changed) return <div className="diff-same">This version is the same as the current note.</div>
-  return (
-    <pre className="diff">
-      {parts.map((part, i) => {
-        const lines = part.value.replace(/\n$/, '').split('\n')
-        // Đoạn không đổi quá dài thì rút gọn, chỉ giữ vài dòng hai đầu
-        if (!part.added && !part.removed && lines.length > 8) {
-          const head = i === 0 ? [] : lines.slice(0, 3)
-          const tail = i === parts.length - 1 ? [] : lines.slice(-3)
-          return (
-            <span key={i}>
-              {head.map((l, j) => (
-                <span key={`h${j}`} className="diff-line">{`  ${l}\n`}</span>
-              ))}
-              <span className="diff-skip">{`  ⋯ ${lines.length - head.length - tail.length} unchanged lines\n`}</span>
-              {tail.map((l, j) => (
-                <span key={`t${j}`} className="diff-line">{`  ${l}\n`}</span>
-              ))}
-            </span>
-          )
-        }
-        return lines.map((l, j) => (
-          <span key={`${i}-${j}`} className={cx('diff-line', part.added && 'added', part.removed && 'removed')}>
-            {`${part.added ? '+' : part.removed ? '−' : ' '} ${l}\n`}
-          </span>
-        ))
-      })}
-    </pre>
-  )
-}
-
 export function HistoryPanel(): React.JSX.Element | null {
   const noteId = useHistoryPanel((s) => s.noteId)
   const note = useStore((s) => (noteId ? s.notes[noteId] : undefined))
   const [revisions, setRevisions] = useState<Revision[] | null>(null)
   const [active, setActive] = useState(0)
+  // So với: -1 = bản hiện tại, còn lại = một phiên bản khác trong danh sách
+  const [against, setAgainst] = useState(-1)
 
   useEffect(() => {
     if (!noteId) return
     setRevisions(null)
     setActive(0)
+    setAgainst(-1)
     // chờ một nhịp để những phiên bản vừa flush kịp ghi xong
     const timer = setTimeout(() => void listRevisions(noteId).then(setRevisions), 150)
     return () => clearTimeout(timer)
@@ -107,7 +75,10 @@ export function HistoryPanel(): React.JSX.Element | null {
               <li className="history-empty">No earlier versions yet. Versions are saved a few seconds after you stop typing.</li>
             )}
             {revisions?.map((r, i) => (
-              <li key={r._id} className={cx(i === active && 'active')} onClick={() => setActive(i)}>
+              <li key={r._id} className={cx(i === active && 'active')} onClick={() => {
+                setActive(i)
+                if (against === i) setAgainst(-1)
+              }}>
                 <span className="history-when">{relativeTime(r.createdAt)}</span>
                 <span className="history-date">{new Date(r.createdAt).toLocaleString()}</span>
               </li>
@@ -117,9 +88,19 @@ export function HistoryPanel(): React.JSX.Element | null {
             {rev ? (
               <>
                 <div className="history-diff-head">
-                  <span>
-                    Changes from this version to the current note. <span className="diff-legend removed">− removed</span>{' '}
-                    <span className="diff-legend added">+ added since</span>
+                  <span className="history-against">
+                    Changes from this version to{' '}
+                    <select aria-label="Compare with" value={against} onChange={(e) => setAgainst(Number(e.target.value))}>
+                      <option value={-1}>the current note</option>
+                      {revisions?.map((r, i) =>
+                        i === active ? null : (
+                          <option key={r._id} value={i}>
+                            the version from {new Date(r.createdAt).toLocaleString()}
+                          </option>
+                        )
+                      )}
+                    </select>{' '}
+                    <span className="diff-legend removed">− removed</span> <span className="diff-legend added">+ added</span>
                   </span>
                   <button
                     className="btn primary"
@@ -133,7 +114,11 @@ export function HistoryPanel(): React.JSX.Element | null {
                     <RotateCcw size={13} /> Restore This Version
                   </button>
                 </div>
-                <Diff from={`${rev.title}\n\n${rev.body}`} to={current} />
+                <Diff
+                  from={`${rev.title}\n\n${rev.body}`}
+                  to={against >= 0 && revisions?.[against] ? `${revisions[against].title}\n\n${revisions[against].body}` : current}
+                  same={against >= 0 ? 'These two versions are the same.' : 'This version is the same as the current note.'}
+                />
               </>
             ) : (
               <div className="history-empty">Select a version on the left.</div>
