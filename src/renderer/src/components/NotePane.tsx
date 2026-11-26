@@ -5,7 +5,7 @@ import { ResizeHandle, usePaneSize } from './ResizeHandle'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2, Languages } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteTabs } from './NoteTabs'
@@ -24,6 +24,7 @@ import { openMenu } from './ContextMenu'
 import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { exportImage } from '@/lib/exportHtml'
+import { useLiveTranslate } from '@/lib/liveTranslate'
 import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
@@ -307,6 +308,7 @@ function OnTopButton(): React.JSX.Element | null {
 /** Thanh trạng thái dưới ghi chú: đã lưu và sao lưu, vị trí con trỏ, số từ */
 function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: number; showCursor: boolean }): React.JSX.Element {
   const cursor = useCursor()
+  const translating = useLiveTranslate((s) => s.on)
   const [backup, setBackup] = useState<BackupStatus>({ lastBackupAt: null, error: null })
   useEffect(() => onBackupStatus(setBackup), [])
   const words = useMemo(() => countWords(body), [body])
@@ -318,6 +320,11 @@ function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: n
         {saved}
       </span>
       <span className="flex-1" />
+      {translating && (
+        <button className="status-chip" title="Live translate is on (Cmd/Ctrl+Alt+Y). Click to turn it off." onClick={() => useLiveTranslate.getState().toggle()}>
+          <Languages size={12} /> Translating
+        </button>
+      )}
       {showCursor && cursor && <span className="status-num">Ln {cursor.line}, Col {cursor.col}</span>}
       <span className="status-num">
         {words.toLocaleString()} {words === 1 ? 'word' : 'words'}

@@ -7247,3 +7247,45 @@ mark.diff-word {
   font-size: 12px;
   color: var(--ink-3);
 }
+
+/* Dịch khi đang gõ: dòng dịch nhạt màu ngay dưới dòng gốc, không phải chữ của ghi chú */
+.cm-live-translation {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-family: var(--font-ui, -apple-system, system-ui, sans-serif);
+  font-size: 0.88em;
+  line-height: 1.5;
+  color: var(--ink-3);
+  user-select: none;
+  cursor: default;
+}
+.cm-live-translation.stale span {
+  color: color-mix(in srgb, var(--ink-3) 60%, transparent);
+}
+.cm-live-translation button {
+  display: none;
+  flex: none;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--ink-2);
+  background: var(--hover);
+}
+.cm-live-translation:hover button {
+  display: inline-block;
+}
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  background: var(--hover);
+}
+.status-chip:hover {
+  color: var(--ink);
+}

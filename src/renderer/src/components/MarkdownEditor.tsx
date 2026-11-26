@@ -26,6 +26,7 @@ import { tableAutoFormat, tableKeymap, tableToolbar } from '@/lib/tableTools'
 import { imageToolbar } from '@/lib/imageTools'
 import { alertBlocks, noWrapBlocks, strikeDoneTasks } from '@/lib/editorDecorations'
 import { useEditorPrefs } from '@/lib/editorPrefs'
+import { liveTranslate, useLiveTranslate } from '@/lib/liveTranslate'
 import type { EditorPrefs } from '@/lib/editorPrefs'
 
 /** Các phần của editor đổi được khi người dùng đổi tùy chọn */
@@ -189,6 +190,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
   const onChangeRef = useRef(onChange)
   const readOnlyConf = useRef(new Compartment())
   const liveConf = useRef(new Compartment())
+  const translateConf = useRef(new Compartment())
   const prefConf = useRef({ gutter: new Compartment(), wrap: new Compartment(), spell: new Compartment(), strike: new Compartment() })
   const prefs = useEditorPrefs()
   onChangeRef.current = onChange
@@ -260,6 +262,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           ]),
           readOnlyConf.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
           liveConf.current.of(live ? livePreview : []),
+          translateConf.current.of(useLiveTranslate.getState().on && !readOnly ? liveTranslate : []),
           prefConf.current.spell.of(spellExt(useEditorPrefs.getState())),
           // Dán một URL lên chữ đang chọn thì biến chữ đó thành link Markdown
           EditorView.domEventHandlers({
@@ -431,6 +434,12 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
   useEffect(() => {
     viewRef.current?.dispatch({ effects: liveConf.current.reconfigure(live ? livePreview : []) })
   }, [live])
+
+  // Dịch khi đang gõ: bật/tắt không cần dựng lại editor
+  const translating = useLiveTranslate((s) => s.on)
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: translateConf.current.reconfigure(translating && !readOnly ? liveTranslate : []) })
+  }, [translating, readOnly])
 
   useEffect(() => {
     viewRef.current?.dispatch({

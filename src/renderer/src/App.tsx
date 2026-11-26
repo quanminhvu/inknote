@@ -30,6 +30,7 @@ import { startReminders } from './lib/reminders'
 import { TranslatePanel } from './components/TranslatePanel'
 import { ComparePanel, isCompareOpen } from './components/ComparePanel'
 import { lookUpSelection, translateSelection } from './lib/utilities'
+import { useLiveTranslate } from './lib/liveTranslate'
 import { NoteList, stepNoteList } from './components/NoteList'
 import { NotePane } from './components/NotePane'
 import { Notice } from './components/Notice'
@@ -235,6 +236,13 @@ export function App(): React.JSX.Element {
         e.preventDefault()
         e.stopPropagation()
         lookUpSelection()
+        return
+      }
+      // ⌘⌥Y / Ctrl+Alt+Y: bật/tắt dịch khi đang gõ
+      if (e.altKey && !e.shiftKey && e.code === 'KeyY') {
+        e.preventDefault()
+        e.stopPropagation()
+        useLiveTranslate.getState().toggle()
         return
       }
       if (e.altKey) return

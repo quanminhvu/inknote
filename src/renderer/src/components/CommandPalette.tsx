@@ -17,6 +17,7 @@ import { openCompare } from './ComparePanel'
 import { insertText, password, randomString, transformSelection, uuid } from '@/lib/textTools'
 import { lookUpSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { convertSelectionToTable } from '@/lib/editorKeys'
+import { useLiveTranslate } from '@/lib/liveTranslate'
 import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
@@ -255,6 +256,7 @@ function commandItems(): Item[] {
       const v = getActiveEditor()
       if (!v || !convertSelectionToTable(v)) useStore.getState().showNotice('Select lines of CSV or spreadsheet data first.')
     }, '', 'csv tsv excel sheets spreadsheet markdown table'),
+    cmd('live-translate', 'Toggle Live Translate', () => useLiveTranslate.getState().toggle(), isMac() ? '⌘⌥Y' : 'Ctrl+Alt+Y', 'translate as you type dịch google line below'),
     cmd('translate', 'Translate Selection', () => translateSelection(), isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', 'google translate language dịch'),
     cmd('lookup', 'Look Up Selection in Dictionary', () => lookUpSelection(), isMac() ? '⌃⌘D' : '', 'define dictionary meaning word'),
     cmd('google', 'Search Selection with Google', () => searchGoogle(), '', 'web search google'),

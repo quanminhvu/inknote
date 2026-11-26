@@ -11,6 +11,7 @@ import { cx } from '@/lib/util'
 import { SHORTCUT_GROUPS, shortcutText } from '@/lib/shortcuts'
 import { LANGUAGES, useTranslatePrefs } from '@/lib/utilities'
 import { useReminderPrefs } from '@/lib/reminders'
+import { useLiveTranslate } from '@/lib/liveTranslate'
 import { relativeTime } from '@/lib/util'
 import { runImport } from '@/lib/importer'
 import { useEditorPrefs } from '@/lib/editorPrefs'
@@ -441,6 +442,7 @@ function ReminderSettings(): React.JSX.Element {
 
 function TranslateSettings(): React.JSX.Element {
   const t = useTranslatePrefs()
+  const live = useLiveTranslate()
   const options = LANGUAGES.map((l) => (
     <option key={l.code} value={l.code}>
       {l.name}
@@ -452,6 +454,9 @@ function TranslateSettings(): React.JSX.Element {
         <select className="settings-select" value={t.target} onChange={(e) => t.set({ target: e.target.value })}>
           {options}
         </select>
+      </Row>
+      <Row label="Translate as you type" detail="Each line you write is translated below it, a moment after you stop typing. ⌘⌥Y (Ctrl+Alt+Y) turns it on or off">
+        <Switch label="Translate as you type" checked={live.on} onChange={() => live.toggle()} />
       </Row>
       <Row label="When the text is already in that language" detail="Translate it to this language instead">
         <select className="settings-select" value={t.fallback} onChange={(e) => t.set({ fallback: e.target.value })}>
