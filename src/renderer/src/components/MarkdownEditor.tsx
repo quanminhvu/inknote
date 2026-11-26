@@ -12,7 +12,7 @@ import { noteLinkHover } from '@/lib/noteHover'
 import { setCursor, setSelectionText } from '@/lib/noteStats'
 import { livePreview } from '@/lib/livePreview'
 import { htmlToMarkdown } from '@/lib/pasteHtml'
-import { dueCompletions, dueDateHighlight } from '@/lib/dueDates'
+import { dateCompletions, dueCompletions, dueDateHighlight } from '@/lib/dueDates'
 import { editorSpot, saveEditorSpot } from '@/lib/viewMemory'
 import { emojiCompletions, fenceLanguageCompletions, slashCompletions } from '@/lib/completions'
 import { formatToolbar, toggleWrap } from '@/lib/formatToolbar'
@@ -223,7 +223,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           bracketMatching(),
           closeBrackets(),
           autocompletion({
-            override: [noteLinkCompletions, dueCompletions, slashCompletions, fenceLanguageCompletions, emojiCompletions],
+            override: [noteLinkCompletions, dueCompletions, dateCompletions, slashCompletions, fenceLanguageCompletions, emojiCompletions],
             icons: false,
             defaultKeymap: false
           }),

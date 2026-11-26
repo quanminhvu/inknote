@@ -5,7 +5,7 @@ import { ResizeHandle, usePaneSize } from './ResizeHandle'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2, Languages } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Columns2, EllipsisVertical, Eye, LayoutTemplate, Maximize2, Minimize2, PenLine, Pencil, PictureInPicture2, Pin, RotateCcw, TableOfContents, Trash2, Languages, Timer } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteTabs } from './NoteTabs'
@@ -25,6 +25,7 @@ import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { exportImage } from '@/lib/exportHtml'
 import { useLiveTranslate } from '@/lib/liveTranslate'
+import { mmss, remainingMs, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
@@ -306,6 +307,43 @@ function OnTopButton(): React.JSX.Element | null {
 }
 
 /** Thanh trạng thái dưới ghi chú: đã lưu và sao lưu, vị trí con trỏ, số từ */
+/** Hẹn giờ tập trung ở thanh trạng thái: bấm để bắt đầu / tạm dừng; chuột phải để chọn thêm */
+function FocusChip(): React.JSX.Element {
+  const f = useFocusTimer()
+  const menu = (e: React.MouseEvent): void => {
+    const running = f.phase !== 'idle'
+    openMenu(e, [
+      ...(running
+        ? [
+            { label: f.endsAt ? 'Pause' : 'Resume', onClick: () => (f.endsAt ? f.pause() : f.resume()) },
+            { label: f.phase === 'focus' ? 'Skip to Break' : 'Skip Break', onClick: () => f.skip() },
+            { label: 'Stop', onClick: () => f.stop() },
+            { separator: true as const }
+          ]
+        : []),
+      ...[15, 25, 50].map((m) => ({ label: `Focus for ${m} minutes`, checked: f.length === m, onClick: () => f.start(m) }))
+    ])
+  }
+  if (f.phase === 'idle') {
+    return (
+      <button className="status-chip quiet" title={`Start a ${f.length}-minute focus session${f.done ? ` (${f.done} done today)` : ''}. Right-click for options.`} onClick={() => toggleFocus()} onContextMenu={menu}>
+        <Timer size={12} /> {f.done ? f.done : ''}
+      </button>
+    )
+  }
+  const label = f.phase === 'focus' ? 'Focus' : 'Break'
+  return (
+    <button
+      className={cx('status-chip', f.phase === 'break' && 'break', !f.endsAt && 'paused')}
+      title={`${f.endsAt ? 'Click to pause' : 'Paused. Click to resume'} · ${f.done} done today · right-click for options`}
+      onClick={() => toggleFocus()}
+      onContextMenu={menu}
+    >
+      <Timer size={12} /> {f.endsAt ? label : 'Paused'} <span className="status-num">{mmss(remainingMs(f))}</span>
+    </button>
+  )
+}
+
 function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: number; showCursor: boolean }): React.JSX.Element {
   const cursor = useCursor()
   const translating = useLiveTranslate((s) => s.on)
@@ -320,6 +358,7 @@ function StatusBar({ body, updatedAt, showCursor }: { body: string; updatedAt: n
         {saved}
       </span>
       <span className="flex-1" />
+      {!noteWindowId && <FocusChip />}
       {translating && (
         <button className="status-chip" title="Live translate is on (Cmd/Ctrl+Alt+Y). Click to turn it off." onClick={() => useLiveTranslate.getState().toggle()}>
           <Languages size={12} /> Translating

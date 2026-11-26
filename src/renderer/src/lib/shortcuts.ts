@@ -98,6 +98,9 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { label: 'Move line up / down', keys: '', mac: '⌥↑  /  ⌥↓', other: 'Alt+↑ / Alt+↓' },
       { label: 'Next cell in a table', keys: 'Tab' },
       { label: 'Calculate: type “= 12*3” or “12*3 =”, then', keys: 'Enter' },
+      { label: 'Insert a date or time: type @today, @now, @time, @date, @monday…', keys: 'Enter' },
+      { label: 'Flashcard: write “Question :: Answer” on one line; review with', keys: '', mac: '⌘K → Review Flashcards', other: 'Ctrl+K → Review Flashcards' },
+      { label: 'Flashcard review: show answer / Again · Hard · Good · Easy', keys: '', mac: 'Space / 1 · 2 · 3 · 4', other: 'Space / 1 · 2 · 3 · 4' },
       { label: 'Due time for a reminder: “@2026-12-01 09:00”', keys: '', mac: '@ date time', other: '@ date time' }
     ]
   }

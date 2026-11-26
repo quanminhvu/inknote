@@ -162,6 +162,67 @@ export function dueCompletions(context: CompletionContext): CompletionResult | n
       view.dispatch({ changes: { from: at, to, insert }, selection: { anchor: at + insert.length }, userEvent: 'input.complete' })
     }
   }))
+  // Hạn có giờ (để nhắc việc): một tiếng nữa, tối nay, sáng mai
+  const now = new Date()
+  const stamp = (d: Date): string => `${dayKey(d)} ${clock(d)}`
+  const timed: { label: string; date: Date }[] = [
+    { label: 'in 1 hour', date: new Date(now.getTime() + 3_600_000) },
+    { label: 'tonight', date: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0) },
+    { label: 'tomorrow morning', date: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 9, 0) }
+  ]
+  for (const t of timed) {
+    if (t.date.getTime() <= now.getTime()) continue
+    options.push({
+      label: t.label,
+      detail: `remind · ${stamp(t.date)}`,
+      type: 'keyword',
+      apply: (view, _c, _from, to) => {
+        const insert = `@${stamp(t.date)}`
+        view.dispatch({ changes: { from: at, to, insert }, selection: { anchor: at + insert.length }, userEvent: 'input.complete' })
+      }
+    })
+  }
+  return { from: at + 1, options, validFor: /^[\w -]*$/ }
+}
+
+const clock = (d: Date): string => `${pad(d.getHours())}:${pad(d.getMinutes())}`
+
+/**
+ * Ngoài dòng task: gõ "@" để chèn nhanh ngày giờ dạng chữ (không phải hạn chót):
+ * @today 2026-11-27 · @now 2026-11-27 14:05 · @time 14:05 · @tomorrow · @yesterday · thứ trong tuần · @date ngày viết đầy đủ
+ */
+export function dateCompletions(context: CompletionContext): CompletionResult | null {
+  const line = context.state.doc.lineAt(context.pos)
+  if (TASK_LINE.test(line.text)) return null
+  const match = context.matchBefore(/(?:^|[\s(])@[\w -]{0,12}$/)
+  if (!match) return null
+  for (let node: ReturnType<ReturnType<typeof syntaxTree>['resolveInner']> | null = syntaxTree(context.state).resolveInner(context.pos, -1); node; node = node.parent) {
+    if (/^(FencedCode|CodeBlock|InlineCode)$/.test(node.name)) return null
+  }
+  const at = match.from + match.text.indexOf('@')
+  if (/^\d/.test(context.state.sliceDoc(at + 1, context.pos))) return null
+  const now = new Date()
+  const day = (n: number): Date => new Date(now.getFullYear(), now.getMonth(), now.getDate() + n)
+  const long = (d: Date): string => d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const items: { label: string; text: string }[] = [
+    { label: 'today', text: dayKey(now) },
+    { label: 'now', text: `${dayKey(now)} ${clock(now)}` },
+    { label: 'time', text: clock(now) },
+    { label: 'date', text: long(now) },
+    { label: 'tomorrow', text: dayKey(day(1)) },
+    { label: 'yesterday', text: dayKey(day(-1)) }
+  ]
+  for (let i = 2; i <= 7; i++) items.push({ label: WEEKDAYS[day(i).getDay()], text: dayKey(day(i)) })
+  items.push({ label: 'next week', text: dayKey(day(7)) })
+  const options: Completion[] = items.map(({ label, text }, i) => ({
+    label,
+    detail: text,
+    type: 'text',
+    boost: 50 - i,
+    apply: (view, _c, _from, to) => {
+      view.dispatch({ changes: { from: at, to, insert: text }, selection: { anchor: at + text.length }, userEvent: 'input.complete' })
+    }
+  }))
   return { from: at + 1, options, validFor: /^[\w -]*$/ }
 }
 

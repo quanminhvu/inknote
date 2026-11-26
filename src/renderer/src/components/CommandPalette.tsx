@@ -14,10 +14,12 @@ import { allTemplates, applyTemplate, fillPlaceholders } from '@/lib/templates'
 import { Preview } from './Preview'
 import { openPreferences } from './Preferences'
 import { openCompare } from './ComparePanel'
+import { openReview } from './FlashcardReview'
 import { insertText, password, randomString, transformSelection, uuid } from '@/lib/textTools'
 import { lookUpSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { convertSelectionToTable } from '@/lib/editorKeys'
 import { useLiveTranslate } from '@/lib/liveTranslate'
+import { toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
@@ -256,6 +258,10 @@ function commandItems(): Item[] {
       const v = getActiveEditor()
       if (!v || !convertSelectionToTable(v)) useStore.getState().showNotice('Select lines of CSV or spreadsheet data first.')
     }, '', 'csv tsv excel sheets spreadsheet markdown table'),
+    cmd('review', 'Review Flashcards', () => openReview(), '', 'flashcards anki spaced repetition study learn cards'),
+    cmd('focus-start', 'Start Focus Timer', () => useFocusTimer.getState().start(), '', 'pomodoro timer focus work session 25'),
+    cmd('focus-pause', 'Pause or Resume Focus Timer', () => toggleFocus(), '', 'pomodoro timer'),
+    cmd('focus-stop', 'Stop Focus Timer', () => useFocusTimer.getState().stop(), '', 'pomodoro timer'),
     cmd('live-translate', 'Toggle Live Translate', () => useLiveTranslate.getState().toggle(), isMac() ? '⌘⌥Y' : 'Ctrl+Alt+Y', 'translate as you type dịch google line below'),
     cmd('translate', 'Translate Selection', () => translateSelection(), isMac() ? '⌘⇧Y' : 'Ctrl+Shift+Y', 'google translate language dịch'),
     cmd('lookup', 'Look Up Selection in Dictionary', () => lookUpSelection(), isMac() ? '⌃⌘D' : '', 'define dictionary meaning word'),

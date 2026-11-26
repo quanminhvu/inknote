@@ -7,6 +7,8 @@ import { useStore } from '@/lib/store'
 import { collectTasks } from '@/lib/tasks'
 import type { TaskItem } from '@/lib/tasks'
 import { cx, relativeTime, snippet } from '@/lib/util'
+import { collectCards, dueCards } from '@/lib/flashcards'
+import { openReview } from './FlashcardReview'
 
 // Trang "Today": việc cần làm có hạn chót (gom từ mọi ghi chú), ô ghi nhanh vào ghi chú hôm nay,
 // lịch tháng (ngày có ghi chú hằng ngày / có hạn chót), ghi chú vừa sửa và hoạt động trong tuần.
@@ -53,6 +55,10 @@ const fromNotes = (n: number): string => `from ${n} ${n === 1 ? 'note' : 'notes'
 export function TodayView(): React.JSX.Element {
   const notes = useStore((s) => s.notes)
   const sidebarHidden = useStore((s) => s.sidebarHidden)
+  const cards = useMemo(() => {
+    const all = collectCards(notes)
+    return { total: all.length, due: dueCards(all).length }
+  }, [notes])
   const [capture, setCapture] = useState('')
   // Hướng trượt của lịch khi đổi tháng
   const [slide, setSlide] = useState<'next' | 'prev' | ''>('')
@@ -295,6 +301,20 @@ export function TodayView(): React.JSX.Element {
               {week.created} new {week.created === 1 ? 'note' : 'notes'} · {tasks.filter((t) => t.done).length} tasks done in all notes
             </span>
           </section>
+          {cards.total > 0 && (
+            <section className="today-card today-cards" aria-label="Flashcards">
+              <div className="today-card-head">
+                <h2>Flashcards</h2>
+                <span className="flex-1" />
+                <button className="btn" onClick={openReview}>
+                  {cards.due ? `Review ${cards.due}` : 'Open'}
+                </button>
+              </div>
+              <span className="today-week-note">
+                {cards.due ? `${cards.due} of ${cards.total} due` : `All ${cards.total} reviewed for now`}
+              </span>
+            </section>
+          )}
         </div>
       </div>
       {findTodayNote() === null && <p className="today-foot">Today&rsquo;s note doesn&rsquo;t exist yet; adding a task creates it from your daily template.</p>}

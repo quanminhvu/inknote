@@ -27,8 +27,10 @@ import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
 import { startReminders } from './lib/reminders'
+import { startFocusClock } from './lib/focusTimer'
 import { TranslatePanel } from './components/TranslatePanel'
 import { ComparePanel, isCompareOpen } from './components/ComparePanel'
+import { FlashcardReview, isReviewOpen } from './components/FlashcardReview'
 import { lookUpSelection, translateSelection } from './lib/utilities'
 import { useLiveTranslate } from './lib/liveTranslate'
 import { NoteList, stepNoteList } from './components/NoteList'
@@ -84,6 +86,7 @@ export function App(): React.JSX.Element {
   usePaneSlide(appRef, sidebarHidden, distractionFree)
   // Nhắc việc theo giờ của task: chỉ chạy ở cửa sổ chính (tránh nhắc trùng từ cửa sổ ghi chú riêng)
   useEffect(() => (noteWindowId ? undefined : startReminders()), [])
+  useEffect(() => (noteWindowId ? undefined : startFocusClock()), [])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -176,7 +179,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {
       const s = useStore.getState()
-      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
+      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
       // Esc trong một ô chọn/ô nhập nổi (notebook, status, tag…) chỉ đóng ô đó, không thoát chế độ tập trung
       const inPopover = !!(document.activeElement as HTMLElement | null)?.closest?.('.nbp-pop, .stp-pop, .tag-field, .kanban-input, .preview-find')
       if (e.key === 'Escape' && s.distractionFree && !e.defaultPrevented && !inPopover) {
@@ -374,6 +377,7 @@ export function App(): React.JSX.Element {
       <TooltipHost />
       <TranslatePanel />
       <ComparePanel />
+      <FlashcardReview />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />

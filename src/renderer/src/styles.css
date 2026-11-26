@@ -7289,3 +7289,107 @@ mark.diff-word {
 .status-chip:hover {
   color: var(--ink);
 }
+
+/* Hẹn giờ tập trung ở thanh trạng thái */
+.status-chip.quiet {
+  background: transparent;
+  color: var(--ink-3);
+}
+.status-chip.quiet:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.status-chip.break {
+  color: var(--status-completed, #2f9e44);
+}
+.status-chip.paused {
+  color: var(--ink-3);
+}
+.status-chip .status-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ôn thẻ ghi nhớ */
+.review {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, calc(100vw - 48px));
+  max-height: min(560px, calc(100vh - 80px));
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  animation: ink-drop-in 0.22s var(--ease-slide) both;
+}
+.review-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px 32px 26px;
+  overflow-y: auto;
+  text-align: center;
+}
+.review-source {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.review-source:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.review-front {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.review-back {
+  width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.review-flip small,
+.review-grade small {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.review-grades {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.review-grade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+}
+.review-grade small {
+  margin: 0;
+}
+.review-grade.g1 span {
+  color: var(--status-dropped, #e5484d);
+}
+.review-grade.g4 span {
+  color: var(--status-completed, #2f9e44);
+}
+.review-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--ink-2);
+}
+.review-empty p {
+  margin: 0 0 8px;
+}
+.review-hint {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
