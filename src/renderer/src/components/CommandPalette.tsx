@@ -12,6 +12,7 @@ import { fuzzyMatch } from '@/lib/fuzzy'
 import { useStore } from '@/lib/store'
 import { allTemplates, applyTemplate, fillPlaceholders } from '@/lib/templates'
 import { Preview } from './Preview'
+import { openPreferences } from './Preferences'
 import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
@@ -228,6 +229,7 @@ function commandItems(): Item[] {
     cmd('live', 'Toggle Live Mode', () => s.setViewMode(useStore.getState().viewMode === 'live' ? 'edit' : 'live'), `${mod()}${shift()}L`, 'wysiwyg write formatted rich'),
     cmd('preview', 'Toggle Preview', () => s.setViewMode(useStore.getState().viewMode === 'preview' ? 'edit' : 'preview'), `${mod()}E`),
     cmd('split', 'Toggle Side-by-Side View', () => s.setViewMode(useStore.getState().viewMode === 'split' ? 'edit' : 'split'), `${mod()}P`, 'split'),
+    cmd('shortcuts', 'Keyboard Shortcuts', () => openPreferences('shortcuts'), isMac() ? '⌘?' : 'Ctrl+Shift+/', 'keys hotkeys help cheat sheet'),
     cmd('sidebar', 'Toggle Sidebar', () => s.toggleSidebar(), `${mod()}\\`, 'navigation panel hide show'),
     cmd('focus', 'Toggle Distraction-Free Mode', () => s.toggleDistractionFree(), `${mod()}${shift()}D`, 'focus zen fullscreen'),
     cmd('activity', 'Show Activity', () => openActivity(), undefined, 'statistics stats streak heatmap calendar words'),

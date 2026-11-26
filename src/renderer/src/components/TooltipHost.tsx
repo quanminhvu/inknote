@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { isMac } from '@/lib/util'
+import { formatShortcut } from '@/lib/shortcuts'
 
 // Chú thích khi rê chuột, thay cho tooltip mặc định của hệ thống (hiện chậm, chữ nhỏ, không có phím tắt).
 // Dùng luôn thuộc tính `title` sẵn có: khi rê vào, `title` được cất sang `data-tip` để hệ thống
@@ -12,14 +12,6 @@ const DELAY = 450
 const WARM = 600
 
 const SHORTCUT = /\s*\(([^()]*(?:Cmd|Ctrl|Alt|Shift|⌘|⌥|⇧|⌃)[^()]*)\)\s*$/
-
-export function formatShortcut(raw: string): string {
-  const mac = isMac()
-  const parts = raw.replace(/Cmd\/Ctrl/g, 'Mod').split('+')
-  if (!mac) return parts.map((p) => (p === 'Mod' ? 'Ctrl' : p)).join('+')
-  const glyph: Record<string, string> = { Mod: '⌘', Cmd: '⌘', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧' }
-  return parts.map((p) => glyph[p] ?? p.toUpperCase()).join('')
-}
 
 function split(text: string): { label: string; keys: string } {
   const m = SHORTCUT.exec(text)

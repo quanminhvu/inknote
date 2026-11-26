@@ -20,16 +20,16 @@ import { closeTab, cycleTab, gotoTab, tabsEnabled, useTabs } from '@/lib/tabs'
 import { goBack, goForward } from '@/lib/navigation'
 import { startSwipeNavigation } from '@/lib/swipe'
 import { startHistory } from '@/lib/history'
-import { HistoryPanel, isHistoryOpen } from './components/HistoryPanel'
+import { HistoryPanel, isHistoryOpen, openHistory } from './components/HistoryPanel'
 import { ActivityPanel, isActivityOpen } from './components/ActivityPanel'
 import { IconPicker } from './components/BookIcon'
 import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
-import { NoteList } from './components/NoteList'
+import { NoteList, stepNoteList } from './components/NoteList'
 import { NotePane } from './components/NotePane'
 import { Notice } from './components/Notice'
-import { Preferences } from './components/Preferences'
+import { openPreferences, Preferences } from './components/Preferences'
 import { Sidebar } from './components/Sidebar'
 import { isQuickNoteWindow, noteWindowId, openInNewWindow } from './lib/windowMode'
 import { QuickNoteFooter } from './components/QuickNoteFooter'
@@ -123,6 +123,7 @@ export function App(): React.JSX.Element {
       const s = useStore.getState()
       if (command === 'preferences') s.setPrefsOpen(true)
       else if (command === 'new-note') s.createNote()
+      else if (command === 'shortcuts') openPreferences('shortcuts')
       else if (command === 'toggle-sidebar') {
         if (s.distractionFree) s.toggleDistractionFree()
         else s.toggleSidebar()
@@ -213,8 +214,35 @@ export function App(): React.JSX.Element {
         goForward()
         return
       }
+      // Ghi chú kế tiếp / trước đó trong danh sách: ⌃⌘↓/↑ (macOS), Ctrl+PageDown/PageUp (nơi khác)
+      const step = isMac()
+        ? e.ctrlKey && e.metaKey && !e.altKey && !e.shiftKey && (e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0)
+        : e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'PageDown' ? 1 : e.key === 'PageUp' ? -1 : 0)
+      if (step && !noteWindowId) {
+        e.preventDefault()
+        e.stopPropagation()
+        stepNoteList(step)
+        return
+      }
       if (e.altKey) return
       const key = e.key.toLowerCase()
+      const inField = !!(document.activeElement as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable="true"]')
+      const current = s.selectedNoteId ? s.notes[s.selectedNoteId] : undefined
+      // ⌘⌫ / Ctrl+Backspace (ngoài editor và ô nhập): chuyển ghi chú vào Thùng rác
+      if (key === 'backspace' && !e.shiftKey && !inEditor && !inField) {
+        if (!current || current.trashed || noteWindowId) return
+        e.preventDefault()
+        e.stopPropagation()
+        s.trashNote(current._id)
+        return
+      }
+      // ⌘? / Ctrl+Shift+/: bảng phím tắt
+      if (e.shiftKey && (key === '?' || e.code === 'Slash')) {
+        e.preventDefault()
+        e.stopPropagation()
+        openPreferences('shortcuts')
+        return
+      }
       if (e.shiftKey) {
         if (key === 'n') {
           const note = s.selectedNoteId ? s.notes[s.selectedNoteId] : undefined
@@ -230,6 +258,12 @@ export function App(): React.JSX.Element {
         } else if (key === 'o') {
           if (!s.selectedNoteId) return
           toggleOutline()
+        } else if (key === 'p') {
+          if (!current || current.trashed) return
+          s.updateNote(current._id, { pinned: !current.pinned })
+        } else if (key === 'h') {
+          if (!current || current.trashed) return
+          openHistory(current._id)
         } else if (key === 'l') s.setViewMode(s.viewMode === 'live' ? 'edit' : 'live')
         else if (key === 'f') {
           if (s.distractionFree) s.toggleDistractionFree()

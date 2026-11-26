@@ -116,6 +116,12 @@ function dateGroup(time: number): string {
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 }
 
+// Phím tắt toàn app "ghi chú kế tiếp / trước đó" đi theo đúng thứ tự danh sách đang hiện (đã lọc, đã sắp xếp)
+let stepper: ((dir: 1 | -1) => boolean) | null = null
+export function stepNoteList(dir: 1 | -1): boolean {
+  return stepper?.(dir) ?? false
+}
+
 export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputElement | null> }): React.JSX.Element {
   useStore((s) => s.statuses)
   const notes = useStore((s) => s.notes)
@@ -151,6 +157,23 @@ export function NoteList({ searchRef }: { searchRef: React.RefObject<HTMLInputEl
   useEffect(() => {
     if (!list.some((n) => n._id === selectedNoteId)) selectNote(list[0]?._id ?? null)
   }, [list, selectedNoteId, selectNote])
+
+  useEffect(() => {
+    stepper = (dir) => {
+      if (!list.length) return false
+      const s = useStore.getState()
+      const index = list.findIndex((n) => n._id === s.selectedNoteId)
+      const next = list[index < 0 ? 0 : Math.max(0, Math.min(list.length - 1, index + dir))]
+      if (!next || next._id === s.selectedNoteId) return true
+      s.setMulti([])
+      selectNote(next._id)
+      requestAnimationFrame(() => document.querySelector('.note-item.selected')?.scrollIntoView({ block: 'nearest' }))
+      return true
+    }
+    return () => {
+      stepper = null
+    }
+  }, [list, selectNote])
 
   // Bỏ khỏi vùng chọn những ghi chú không còn trong danh sách (ví dụ vừa chuyển vào thùng rác)
   useEffect(() => {

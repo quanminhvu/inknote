@@ -7054,3 +7054,26 @@ html.resizing-panes .notepane-header {
   letter-spacing: 0.04em;
   color: #a6a6ad;
 }
+
+/* Preferences → Shortcuts: bảng phím tắt */
+.keys-filter {
+  margin: 0 0 16px;
+  max-width: 320px;
+}
+.keys-row {
+  min-height: 36px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.keys-row .settings-row-label {
+  flex: 1;
+  font-weight: 450;
+}
+kbd.keys {
+  flex: none;
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  white-space: pre;
+}

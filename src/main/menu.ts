@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu } from 'electron'
 import type { MenuItemConstructorOptions } from 'electron'
 import { getMainWindow } from './windows'
 
-export type MenuCommand = 'preferences' | 'new-note' | 'import' | 'export-note' | 'export-all' | 'backup-now' | 'restore' | 'back' | 'forward' | 'import-apple-notes' | 'import-kindle' | 'export-html' | 'export-pdf' | 'close-tab' | 'toggle-sidebar'
+export type MenuCommand = 'preferences' | 'new-note' | 'import' | 'export-note' | 'export-all' | 'backup-now' | 'restore' | 'back' | 'forward' | 'import-apple-notes' | 'import-kindle' | 'export-html' | 'export-pdf' | 'close-tab' | 'toggle-sidebar' | 'shortcuts'
 
 const send = (command: MenuCommand) => (): void => {
   // Lệnh menu luôn chạy ở cửa sổ chính (cửa sổ ghi chú riêng không có danh sách ghi chú)
@@ -93,7 +93,9 @@ export function buildMenu(): void {
         { role: 'togglefullscreen' }
       ]
     },
-    { role: 'windowMenu' }
+    { role: 'windowMenu' },
+    // Không gán phím: renderer tự bắt ⌘? (Ctrl+Shift+/)
+    { role: 'help', submenu: [{ label: isMac ? 'Keyboard Shortcuts    ⌘?' : 'Keyboard Shortcuts    Ctrl+Shift+/', click: send('shortcuts') }] }
   ]
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))

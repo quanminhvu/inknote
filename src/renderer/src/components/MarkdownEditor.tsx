@@ -16,6 +16,7 @@ import { dueCompletions, dueDateHighlight } from '@/lib/dueDates'
 import { editorSpot, saveEditorSpot } from '@/lib/viewMemory'
 import { emojiCompletions, fenceLanguageCompletions, slashCompletions } from '@/lib/completions'
 import { formatToolbar, toggleWrap } from '@/lib/formatToolbar'
+import { writingKeymap } from '@/lib/editorKeys'
 import { attachFiles, fileIdFromUrl, openAttachment } from '@/lib/attachments'
 import { extraSlashItems } from '@/lib/completions'
 import { setActiveEditor } from '@/lib/editorCommands'
@@ -244,6 +245,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
             { key: 'Mod-Shift-v', preventDefault: true, run: (v) => (void pastePlain(v), true) },
             { key: 'Mod-b', run: toggleWrap('**') },
             { key: 'Mod-i', run: toggleWrap('*') },
+            ...writingKeymap,
             ...completionKeymap,
             // Trong bảng: Tab/⇧Tab/Enter đi giữa các ô (trước phím Tab thụt lề, Enter tiếp danh sách)
             ...tableKeymap,

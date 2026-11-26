@@ -57,7 +57,7 @@ export function toggleLinePrefix(prefix: string, strip: RegExp): StateCommand {
   }
 }
 
-function insertLink(view: EditorView): boolean {
+export function insertLink(view: EditorView): boolean {
   const { from, to } = view.state.selection.main
   const text = view.state.sliceDoc(from, to)
   const insert = `[${text}](url)`
@@ -93,7 +93,7 @@ export function insertAlert(kind = 'NOTE'): (view: EditorView) => boolean {
   }
 }
 
-const LIST_PREFIX = /^\s*(?:[-*+] \[[ xX]\] |[-*+] |\d+[.)] |> |#{1,6} )/
+export const LIST_PREFIX = /^\s*(?:[-*+] \[[ xX]\] |[-*+] |\d+[.)] |> |#{1,6} )/
 
 interface ToolbarButton {
   label: string

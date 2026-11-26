@@ -8,6 +8,7 @@ import { useStore } from '@/lib/store'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
 import type { ThemeInfo } from '@/lib/theme'
 import { cx } from '@/lib/util'
+import { SHORTCUT_GROUPS, shortcutText } from '@/lib/shortcuts'
 import { relativeTime } from '@/lib/util'
 import { runImport } from '@/lib/importer'
 import { useEditorPrefs } from '@/lib/editorPrefs'
@@ -32,13 +33,27 @@ interface PageInfo {
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
   { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike' },
-  { id: 'shortcuts', label: 'Shortcuts', description: 'Global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard tray show hide', desktopOnly: true },
+  { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
   { id: 'data', label: 'Backup & Data', description: 'Backups, restore, import and export.', icon: HardDrive, tint: '#16a34a', keywords: 'backup restore import export folder icloud data', desktopOnly: true },
   { id: 'about', label: 'About', description: 'Version, data location and credits.', icon: Info, tint: '#6b7280', keywords: 'about version licence license github release' }
 ]
 const PAGE_KEY = 'nibmark:prefs-page'
+const PAGE_EVENT = 'inknote:prefs-page'
+
+/** Mở Preferences ở một trang (ví dụ bảng phím tắt) */
+export function openPreferences(page?: PageId): void {
+  if (page) {
+    try {
+      localStorage.setItem(PAGE_KEY, page)
+    } catch {
+      // chỉ là tiện ích
+    }
+    window.dispatchEvent(new CustomEvent(PAGE_EVENT, { detail: page }))
+  }
+  useStore.getState().setPrefsOpen(true)
+}
 
 function readPage(): PageId {
   try {
@@ -92,6 +107,15 @@ export function Preferences(): React.JSX.Element | null {
   useEffect(() => {
     if (!open) setQuery('')
   }, [open])
+
+  useEffect(() => {
+    const onPage = (e: Event): void => {
+      const id = (e as CustomEvent<PageId>).detail
+      if (PAGES.some((p) => p.id === id)) setPageState(id)
+    }
+    window.addEventListener(PAGE_EVENT, onPage)
+    return () => window.removeEventListener(PAGE_EVENT, onPage)
+  }, [])
 
   if (!open) return null
   // Đang tìm: hiện trang đầu tiên khớp; không thì trang đã chọn
@@ -149,7 +173,12 @@ export function Preferences(): React.JSX.Element | null {
             <div className="settings-body" key={current.id}>
               {current.id === 'appearance' && <Appearance />}
               {current.id === 'editor' && <EditorSection />}
-              {current.id === 'shortcuts' && <QuickNote />}
+              {current.id === 'shortcuts' && (
+                <>
+                  <KeyboardGuide />
+                  <QuickNote />
+                </>
+              )}
               {current.id === 'templates' && <Templates />}
               {current.id === 'agents' && <AgentsSection />}
               {current.id === 'data' && <DataSection />}
@@ -523,6 +552,34 @@ function acceleratorFromEvent(e: React.KeyboardEvent): string | null {
   else if (code === 'Slash') key = '/'
   if (!key || (!mods.length && !/^F\d/.test(key))) return null
   return [...mods, key].join('+')
+}
+
+function KeyboardGuide(): React.JSX.Element {
+  const [filter, setFilter] = useState('')
+  const f = filter.trim().toLowerCase()
+  const groups = SHORTCUT_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => !f || `${g.title} ${i.label} ${shortcutText(i)}`.toLowerCase().includes(f))
+  })).filter((g) => g.items.length)
+  return (
+    <>
+      <label className="settings-search keys-filter">
+        <Search size={14} />
+        <input value={filter} placeholder="Find a shortcut" aria-label="Find a shortcut" spellCheck={false} onChange={(e) => setFilter(e.target.value)} />
+      </label>
+      {groups.map((g) => (
+        <Group key={g.title} title={g.title}>
+          {g.items.map((i) => (
+            <div key={i.label} className="settings-row keys-row">
+              <span className="settings-row-label">{i.label}</span>
+              <kbd className="keys">{shortcutText(i)}</kbd>
+            </div>
+          ))}
+        </Group>
+      ))}
+      {!groups.length && <p className="settings-group-note">No shortcut matches “{filter}”.</p>}
+    </>
+  )
 }
 
 function QuickNote(): React.JSX.Element | null {
