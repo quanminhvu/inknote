@@ -144,7 +144,7 @@ export function AttachmentLibrary(): React.JSX.Element | null {
       <div className="modal library-modal" role="dialog" aria-label="Attachments" onMouseDown={(e) => e.stopPropagation()}>
         <header className="modal-header board-head">
           <h2>Attachments</h2>
-          <div className="segmented" role="group" aria-label="Show">
+          <div className="segmented text" role="group" aria-label="Show">
             {(['all', 'images', 'unused'] as Filter[]).map((f) => (
               <button key={f} className={cx(filter === f && 'on')} onClick={() => setFilter(f)}>
                 {f === 'all' ? 'All' : f === 'images' ? 'Images' : `Unused${files ? ` (${unused.length})` : ''}`}

@@ -8332,3 +8332,8 @@ html.compact-list .note-item-thumb {
   border-radius: 5px;
   padding: 1px 5px;
 }
+
+/* Nhóm nút chữ (không phải icon): rộng theo chữ, không xuống dòng */
+.segmented.text { flex-shrink: 0; }
+.segmented.text button { width: auto; padding: 0 12px; font-size: 12.5px; white-space: nowrap; }
+.library-meta { white-space: nowrap; }
