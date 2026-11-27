@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { FileText, Trash2, X } from 'lucide-react'
 import { create } from 'zustand'
 import { db, removeDoc } from '@/lib/db'
-import { markdownFor, openAttachment, readFile } from '@/lib/attachments'
+import { markdownFor, readFile } from '@/lib/attachments'
+import { isFileViewerOpen, viewFile } from './FileViewer'
 import { isRevealed } from '@/lib/noteLock'
 import { getActiveEditor } from '@/lib/editorCommands'
 import { useStore } from '@/lib/store'
@@ -35,7 +36,7 @@ export function AttachmentLibrary(): React.JSX.Element | null {
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isFileViewerOpen()) {
         e.preventDefault()
         e.stopPropagation()
         close()
@@ -174,7 +175,7 @@ export function AttachmentLibrary(): React.JSX.Element | null {
             const owners = used.filter((o) => o.startsWith('note:'))
             return (
               <figure key={f._id} className={cx('library-item', !used.length && 'unused')}>
-                <button className="library-thumb" title={owners.length ? 'Open the note that uses it' : 'Open the file'} onClick={() => (owners.length ? openOwner(f._id) : void openAttachment(f._id))}>
+                <button className="library-thumb" title="View" onClick={() => viewFile(shown.map((x) => x._id), shown.indexOf(f))}>
                   {isImage(f) && thumbs[f._id] ? <img src={thumbs[f._id]} alt="" /> : <FileText size={28} strokeWidth={1.4} />}
                 </button>
                 <figcaption>
@@ -188,6 +189,11 @@ export function AttachmentLibrary(): React.JSX.Element | null {
                     <button className="text-btn" onClick={() => insert(f)} title="Insert into the open note">
                       Insert
                     </button>
+                    {owners.length > 0 && (
+                      <button className="text-btn" onClick={() => openOwner(f._id)} title="Open the note that uses it">
+                        Open Note
+                      </button>
+                    )}
                     {!used.length && canClean && (
                       <button className="text-btn danger" onClick={() => void remove([f])}>
                         Delete

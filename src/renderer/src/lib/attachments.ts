@@ -119,7 +119,13 @@ export function resolveFileUrls(html: string): string {
 }
 
 /** Mở file đính kèm (không phải ảnh) bằng ứng dụng mặc định của máy */
+/** Mở file đính kèm trong trình xem của Inknote (ảnh, PDF, văn bản, âm thanh, video) */
 export async function openAttachment(fileId: string): Promise<void> {
+  window.dispatchEvent(new CustomEvent('inknote-view-file', { detail: fileId }))
+}
+
+/** Mở file bằng app mặc định của máy */
+export async function openExternally(fileId: string): Promise<void> {
   const s = useStore.getState()
   const res = await readFile(fileId)
   if (!res) {

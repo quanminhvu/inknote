@@ -40,6 +40,7 @@ import { AttachmentLibrary, isLibraryOpen } from './components/AttachmentLibrary
 import { isTeleprompterOpen, Teleprompter } from './components/Teleprompter'
 import { isTagCleanupOpen, TagCleanup } from './components/TagCleanup'
 import { DuePicker, isDuePickerOpen } from './components/DuePicker'
+import { FileViewer, isFileViewerOpen } from './components/FileViewer'
 import './lib/noteLock'
 import { lookUpSelection, translateSelection } from './lib/utilities'
 import { useLiveTranslate } from './lib/liveTranslate'
@@ -191,7 +192,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {
       const s = useStore.getState()
-      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isBoardOpen() || isLibraryOpen() || isTeleprompterOpen() || isTagCleanupOpen() || isDuePickerOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
+      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isBoardOpen() || isLibraryOpen() || isTeleprompterOpen() || isTagCleanupOpen() || isDuePickerOpen() || isFileViewerOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
       // Esc trong một ô chọn/ô nhập nổi (notebook, status, tag…) chỉ đóng ô đó, không thoát chế độ tập trung
       const inPopover = !!(document.activeElement as HTMLElement | null)?.closest?.('.nbp-pop, .stp-pop, .tag-field, .kanban-input, .preview-find')
       const vimInEditor = useEditorPrefs.getState().vim && !!(document.activeElement as HTMLElement | null)?.closest?.('.cm-editor')
@@ -426,6 +427,7 @@ export function App(): React.JSX.Element {
       <Teleprompter />
       <TagCleanup />
       <DuePicker />
+      <FileViewer />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />
