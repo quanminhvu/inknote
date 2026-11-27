@@ -15,6 +15,8 @@ import { useLiveTranslate } from '@/lib/liveTranslate'
 import { relativeTime } from '@/lib/util'
 import { runImport } from '@/lib/importer'
 import { useEditorPrefs } from '@/lib/editorPrefs'
+import { EDITOR_FONTS, UI_FONTS, cleanFontName, fontInstalled } from '@/lib/fonts'
+import type { FontOption } from '@/lib/fonts'
 import { NotebookPicker } from './NotebookPicker'
 import type { PasteLink, WrapMode } from '@/lib/editorPrefs'
 
@@ -34,7 +36,7 @@ interface PageInfo {
 }
 
 const PAGES: PageInfo[] = [
-  { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
+  { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font typeface family serif sans monospace' },
   { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column typewriter focus dim center ia writer' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
@@ -408,6 +410,7 @@ function Appearance(): React.JSX.Element {
           ))}
         </div>
       </Group>
+      <FontSettings />
       {bridge && (
         <Group title="Customize" note="Changes to theme files and styles.css show up when you come back to Inknote.">
           <Row label="Your own themes" detail="Add .css files to the themes folder">
@@ -425,6 +428,72 @@ function Appearance(): React.JSX.Element {
           </Row>
         </Group>
       )}
+    </>
+  )
+}
+
+function FontSettings(): React.JSX.Element {
+  const p = useEditorPrefs()
+  return (
+    <Group title="Fonts" note="Only fonts already on this Mac are listed. To use another one, choose Other… and type its name as it appears in Font Book.">
+      <Row label="App font" detail="Sidebar, note list, menus and the reading view">
+        <FontSelect value={p.uiFont} list={UI_FONTS} onChange={(uiFont) => p.set({ uiFont })} />
+      </Row>
+      <Row label="Editor font" detail="The text you write in Write and Live view">
+        <FontSelect value={p.editorFont} list={EDITOR_FONTS} onChange={(editorFont) => p.set({ editorFont })} />
+      </Row>
+      <div className="font-sample" aria-hidden="true">
+        <p style={{ fontFamily: 'var(--font-ui)' }}>The quick brown fox jumps over the lazy dog. Chữ Việt có dấu: Ánh trăng, đường xa.</p>
+        <p className="font-sample-editor">## Notes — 0123456789 {'{ }'} [ ] =&gt; Ăn quả nhớ kẻ trồng cây</p>
+      </div>
+    </Group>
+  )
+}
+
+function FontSelect({ value, list, onChange }: { value: string; list: FontOption[]; onChange: (v: string) => void }): React.JSX.Element {
+  const known = list.some((f) => f.value === value)
+  const [other, setOther] = useState(!known)
+  const [draft, setDraft] = useState(known ? '' : value)
+  const shown = list.filter((f) => f.value === value || fontInstalled(f.value))
+  const commit = (): void => {
+    const name = cleanFontName(draft)
+    if (!name) return
+    onChange(name)
+  }
+  return (
+    <>
+      {other && (
+        <input
+          className="settings-input font-other"
+          placeholder="Font name"
+          value={draft}
+          spellCheck={false}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => e.key === 'Enter' && commit()}
+          title={draft && !fontInstalled(cleanFontName(draft)) ? 'This font is not on this Mac' : undefined}
+        />
+      )}
+      <select
+        className="settings-select"
+        value={other ? '__other' : value}
+        onChange={(e) => {
+          if (e.target.value === '__other') {
+            setOther(true)
+            setDraft('')
+            return
+          }
+          setOther(false)
+          onChange(e.target.value)
+        }}
+      >
+        {shown.map((f) => (
+          <option key={f.value} value={f.value}>
+            {f.label}
+          </option>
+        ))}
+        <option value="__other">Other…</option>
+      </select>
     </>
   )
 }

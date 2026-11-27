@@ -704,7 +704,7 @@ mark {
   outline: none;
 }
 .editor-host .cm-scroller {
-  font-family: var(--font-mono);
+  font-family: var(--font-editor, var(--font-mono));
   font-size: 13.5px;
   line-height: 1.7;
   overflow: auto;
@@ -8418,3 +8418,29 @@ html.compact-list .note-item-thumb {
 /* File Markdown trong trình xem: hiện giống bản xem của một ghi chú */
 .viewer-markdown { background: var(--surface); }
 .viewer-markdown .viewer-note { flex: 1; min-width: 0; height: auto; overflow: visible; }
+
+/* Preferences → Appearance → Fonts */
+.font-other {
+  width: 150px;
+  height: 30px;
+  margin-right: 6px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.font-other:focus { box-shadow: 0 0 0 2px var(--accent, #3b82f6); }
+.font-sample {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.font-sample p { margin: 2px 0; font-size: 14px; color: var(--ink); }
+.font-sample .font-sample-editor { font-family: var(--font-editor, var(--font-mono)); font-size: 13px; color: var(--ink-2); }

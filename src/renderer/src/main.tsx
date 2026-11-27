@@ -4,6 +4,7 @@ import { App } from './App'
 import { initTheme } from './lib/theme'
 import { useEditorPrefs } from './lib/editorPrefs'
 import { setLineBreaks } from './lib/markdown'
+import { applyFonts } from './lib/fonts'
 import './themes.css'
 import './styles.css'
 
@@ -31,12 +32,21 @@ const syncSizes = (editor: number, preview: number): void => {
   root.style.setProperty('--preview-font-size', preview ? `${preview}px` : '')
 }
 syncSizes(useEditorPrefs.getState().editorFontSize, useEditorPrefs.getState().previewFontSize)
+// Font chữ toàn app (chỉ gắn lại khi đổi font)
+let fontKey = ''
+const syncFonts = (ui: string, editor: string): void => {
+  if (fontKey === `${ui}|${editor}`) return
+  fontKey = `${ui}|${editor}`
+  applyFonts(ui, editor)
+}
+syncFonts(useEditorPrefs.getState().uiFont, useEditorPrefs.getState().editorFont)
 useEditorPrefs.subscribe((s) => {
   syncStrike(s.strikeDone)
   syncCodeLn(s.codeLineNumbers)
   setLineBreaks(s.breaks)
   syncCompact(s.compactList)
   syncSizes(s.editorFontSize, s.previewFontSize)
+  syncFonts(s.uiFont, s.editorFont)
 })
 
 createRoot(document.getElementById('root')!).render(
