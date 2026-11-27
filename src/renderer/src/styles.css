@@ -8177,3 +8177,14 @@ html.compact-list .note-item-thumb {
   font-size: 12px;
   color: var(--ink-3);
 }
+
+/* Chế độ máy đánh chữ: khoảng trống trên/dưới để dòng đầu và dòng cuối cũng nằm giữa màn hình */
+.cm-content.cm-typewriter {
+  padding-top: 38vh !important;
+  padding-bottom: 50vh !important;
+}
+/* Làm nhạt phần không đang viết: chỉ đổi màu chữ (không mờ dần) */
+.cm-editor .cm-dimmed,
+.cm-editor .cm-dimmed * {
+  color: color-mix(in srgb, var(--ink) 32%, transparent) !important;
+}

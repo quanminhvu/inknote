@@ -35,7 +35,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column typewriter focus dim center ia writer' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -469,7 +469,7 @@ function TranslateSettings(): React.JSX.Element {
 
 function EditorSection(): React.JSX.Element {
   const p = useEditorPrefs()
-  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList' | 'thumbnails'
+  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList' | 'thumbnails' | 'typewriter'
   const sizes = [
     <option key={0} value={0}>
       Default
@@ -525,6 +525,14 @@ function EditorSection(): React.JSX.Element {
       <Group title="Writing">
         {toggle('spellcheck', 'Check spelling')}
         {toggle('strikeDone', 'Strike through completed tasks')}
+        {toggle('typewriter', 'Typewriter scrolling', 'Keep the line you are writing in the middle of the screen. ⌘⌥T (Ctrl+Alt+T) turns it on with focus dimming')}
+        <Row label="Focus dimming" detail="Show only what you are writing in full color">
+          <select className="settings-select" value={p.dim} onChange={(e) => p.set({ dim: e.target.value as 'off' | 'paragraph' | 'sentence' })}>
+            <option value="off">Off</option>
+            <option value="paragraph">Current paragraph</option>
+            <option value="sentence">Current sentence</option>
+          </select>
+        </Row>
         {toggle('vim', 'Vim keybindings', 'Normal, insert and visual modes, :w to save. The mode shows below the editor')}
         {toggle('breaks', 'Keep line breaks', 'A new line in the editor is a new line in the preview, without two spaces at the end')}
         {toggle('formatOnLeave', 'Format when leaving a note', `Tidy the Markdown of a note you edited. ${isMacFormat()}.`)}

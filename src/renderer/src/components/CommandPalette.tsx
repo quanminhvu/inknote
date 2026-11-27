@@ -21,7 +21,7 @@ import { openLibrary } from './AttachmentLibrary'
 import { openTeleprompter } from './Teleprompter'
 import { openTagCleanup } from './TagCleanup'
 import { foldAll, unfoldAll } from '@codemirror/language'
-import { useEditorPrefs } from '@/lib/editorPrefs'
+import { toggleTypewriter, useEditorPrefs } from '@/lib/editorPrefs'
 import { openLockDialog } from './LockViews'
 import { lockAll } from '@/lib/noteLock'
 import { insertText, password, randomString, transformSelection, uuid } from '@/lib/textTools'
@@ -286,6 +286,10 @@ function commandItems(): Item[] {
       const v = getActiveEditor()
       if (v) unfoldAll(v)
     }, isMac() ? '⌃⌥]' : 'Ctrl+Alt+]', 'expand unfold headings code'),
+    cmd('typewriter', 'Toggle Typewriter Mode', () => {
+      const on = toggleTypewriter()
+      useStore.getState().showNotice(on ? 'Typewriter mode on.' : 'Typewriter mode off.')
+    }, isMac() ? '⌘⌥T' : 'Ctrl+Alt+T', 'focus dim center ia writer distraction'),
     cmd('vim', 'Toggle Vim Keybindings', () => {
       const p = useEditorPrefs.getState()
       p.set({ vim: !p.vim })

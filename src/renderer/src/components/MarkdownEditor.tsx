@@ -29,6 +29,7 @@ import { useEditorPrefs } from '@/lib/editorPrefs'
 import { liveTranslate, useLiveTranslate } from '@/lib/liveTranslate'
 import { vimMode } from '@/lib/vimMode'
 import { ruler } from '@/lib/ruler'
+import { typewriter } from '@/lib/typewriter'
 import { useStore } from '@/lib/store'
 import type { EditorPrefs } from '@/lib/editorPrefs'
 
@@ -196,6 +197,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
   const translateConf = useRef(new Compartment())
   const vimConf = useRef(new Compartment())
   const rulerConf = useRef(new Compartment())
+  const typewriterConf = useRef(new Compartment())
   const prefConf = useRef({ gutter: new Compartment(), wrap: new Compartment(), spell: new Compartment(), strike: new Compartment() })
   const prefs = useEditorPrefs()
   onChangeRef.current = onChange
@@ -209,6 +211,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           // Vim phải đứng trước các keymap khác để giành phím ở chế độ normal
           vimConf.current.of(useEditorPrefs.getState().vim ? vimMode : []),
           rulerConf.current.of(ruler(useEditorPrefs.getState().ruler)),
+          typewriterConf.current.of(typewriter(useEditorPrefs.getState().typewriter, useEditorPrefs.getState().dim)),
           history(),
           prefConf.current.gutter.of(gutterExt(useEditorPrefs.getState())),
           // Nút gập ở lề trái: gập một mục (heading) hoặc một khối code
@@ -436,7 +439,8 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
         c.spell.reconfigure(spellExt(prefs)),
         c.strike.reconfigure(strikeExt(prefs)),
         vimConf.current.reconfigure(prefs.vim ? vimMode : []),
-        rulerConf.current.reconfigure(ruler(prefs.ruler))
+        rulerConf.current.reconfigure(ruler(prefs.ruler)),
+        typewriterConf.current.reconfigure(typewriter(prefs.typewriter, prefs.dim))
       ]
     })
   }, [prefs])

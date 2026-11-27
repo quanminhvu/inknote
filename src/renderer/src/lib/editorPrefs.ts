@@ -40,6 +40,10 @@ export interface EditorPrefs {
   previewFontSize: number
   /** Vạch dọc ở cột này trong editor (chế độ Write); 0 = tắt */
   ruler: number
+  /** Chế độ máy đánh chữ: dòng đang gõ luôn ở giữa màn hình */
+  typewriter: boolean
+  /** Làm nhạt phần không đang viết */
+  dim: 'off' | 'paragraph' | 'sentence'
 }
 
 const KEY = 'nibmark:editor'
@@ -60,7 +64,9 @@ const defaults: EditorPrefs = {
   thumbnails: true,
   editorFontSize: 0,
   previewFontSize: 0,
-  ruler: 0
+  ruler: 0,
+  typewriter: false,
+  dim: 'off'
 }
 
 function read(): EditorPrefs {
@@ -73,6 +79,7 @@ function read(): EditorPrefs {
     merged.editorFontSize = px(merged.editorFontSize)
     merged.previewFontSize = px(merged.previewFontSize)
     merged.ruler = [0, 72, 80, 100, 120].includes(merged.ruler as number) ? merged.ruler : 0
+    if (!['off', 'paragraph', 'sentence'].includes(merged.dim)) merged.dim = 'off'
     return merged
   } catch {
     return defaults
@@ -105,7 +112,9 @@ useEditorPrefs.subscribe((s) => {
     thumbnails: s.thumbnails,
     editorFontSize: s.editorFontSize,
     previewFontSize: s.previewFontSize,
-    ruler: s.ruler
+    ruler: s.ruler,
+    typewriter: s.typewriter,
+    dim: s.dim
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(prefs))
@@ -113,3 +122,11 @@ useEditorPrefs.subscribe((s) => {
     // không lưu được thì lần sau dùng mặc định
   }
 })
+
+/** Bật/tắt chế độ máy đánh chữ (giữ dòng ở giữa + làm nhạt đoạn khác) */
+export function toggleTypewriter(): boolean {
+  const p = useEditorPrefs.getState()
+  const on = !(p.typewriter || p.dim !== 'off')
+  p.set({ typewriter: on, dim: on ? 'paragraph' : 'off' })
+  return on
+}

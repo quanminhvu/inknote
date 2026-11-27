@@ -47,6 +47,7 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     items: [
       { label: 'Show or hide the sidebar', keys: 'Cmd/Ctrl+\\' },
       { label: 'Distraction-free mode', keys: 'Cmd/Ctrl+Shift+D' },
+      { label: 'Typewriter mode (line stays centered, other paragraphs dimmed)', keys: 'Cmd/Ctrl+Alt+T' },
       { label: 'Leave distraction-free mode', keys: 'Esc' },
       { label: 'On this page (outline)', keys: 'Cmd/Ctrl+Shift+O' },
       { label: 'Read view', keys: 'Cmd/Ctrl+E' },

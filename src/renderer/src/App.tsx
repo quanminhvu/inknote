@@ -27,7 +27,7 @@ import { CommandPalette } from './components/CommandPalette'
 import { ContextMenuHost } from './components/ContextMenu'
 import { TooltipHost } from './components/TooltipHost'
 import { startReminders } from './lib/reminders'
-import { useEditorPrefs } from './lib/editorPrefs'
+import { toggleTypewriter, useEditorPrefs } from './lib/editorPrefs'
 import { startFocusClock } from './lib/focusTimer'
 import { startScratchpadSweep } from './lib/scratchpad'
 import { TranslatePanel } from './components/TranslatePanel'
@@ -251,6 +251,14 @@ export function App(): React.JSX.Element {
         e.preventDefault()
         e.stopPropagation()
         lookUpSelection()
+        return
+      }
+      // ⌘⌥T / Ctrl+Alt+T: chế độ máy đánh chữ
+      if (e.altKey && !e.shiftKey && e.code === 'KeyT') {
+        e.preventDefault()
+        e.stopPropagation()
+        const on = toggleTypewriter()
+        s.showNotice(on ? 'Typewriter mode on: the line you write stays in the middle, other paragraphs are dimmed.' : 'Typewriter mode off.')
         return
       }
       // ⌘⌥Y / Ctrl+Alt+Y: bật/tắt dịch khi đang gõ
