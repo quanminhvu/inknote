@@ -25,6 +25,7 @@
     "test:desktop": "node scripts/test-desktop-features.mjs"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^26.6.6",
     "@types/pouchdb-browser": "^6.1.5",
@@ -58,6 +59,7 @@
     "events": "^3.3.0",
     "fflate": "^0.8.3",
     "highlight.js": "^11.12.0",
+    "js-yaml": "^4.3.2",
     "katex": "^0.19.1",
     "lucide-react": "^1.75.0",
     "markdown-it": "^15.0.3",

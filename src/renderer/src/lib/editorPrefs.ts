@@ -50,6 +50,10 @@ export interface EditorPrefs {
   uiFont: string
   /** Font của editor ('' = monospace mặc định, 'app' = giống font giao diện) */
   editorFont: string
+  /** App mở đường dẫn file code trong ghi chú */
+  codeEditor: 'vscode' | 'cursor' | 'windsurf' | 'zed'
+  /** Thư mục dự án để tìm đường dẫn tương đối như src/app.ts */
+  projectFolders: string[]
 }
 
 const KEY = 'nibmark:editor'
@@ -75,7 +79,9 @@ const defaults: EditorPrefs = {
   dim: 'off',
   compactLinks: true,
   uiFont: '',
-  editorFont: ''
+  editorFont: '',
+  codeEditor: 'vscode',
+  projectFolders: []
 }
 
 function read(): EditorPrefs {
@@ -91,6 +97,9 @@ function read(): EditorPrefs {
     if (!['off', 'paragraph', 'sentence'].includes(merged.dim)) merged.dim = 'off'
     if (typeof merged.uiFont !== 'string') merged.uiFont = ''
     if (typeof merged.editorFont !== 'string') merged.editorFont = ''
+    if (!['vscode', 'cursor', 'windsurf', 'zed'].includes(merged.codeEditor)) merged.codeEditor = 'vscode'
+    if (!Array.isArray(merged.projectFolders)) merged.projectFolders = []
+    merged.projectFolders = merged.projectFolders.filter((f): f is string => typeof f === 'string')
     return merged
   } catch {
     return defaults
@@ -128,7 +137,9 @@ useEditorPrefs.subscribe((s) => {
     dim: s.dim,
     compactLinks: s.compactLinks,
     uiFont: s.uiFont,
-    editorFont: s.editorFont
+    editorFont: s.editorFont,
+    codeEditor: s.codeEditor,
+    projectFolders: s.projectFolders
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(prefs))

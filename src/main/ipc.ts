@@ -16,6 +16,7 @@ import { readAppleNotes, scanFromDump } from './appleNotes'
 import type { AppleNotesDump } from './appleNotes'
 import { readFileSync, statSync } from 'node:fs'
 import { getMainWindow } from './windows'
+import { openCode, pickProjectFolder } from './codeOpen'
 
 export interface SettingsView {
   backupEnabled: boolean
@@ -60,6 +61,9 @@ export function registerIpc(openNoteWindow: (noteId: string, quick?: { bookId?: 
   ipcMain.on('window:openNote', (_e, id: unknown) => {
     if (typeof id === 'string' && /^note:[A-Za-z0-9_-]{1,64}$/.test(id)) openNoteWindow(id)
   })
+  // Đường dẫn file code trong ghi chú → mở bằng VS Code / Cursor / Windsurf / Zed
+  ipcMain.handle('code:open', (_e, path: unknown, line: unknown, col: unknown, editor: unknown, roots: unknown) => openCode(path, line, col, editor, roots))
+  ipcMain.handle('code:pickFolder', (event) => pickProjectFolder(BrowserWindow.fromWebContents(event.sender)))
   // Ghim cửa sổ ghi chú (Quick Note, ⌘⇧N) nổi trên mọi app và mọi Space, hoặc bỏ ghim
   ipcMain.handle('window:setOnTop', (event, onTop: unknown) => {
     const w = BrowserWindow.fromWebContents(event.sender)

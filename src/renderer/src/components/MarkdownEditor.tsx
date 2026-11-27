@@ -19,6 +19,10 @@ import { formatToolbar, toggleWrap } from '@/lib/formatToolbar'
 import { writingKeymap } from '@/lib/editorKeys'
 import { tsvToTable } from '@/lib/tableConvert'
 import { attachFiles, fileIdFromUrl, openAttachment } from '@/lib/attachments'
+import { timestampHover } from '@/lib/timestampHover'
+import { filePathLinks } from '@/lib/filePaths'
+import { secretGuard } from '@/lib/secrets'
+import { openLockDialog } from './LockViews'
 import { extraSlashItems } from '@/lib/completions'
 import { setActiveEditor } from '@/lib/editorCommands'
 import { listRenumber } from '@/lib/listRenumber'
@@ -248,6 +252,11 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           tableAutoFormat,
           imageToolbar(),
           noteLinkHover,
+          timestampHover,
+          filePathLinks,
+          secretGuard(() => {
+            if (docId && useStore.getState().notes[docId]) openLockDialog(docId)
+          }),
           dueDateHighlight,
           highlightSelectionMatches(),
           search({ top: true }),

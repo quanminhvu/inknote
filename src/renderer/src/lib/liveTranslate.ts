@@ -1,3 +1,4 @@
+import { hasSecret } from './secrets'
 import { syntaxTree } from '@codemirror/language'
 import { MapMode, StateEffect, StateField } from '@codemirror/state'
 import type { EditorState, Extension, Range } from '@codemirror/state'
@@ -91,6 +92,8 @@ function sourceOf(state: EditorState, lineFrom: number): string | null {
   const text = line.text
   if (!text.trim() || text.trim().startsWith('|') || /^\s*(```|~~~|---\s*$)/.test(text)) return null
   if (inCode(state, line.from)) return null
+  // Không gửi khoá bí mật lên Google Dịch
+  if (hasSecret(text)) return null
   const body = text
     .replace(MARK, '')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, '')

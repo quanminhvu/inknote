@@ -43,6 +43,10 @@ contextBridge.exposeInMainWorld('inknote', {
   files: {
     open: (id: string, name: string, bytes: Uint8Array) => ipcRenderer.invoke('file:open', id, name, bytes)
   },
+  code: {
+    open: (path: string, line: number, col: number, editor: string, roots: string[]) => ipcRenderer.invoke('code:open', path, line, col, editor, roots),
+    pickFolder: () => ipcRenderer.invoke('code:pickFolder')
+  },
   web: {
     title: (url: string) => ipcRenderer.invoke('web:title', url),
     githubSnippet: (url: string) => ipcRenderer.invoke('web:githubSnippet', url)

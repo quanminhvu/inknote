@@ -100,6 +100,12 @@ interface InknoteBridge {
     /** Trả về thông báo lỗi, hoặc null nếu mở được */
     open(id: string, name: string, bytes: Uint8Array): Promise<string | null>
   }
+  code: {
+    /** Mở file code bằng app soạn code ở dòng / cột cho trước; trả về thông báo lỗi hoặc null */
+    open(path: string, line: number, col: number, editor: string, roots: string[]): Promise<string | null>
+    /** Chọn thư mục dự án; null nếu huỷ */
+    pickFolder(): Promise<string | null>
+  }
   /** Mở một ghi chú trong cửa sổ riêng */
   openNoteWindow(id: string): void
   /** Mở ghi chú trong cửa sổ Quick Note nhỏ, nổi trên mọi app */

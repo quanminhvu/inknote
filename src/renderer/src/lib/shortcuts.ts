@@ -86,6 +86,10 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { label: 'Attachments: images and files, clean up unused ones', keys: '', mac: 'Sidebar → Attachments', other: 'Sidebar → Attachments' },
       { label: 'Run a JavaScript or Python code block', keys: '', mac: 'Read view → Run', other: 'Read view → Run' },
       { label: 'Import Markdown / HTML files or a folder', keys: '', mac: 'Drop them on the window', other: 'Drop them on the window' },
+      { label: 'Convert the selection: camelCase / snake_case…, hex / binary, JSON ↔ YAML, escape, sort lines, timestamps, hashes', keys: '', mac: 'Right-click → Convert…', other: 'Right-click → Convert…' },
+      { label: 'See the date of a Unix timestamp', keys: '', mac: 'Hover the number', other: 'Hover the number' },
+      { label: 'Open a file path like src/app.ts:42 in VS Code / Cursor (set up in Preferences → Editor)', keys: '', mac: '⌘-click (editor), click (Read view)', other: 'Ctrl-click (editor), click (Read view)' },
+      { label: 'Hide tokens and API keys in the note', keys: '', mac: '⌘K → Mask Secrets in This Note', other: 'Ctrl+K → Mask Secrets in This Note' },
       { label: 'Teleprompter: start / speed / size / mirror', keys: '', mac: 'Space  ↑↓  +−  M', other: 'Space ↑↓ +− M' }
     ]
   },

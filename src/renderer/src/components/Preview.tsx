@@ -10,6 +10,7 @@ import { fileIdFromUrl, openAttachment, resolveFileUrls, useFileTick } from '@/l
 import { followNoteLink } from '@/lib/noteLinks'
 import { previewLinkOut, previewLinkOver } from '@/lib/noteHover'
 import { decorateDueDates } from '@/lib/dueDates'
+import { decorateFilePaths, openCodePath } from '@/lib/filePaths'
 import { PreviewFind } from './PreviewFind'
 
 interface Props {
@@ -58,6 +59,7 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
     renderMermaidIn(root, () => generation.current === gen)
     fillGithubEmbeds(root)
     decorateDueDates(root)
+    decorateFilePaths(root)
     decorateToc(root)
     decorateFolding(root, folded.current)
   }, [html])
@@ -90,6 +92,12 @@ export function Preview({ source, onToggleTask, findable }: Props): React.JSX.El
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>): void => {
     const target = event.target as HTMLElement
+
+    const codePath = target.closest<HTMLElement>('.file-path')
+    if (codePath?.dataset.path) {
+      void openCodePath(codePath.dataset.path, Number(codePath.dataset.line), Number(codePath.dataset.col))
+      return
+    }
 
     const link = target.closest('a')
     if (link) {

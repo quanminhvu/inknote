@@ -33,6 +33,12 @@ export function openMenu(event: React.MouseEvent, items: MenuItem[], anchorToTar
   useMenu.setState({ open: true, x, y, items })
 }
 
+/** Mở menu tại một điểm (ví dụ menu con mở tiếp từ menu chuột phải) */
+export function openMenuAt(x: number, y: number, items: MenuItem[]): void {
+  // Đợi menu cũ đóng xong (cú bấm vào mục menu đóng nó) rồi mới mở menu mới
+  setTimeout(() => useMenu.setState({ open: true, x, y, items }), 0)
+}
+
 export function ContextMenuHost(): React.JSX.Element | null {
   const { open, x, y, items } = useMenu()
   const ref = useRef<HTMLDivElement>(null)

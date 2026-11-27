@@ -6,7 +6,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import { previewSpot, readingLine, saveReadingLine, savePreviewSpot } from '@/lib/viewMemory'
 import { getActiveEditor } from '@/lib/editorCommands'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Binary, BookOpen, CalendarClock, Columns2, Dices, EllipsisVertical, Eye, Fingerprint, Images, KeyRound, KeySquare, Languages, LayoutTemplate, Link2, LockOpen, Maximize2, Minimize2, Pause, PenLine, Pencil, PictureInPicture2, Pin, Play, RotateCcw, ScanText, Search, SkipForward, Square, TableOfContents, TextCursorInput, Timer, Trash2 } from 'lucide-react'
+import { ArrowDownAZ, ArrowLeft, ArrowRight, Binary, Braces, CaseSensitive, Clock, Hash, Quote, Wand2, BookOpen, CalendarClock, Columns2, Dices, EllipsisVertical, Eye, Fingerprint, Images, KeyRound, KeySquare, Languages, LayoutTemplate, Link2, LockOpen, Maximize2, Minimize2, Pause, PenLine, Pencil, PictureInPicture2, Pin, Play, RotateCcw, ScanText, Search, SkipForward, Square, TableOfContents, TextCursorInput, Timer, Trash2 } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteTabs } from './NoteTabs'
@@ -21,7 +21,8 @@ import { onBackupStatus } from '@/lib/backup'
 import type { BackupStatus } from '@/lib/backup'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
-import { mi, openMenu } from './ContextMenu'
+import { mi, openMenu, openMenuAt } from './ContextMenu'
+import type { MenuItem } from './ContextMenu'
 import { openDuePicker } from './DuePicker'
 import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
@@ -32,6 +33,8 @@ import { LockedNote } from './LockViews'
 import { focusOnTask, mmss, remainingMs, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
 import type { Transform } from '@/lib/textTools'
+import { applyConversion, conversionsFor } from '@/lib/devTools'
+import type { Conversion } from '@/lib/devTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { MarkdownEditor } from './MarkdownEditor'
 import { noteMenu } from './NoteList'
@@ -56,6 +59,29 @@ const TRANSFORM_ICONS: Record<Transform, React.ComponentType<{ size?: number; st
   'base64-decode': Binary,
   'url-encode': Link2,
   'url-decode': Link2
+}
+
+const CONVERT_ICONS: Record<Conversion['group'], React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
+  case: CaseSensitive,
+  number: Hash,
+  time: Clock,
+  data: Braces,
+  escape: Quote,
+  lines: ArrowDownAZ,
+  hash: Fingerprint
+}
+
+/** Menu con "Convert…": các phép đổi hợp với đoạn chọn, theo nhóm */
+function openConvertMenu(x: number, y: number, text: string, readOnly: boolean): void {
+  const list = conversionsFor(text).filter((c) => !readOnly || c.run)
+  const items: MenuItem[] = []
+  let last = ''
+  for (const c of list) {
+    if (last && c.group !== last) items.push({ separator: true })
+    last = c.group
+    items.push({ label: c.label, icon: mi(CONVERT_ICONS[c.group]), onClick: () => void applyConversion(c) })
+  }
+  openMenuAt(x, y, items)
 }
 
 /** Ghi chú là một trang HTML đầy đủ (giống plugin html-viewer): hiện như trang web, trong khung cô lập không chạy script */
@@ -107,6 +133,7 @@ function selectionMenu(e: React.MouseEvent): void {
     { label: `Look Up “${quoted}”`, icon: mi(BookOpen), hint: isMac() ? '⌃⌘D' : undefined, onClick: () => lookUpSelection() },
     { label: `Search with Google`, icon: mi(Search), onClick: () => searchGoogle(picked.text) },
     ...(transforms.length ? [{ separator: true as const }, ...transforms.map((t) => ({ label: t.label, icon: mi(TRANSFORM_ICONS[t.kind]), onClick: () => transformSelection(t.kind) }))] : []),
+    ...(picked.view ? [{ label: 'Convert…', icon: mi(Wand2), onClick: () => openConvertMenu(e.clientX, e.clientY, picked.text, !!picked.view?.state.readOnly) }] : []),
     ...(window.inknote ? [{ separator: true as const }, { label: 'Copy Selection as Image', icon: mi(Images), onClick: () => void exportImage('selection', 'copy') }] : [])
   ])
 }

@@ -37,7 +37,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font typeface family serif sans monospace' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column typewriter focus dim center ia writer' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column typewriter focus dim center ia writer code file path vscode cursor zed windsurf project folder' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -498,6 +498,40 @@ function FontSelect({ value, list, onChange }: { value: string; list: FontOption
   )
 }
 
+function CodeFileSettings(): React.JSX.Element | null {
+  const p = useEditorPrefs()
+  const bridge = window.inknote?.code
+  if (!bridge) return null
+  const add = async (): Promise<void> => {
+    const dir = await bridge.pickFolder()
+    if (dir && !p.projectFolders.includes(dir)) p.set({ projectFolders: [...p.projectFolders, dir] })
+  }
+  return (
+    <Group title="Code files" note="File paths in your notes, like src/app.ts:42, open at that line. ⌘-click them in the editor (Ctrl-click on Windows and Linux), or click them in the reading view. Paths that start with / or ~/ work without a project folder.">
+      <Row label="Open code files in">
+        <select className="settings-select" value={p.codeEditor} onChange={(e) => p.set({ codeEditor: e.target.value as typeof p.codeEditor })}>
+          <option value="vscode">VS Code</option>
+          <option value="cursor">Cursor</option>
+          <option value="windsurf">Windsurf</option>
+          <option value="zed">Zed</option>
+        </select>
+      </Row>
+      <Row label="Project folders" detail={p.projectFolders.length ? 'A path like src/app.ts is looked up in these folders, in this order' : 'Add the folders of your projects so paths like src/app.ts can be found'}>
+        <button className="btn" onClick={() => void add()}>
+          Add Folder…
+        </button>
+      </Row>
+      {p.projectFolders.map((dir) => (
+        <Row key={dir} label={<span className="project-folder">{dir.replace(/^\/Users\/[^/]+/, '~')}</span>}>
+          <button className="btn" onClick={() => p.set({ projectFolders: p.projectFolders.filter((d) => d !== dir) })}>
+            Remove
+          </button>
+        </Row>
+      ))}
+    </Group>
+  )
+}
+
 function ReminderSettings(): React.JSX.Element {
   const r = useReminderPrefs()
   return (
@@ -614,6 +648,7 @@ function EditorSection(): React.JSX.Element {
           </select>
         </Row>
       </Group>
+      <CodeFileSettings />
       <ReminderSettings />
       <TranslateSettings />
     </>

@@ -32,6 +32,7 @@ import { useLiveTranslate } from '@/lib/liveTranslate'
 import { focusOnTask, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
+import { maskSecrets } from '@/lib/secrets'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
 import { getStatuses } from '@/lib/statuses'
 import type { NoteStatus } from '@/lib/types'
@@ -272,6 +273,12 @@ function commandItems(): Item[] {
       const n = useStore.getState().selectedNoteId
       if (n) openLockDialog(n)
     }, '', 'password encrypt protect secret private'),
+    cmd('mask-secrets', 'Mask Secrets in This Note', () => {
+      const v = getActiveEditor()
+      if (!v || v.state.readOnly) return useStore.getState().showNotice('Open the note in Write or Live view first.')
+      const n = maskSecrets(v)
+      useStore.getState().showNotice(n ? `Masked ${n} secret${n === 1 ? '' : 's'}. Press ${mod()}Z to undo.` : 'No tokens or keys found in this note.')
+    }, '', 'token api key password hide redact secret github aws'),
     cmd('lock-all', 'Lock All Notes Now', () => void lockAll().then((n) => useStore.getState().showNotice(n ? 'Locked.' : 'No locked note is open.')), '', 'password encrypt lock close'),
     cmd('due-date', 'Set Due Date…', () => openDuePicker(), '', 'deadline reminder date time calendar task due'),
     cmd('board', 'Open Status Board', () => openBoard(), '', 'kanban status board columns'),
