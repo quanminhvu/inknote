@@ -3,8 +3,12 @@ import { ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { create } from 'zustand'
 import { openExternally, readFile } from '@/lib/attachments'
 import type { FileDoc } from '@/lib/types'
+import { isKanban } from '@/lib/kanban'
+import { KanbanBoard } from './KanbanBoard'
+import { Preview } from './Preview'
 
-// Xem file đính kèm ngay trong Inknote: ảnh (bấm để xem cỡ thật), PDF, văn bản / mã nguồn, âm thanh, video.
+// Xem file đính kèm ngay trong Inknote: ảnh (bấm để xem cỡ thật), PDF, Markdown (hiện như một ghi chú),
+// văn bản / mã nguồn, âm thanh, video.
 // Loại khác (zip, docx…) thì không xem được ở đây, có nút mở bằng app mặc định của máy.
 // Mở từ Attachments thì dùng ← → để xem file trước / sau.
 
@@ -28,11 +32,12 @@ const TEXT_TYPES = /^(text\/|application\/(json|xml|javascript|x-sh|x-yaml|yaml|
 const TEXT_EXT = /\.(md|markdown|txt|csv|tsv|json|ya?ml|toml|xml|html?|css|scss|js|mjs|cjs|ts|tsx|jsx|py|rb|go|rs|java|kt|swift|c|h|cpp|hpp|cs|php|sh|zsh|sql|ini|conf|log|env|gitignore)$/i
 const MAX_TEXT = 2 * 1024 * 1024
 
-type Kind = 'image' | 'pdf' | 'text' | 'audio' | 'video' | 'other'
+type Kind = 'image' | 'pdf' | 'markdown' | 'text' | 'audio' | 'video' | 'other'
 export function viewKind(d: Pick<FileDoc, 'contentType' | 'name'>): Kind {
   const t = d.contentType || ''
   if (t.startsWith('image/')) return 'image'
   if (t === 'application/pdf' || /\.pdf$/i.test(d.name)) return 'pdf'
+  if (/\.(md|markdown|mdown|mkd)$/i.test(d.name) || t === 'text/markdown' || t === 'text/x-markdown') return 'markdown'
   if (t.startsWith('audio/')) return 'audio'
   if (t.startsWith('video/')) return 'video'
   if (TEXT_TYPES.test(t) || TEXT_EXT.test(d.name)) return 'text'
@@ -60,7 +65,7 @@ export function FileViewer(): React.JSX.Element | null {
       // PDF: đặt đúng kiểu để trình xem PDF có sẵn của Chromium nhận
       const blob = kind === 'pdf' && res.blob.type !== 'application/pdf' ? new Blob([res.blob], { type: 'application/pdf' }) : res.blob
       url = URL.createObjectURL(blob)
-      const text = kind === 'text' ? (res.blob.size > MAX_TEXT ? (await res.blob.slice(0, MAX_TEXT).text()) + '\n…' : await res.blob.text()) : undefined
+      const text = kind === 'text' || kind === 'markdown' ? (res.blob.size > MAX_TEXT ? (await res.blob.slice(0, MAX_TEXT).text()) + '\n…' : await res.blob.text()) : undefined
       if (alive) setFile({ doc: res.doc, url, text })
     })
     return () => {
@@ -137,6 +142,11 @@ export function FileViewer(): React.JSX.Element | null {
           )}
           {file && file !== 'missing' && kind === 'pdf' && <iframe src={file.url} title={file.doc.name} />}
           {file && file !== 'missing' && kind === 'text' && <pre>{file.text}</pre>}
+          {file && file !== 'missing' && kind === 'markdown' && (
+            <div className={`note-preview viewer-note${isKanban(file.text ?? '') ? ' is-kanban' : ''}`}>
+              {isKanban(file.text ?? '') ? <KanbanBoard source={file.text ?? ''} /> : <Preview source={file.text ?? ''} />}
+            </div>
+          )}
           {file && file !== 'missing' && kind === 'audio' && <audio src={file.url} controls autoPlay={false} />}
           {file && file !== 'missing' && kind === 'video' && <video src={file.url} controls />}
           {file && file !== 'missing' && kind === 'other' && (

@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { db } from './db'
-import { useEditorPrefs } from './editorPrefs'
 import { useStore } from './store'
 import type { FileDoc } from './types'
 
@@ -122,7 +121,6 @@ export function resolveFileUrls(html: string): string {
 /** Mở file đính kèm (không phải ảnh) bằng ứng dụng mặc định của máy */
 /** Mở file đính kèm trong trình xem của Inknote (ảnh, PDF, văn bản, âm thanh, video) */
 export async function openAttachment(fileId: string): Promise<void> {
-  if (useEditorPrefs.getState().openFiles === 'default') return openExternally(fileId)
   window.dispatchEvent(new CustomEvent('inknote-view-file', { detail: fileId }))
 }
 

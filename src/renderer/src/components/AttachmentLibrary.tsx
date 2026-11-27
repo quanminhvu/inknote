@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FileText, Trash2, X } from 'lucide-react'
 import { create } from 'zustand'
 import { db, removeDoc } from '@/lib/db'
-import { markdownFor, openExternally, readFile } from '@/lib/attachments'
-import { useEditorPrefs } from '@/lib/editorPrefs'
+import { markdownFor, readFile } from '@/lib/attachments'
 import { isFileViewerOpen, viewFile } from './FileViewer'
 import { isRevealed } from '@/lib/noteLock'
 import { getActiveEditor } from '@/lib/editorCommands'
@@ -176,7 +175,7 @@ export function AttachmentLibrary(): React.JSX.Element | null {
             const owners = used.filter((o) => o.startsWith('note:'))
             return (
               <figure key={f._id} className={cx('library-item', !used.length && 'unused')}>
-                <button className="library-thumb" title="Open" onClick={() => (useEditorPrefs.getState().openFiles === 'default' ? void openExternally(f._id) : viewFile(shown.map((x) => x._id), shown.indexOf(f)))}>
+                <button className="library-thumb" title="View" onClick={() => viewFile(shown.map((x) => x._id), shown.indexOf(f))}>
                   {isImage(f) && thumbs[f._id] ? <img src={thumbs[f._id]} alt="" /> : <FileText size={28} strokeWidth={1.4} />}
                 </button>
                 <figcaption>
