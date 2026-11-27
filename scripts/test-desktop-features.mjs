@@ -169,7 +169,7 @@ await evaluate(`Array.from(document.querySelectorAll('.note-item-name')).find(e=
 await check('backlinks list source note', `document.querySelector('.backlinks-list').textContent.includes('Source note') && document.querySelector('.backlinks-count').textContent==='1'`)
 await evaluate(`document.querySelector('.backlinks-list button').click()`);await sleep(200)
 await check('backlink opens source', `document.querySelector('.note-title').value==='Source note'`)
-const href = await evaluate(`document.querySelector('.cm-content').textContent.match(/inknote:\\/\\/note\\/[A-Za-z0-9_-]+/)[0]`)
+const href = await evaluate(`(document.querySelector('.cm-content').textContent+' '+[...document.querySelectorAll('.cm-link-compact')].map(e=>e.title).join(' ')).match(/inknote:\\/\\/note\\/[A-Za-z0-9_-]+/)[0]`)
 await newNote('Code only','```markdown\n[ignored]('+href+')\n```\n\n`[ignored]('+href+')`\n\n<!-- <a href="'+href+'">ignored</a> -->')
 await evaluate(`Array.from(document.querySelectorAll('.note-item-name')).find(e=>e.textContent==='Target note').click()`);await sleep(200)
 await check('backlinks ignore code and commented links', `document.querySelector('.backlinks-count').textContent==='1'`)

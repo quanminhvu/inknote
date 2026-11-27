@@ -46,6 +46,7 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: 'Layout and view',
     items: [
       { label: 'Show or hide the sidebar', keys: 'Cmd/Ctrl+\\' },
+      { label: 'Switch layout: all panes → list + note → note only', keys: 'Cmd/Ctrl+Shift+\\' },
       { label: 'Distraction-free mode', keys: 'Cmd/Ctrl+Shift+D' },
       { label: 'Typewriter mode (line stays centered, other paragraphs dimmed)', keys: 'Cmd/Ctrl+Alt+T' },
       { label: 'Leave distraction-free mode', keys: 'Esc' },
@@ -116,6 +117,7 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { label: 'Insert a date or time: type @today, @now, @time, @date, @monday…', keys: 'Enter' },
       { label: 'Flashcard: write “Question :: Answer” on one line; review with', keys: '', mac: '⌘K → Review Flashcards', other: 'Ctrl+K → Review Flashcards' },
       { label: 'Flashcard review: show answer / Again · Hard · Good · Easy', keys: '', mac: 'Space / 1 · 2 · 3 · 4', other: 'Space / 1 · 2 · 3 · 4' },
+      { label: 'Pick a due date and time from a calendar: click the date on a task, or', keys: '', mac: '⌘K → Set Due Date…', other: 'Ctrl+K → Set Due Date…' },
       { label: 'Due time for a reminder: “@2026-12-01 09:00”', keys: '', mac: '@ date time', other: '@ date time' }
     ]
   }

@@ -469,7 +469,7 @@ function TranslateSettings(): React.JSX.Element {
 
 function EditorSection(): React.JSX.Element {
   const p = useEditorPrefs()
-  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList' | 'thumbnails' | 'typewriter'
+  type Key = 'lineNumbers' | 'readableWidth' | 'spellcheck' | 'strikeDone' | 'codeLineNumbers' | 'tabs' | 'formatOnLeave' | 'vim' | 'breaks' | 'compactList' | 'thumbnails' | 'typewriter' | 'compactLinks'
   const sizes = [
     <option key={0} value={0}>
       Default
@@ -525,6 +525,7 @@ function EditorSection(): React.JSX.Element {
       <Group title="Writing">
         {toggle('spellcheck', 'Check spelling')}
         {toggle('strikeDone', 'Strike through completed tasks')}
+        {toggle('compactLinks', 'Compact long links', 'In Write view, show long link addresses as “…” except on the line you are editing')}
         {toggle('typewriter', 'Typewriter scrolling', 'Keep the line you are writing in the middle of the screen. ⌘⌥T (Ctrl+Alt+T) turns it on with focus dimming')}
         <Row label="Focus dimming" detail="Show only what you are writing in full color">
           <select className="settings-select" value={p.dim} onChange={(e) => p.set({ dim: e.target.value as 'off' | 'paragraph' | 'sentence' })}>

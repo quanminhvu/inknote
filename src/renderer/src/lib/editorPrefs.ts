@@ -44,6 +44,8 @@ export interface EditorPrefs {
   typewriter: boolean
   /** Làm nhạt phần không đang viết */
   dim: 'off' | 'paragraph' | 'sentence'
+  /** Rút gọn địa chỉ link dài ở chế độ Write */
+  compactLinks: boolean
 }
 
 const KEY = 'nibmark:editor'
@@ -66,7 +68,8 @@ const defaults: EditorPrefs = {
   previewFontSize: 0,
   ruler: 0,
   typewriter: false,
-  dim: 'off'
+  dim: 'off',
+  compactLinks: true
 }
 
 function read(): EditorPrefs {
@@ -114,7 +117,8 @@ useEditorPrefs.subscribe((s) => {
     previewFontSize: s.previewFontSize,
     ruler: s.ruler,
     typewriter: s.typewriter,
-    dim: s.dim
+    dim: s.dim,
+    compactLinks: s.compactLinks
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(prefs))

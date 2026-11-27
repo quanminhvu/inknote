@@ -7,6 +7,12 @@ import { useStore } from './store'
 
 export type Phase = 'idle' | 'focus' | 'break'
 
+export interface FocusTask {
+  noteId: string
+  /** Chữ của task (không có dấu checkbox và 🍅) để tìm lại đúng dòng */
+  text: string
+}
+
 const LENGTHS_KEY = 'inknote:focus-length'
 const COUNT_KEY = 'inknote:focus-count'
 
@@ -48,8 +54,10 @@ interface FocusState {
   length: number
   /** Số phiên làm việc đã xong hôm nay */
   done: number
+  /** Task đang làm (giống plugin pomodoro-edit): xong mỗi phiên thì thêm một 🍅 vào cuối dòng task */
+  task: FocusTask | null
   now: number
-  start: (length?: number) => void
+  start: (length?: number, task?: FocusTask | null) => void
   pause: () => void
   resume: () => void
   stop: () => void
@@ -64,8 +72,9 @@ export const useFocusTimer = create<FocusState>((set, get) => ({
   left: 0,
   length: readLength(),
   done: readCount(),
+  task: null,
   now: Date.now(),
-  start: (length) => {
+  start: (length, task) => {
     const len = length ?? get().length
     if (length) {
       try {
@@ -74,7 +83,7 @@ export const useFocusTimer = create<FocusState>((set, get) => ({
         // chỉ là tiện ích
       }
     }
-    set({ phase: 'focus', length: len, endsAt: Date.now() + len * 60_000, left: len * 60_000, now: Date.now() })
+    set({ phase: 'focus', length: len, endsAt: Date.now() + len * 60_000, left: len * 60_000, now: Date.now(), ...(task !== undefined ? { task } : {}) })
   },
   pause: () => {
     const { endsAt } = get()
@@ -84,7 +93,7 @@ export const useFocusTimer = create<FocusState>((set, get) => ({
     const { endsAt, left, phase } = get()
     if (!endsAt && phase !== 'idle') set({ endsAt: Date.now() + left, now: Date.now() })
   },
-  stop: () => set({ phase: 'idle', endsAt: null, left: 0 }),
+  stop: () => set({ phase: 'idle', endsAt: null, left: 0, task: null }),
   skip: () => finish(true)
 }))
 
@@ -105,7 +114,8 @@ function finish(skipped = false): void {
     if (!skipped) saveCount(done)
     const rest = breakFor(done)
     useFocusTimer.setState({ phase: 'break', done, endsAt: Date.now() + rest * 60_000, left: rest * 60_000 })
-    if (!skipped) notify('Focus session done', `${done} today. Take a ${rest}-minute break.`)
+    if (!skipped && s.task) addTomato(s.task)
+    if (!skipped) notify(s.task ? `Done: ${s.task.text}` : 'Focus session done', `${done} today. Take a ${rest}-minute break.`)
   } else if (s.phase === 'break') {
     useFocusTimer.setState({ phase: 'focus', endsAt: Date.now() + s.length * 60_000, left: s.length * 60_000 })
     if (!skipped) notify('Break is over', `Next focus session: ${s.length} minutes.`)
@@ -146,4 +156,41 @@ export function toggleFocus(): void {
     useStore.getState().showNotice(`Focus for ${s.length} minutes. The timer is in the status bar.`)
   } else if (s.endsAt) s.pause()
   else s.resume()
+}
+
+// ── Pomodoro theo task ──
+const TASK_LINE = /^(\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[([ xX])\]\s+)(.*)$/
+const TOMATO = '🍅'
+
+/** Chữ của task để so khớp: bỏ các 🍅 và khoảng trắng thừa */
+export const taskKey = (text: string): string => text.replace(new RegExp(`(\\s*${TOMATO})+\\s*$`, 'u'), '').trim()
+
+/** Thêm một 🍅 vào cuối dòng task (tìm lại dòng theo chữ, vì ghi chú có thể đã đổi) */
+function addTomato(task: FocusTask): void {
+  const s = useStore.getState()
+  const note = s.notes[task.noteId]
+  if (!note || note.trashed || (note.locked && !note.body)) return
+  const lines = note.body.split('\n')
+  const i = lines.findIndex((l) => {
+    const m = TASK_LINE.exec(l)
+    return !!m && taskKey(m[3]) === task.text
+  })
+  if (i < 0) return
+  lines[i] = lines[i].replace(/\s*$/, '') + ` ${TOMATO}`
+  s.updateNote(task.noteId, { body: lines.join('\n') })
+}
+
+/** Bắt đầu tập trung cho task ở dòng con trỏ (hoặc dòng cho trước) */
+export function focusOnTask(lineText: string, noteId: string | null = useStore.getState().selectedNoteId): boolean {
+  const m = TASK_LINE.exec(lineText)
+  if (!m || !noteId) {
+    useStore.getState().showNotice('Put the cursor on a task line (- [ ] …) first.')
+    return false
+  }
+  const text = taskKey(m[3])
+  if (!text) return false
+  const f = useFocusTimer.getState()
+  f.start(undefined, { noteId, text })
+  useStore.getState().showNotice(`Focus on “${text}” for ${f.length} minutes. A 🍅 is added when the session ends.`)
+  return true
 }

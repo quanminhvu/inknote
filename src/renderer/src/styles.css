@@ -8188,3 +8188,147 @@ html.compact-list .note-item-thumb {
 .cm-editor .cm-dimmed * {
   color: color-mix(in srgb, var(--ink) 32%, transparent) !important;
 }
+
+/* Link rút gọn ở chế độ Write */
+.cm-link-compact {
+  padding: 0 3px;
+  border-radius: 3px;
+  color: var(--ink-3);
+  background: var(--hover);
+}
+
+/* Hộp chọn ngày hạn */
+.due-picker {
+  position: fixed;
+  z-index: 950;
+  width: 268px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  animation: ink-unroll 0.16s var(--ease-slide) both;
+}
+.due-quick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.due-quick button {
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--ink);
+}
+.due-quick button:hover,
+.due-quick button.on {
+  background: var(--hover);
+}
+.due-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.due-month .icon-btn {
+  width: 24px;
+  height: 24px;
+}
+.due-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.due-grid small {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+.due-day {
+  height: 28px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.due-day:hover {
+  background: var(--hover);
+}
+.due-day.past {
+  color: var(--ink-3);
+}
+.due-day.is-today {
+  color: var(--accent);
+  font-weight: 700;
+}
+.due-day.on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.due-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.due-time label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.due-time input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 6px;
+  color-scheme: inherit;
+}
+.due-time .icon-btn {
+  width: 22px;
+  height: 22px;
+}
+.due-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.due-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cm-due {
+  cursor: pointer;
+}
+.habit-remind {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+.habit-remind-edit {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+}
+.habit-remind-edit input {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 5px;
+}

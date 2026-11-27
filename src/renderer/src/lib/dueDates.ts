@@ -162,6 +162,17 @@ export function dueCompletions(context: CompletionContext): CompletionResult | n
       view.dispatch({ changes: { from: at, to, insert }, selection: { anchor: at + insert.length }, userEvent: 'input.complete' })
     }
   }))
+  // Mở lịch để chọn ngày giờ (components/DuePicker.tsx nghe sự kiện này)
+  options.push({
+    label: 'pick a date…',
+    detail: 'calendar and time',
+    type: 'keyword',
+    boost: -1,
+    apply: (view, _c, _from, to) => {
+      view.dispatch({ changes: { from: at, to, insert: '' }, selection: { anchor: at } })
+      window.dispatchEvent(new CustomEvent('inknote-due-picker'))
+    }
+  })
   // Hạn có giờ (để nhắc việc): một tiếng nữa, tối nay, sáng mai
   const now = new Date()
   const stamp = (d: Date): string => `${dayKey(d)} ${clock(d)}`

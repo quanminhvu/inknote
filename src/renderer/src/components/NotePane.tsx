@@ -3,9 +3,10 @@ import { Backlinks } from './Backlinks'
 import type { CSSProperties } from 'react'
 import { ResizeHandle, usePaneSize } from './ResizeHandle'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { previewSpot, savePreviewSpot } from '@/lib/viewMemory'
+import { previewSpot, readingLine, saveReadingLine, savePreviewSpot } from '@/lib/viewMemory'
+import { getActiveEditor } from '@/lib/editorCommands'
 import { syncScroll } from '@/lib/scrollSync'
-import { ArrowLeft, ArrowRight, Binary, BookOpen, Columns2, Dices, EllipsisVertical, Eye, Fingerprint, Images, KeyRound, KeySquare, Languages, LayoutTemplate, Link2, LockOpen, Maximize2, Minimize2, Pause, PenLine, Pencil, PictureInPicture2, Pin, Play, RotateCcw, ScanText, Search, SkipForward, Square, TableOfContents, TextCursorInput, Timer, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Binary, BookOpen, CalendarClock, Columns2, Dices, EllipsisVertical, Eye, Fingerprint, Images, KeyRound, KeySquare, Languages, LayoutTemplate, Link2, LockOpen, Maximize2, Minimize2, Pause, PenLine, Pencil, PictureInPicture2, Pin, Play, RotateCcw, ScanText, Search, SkipForward, Square, TableOfContents, TextCursorInput, Timer, Trash2 } from 'lucide-react'
 import { toggleOutline, useOutline } from '@/lib/outline'
 import { Outline } from './Outline'
 import { NoteTabs } from './NoteTabs'
@@ -21,13 +22,14 @@ import type { BackupStatus } from '@/lib/backup'
 import { goBack, goForward, useNav } from '@/lib/navigation'
 import { BulkPanel } from './BulkPanel'
 import { mi, openMenu } from './ContextMenu'
+import { openDuePicker } from './DuePicker'
 import { EditorView } from '@codemirror/view'
 import { canRecognizeText, copyTextFromImage, insertTextFromImage } from '@/lib/ocr'
 import { exportImage } from '@/lib/exportHtml'
 import { useLiveTranslate } from '@/lib/liveTranslate'
 import { lockAll, useLockSession } from '@/lib/noteLock'
 import { LockedNote } from './LockViews'
-import { mmss, remainingMs, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
+import { focusOnTask, mmss, remainingMs, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { insertText, password, randomString, transformSelection, transformsFor, uuid } from '@/lib/textTools'
 import type { Transform } from '@/lib/textTools'
 import { lookUpSelection, pickSelection, searchGoogle, translateSelection } from '@/lib/utilities'
@@ -78,7 +80,19 @@ function selectionMenu(e: React.MouseEvent): void {
   if (!picked || !picked.text.trim()) {
     // Không chọn gì, trong editor: chèn nhanh UUID / mật khẩu / chuỗi ngẫu nhiên
     if (!inEditor) return
+    // Chuột phải lên một dòng task: đặt hạn, tập trung cho task đó
+    const view = EditorView.findFromDOM(e.target as HTMLElement)
+    const at = view?.posAtCoords({ x: e.clientX, y: e.clientY })
+    const lineText = view && at != null ? view.state.doc.lineAt(at).text : ''
+    const isTask = /^\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[[ xX]\]\s/.test(lineText)
     openMenu(e, [
+      ...(isTask && view && at != null
+        ? [
+            { label: 'Set Due Date…', icon: mi(CalendarClock), onClick: () => openDuePicker(view, at) },
+            { label: 'Focus on This Task', icon: mi(Timer), onClick: () => void focusOnTask(lineText) },
+            { separator: true as const }
+          ]
+        : []),
       { label: 'Insert UUID', icon: mi(Fingerprint), onClick: () => insertText(uuid(), 'UUID') },
       { label: 'Insert Random Password', icon: mi(KeyRound), onClick: () => insertText(password(), 'Password') },
       { label: 'Insert Random String', icon: mi(Dices), onClick: () => insertText(randomString(), 'Random string') }
@@ -128,10 +142,46 @@ export function NotePane(): React.JSX.Element {
     if (!preview) return
     const top = previewSpot(noteId)
     if (top !== undefined) requestAnimationFrame(() => (preview.scrollTop = top))
-    const onScroll = (): void => savePreviewSpot(noteId, preview.scrollTop)
+    // Đoạn đầu tiên đang thấy ở đầu khung đọc (để rời chế độ đọc thì con trỏ nằm đúng chỗ)
+    let raf = 0
+    const remember = (): void => {
+      raf = 0
+      const edge = preview.getBoundingClientRect().top + 4
+      for (const el of preview.querySelectorAll<HTMLElement>('[data-source-line]')) {
+        if (el.getBoundingClientRect().bottom > edge) {
+          saveReadingLine(noteId, Number(el.dataset.sourceLine) || 0)
+          return
+        }
+      }
+    }
+    requestAnimationFrame(() => requestAnimationFrame(remember))
+    const onScroll = (): void => {
+      savePreviewSpot(noteId, preview.scrollTop)
+      if (!raf) raf = requestAnimationFrame(remember)
+    }
     preview.addEventListener('scroll', onScroll, { passive: true })
     return () => preview.removeEventListener('scroll', onScroll)
   }, [noteId, viewMode])
+
+  // Rời chế độ đọc sang Write / Live / Split: con trỏ đặt ở đầu đoạn đang đọc, cuộn đoạn đó lên đầu
+  const lastMode = useRef(viewMode)
+  useEffect(() => {
+    const was = lastMode.current
+    lastMode.current = viewMode
+    if (was !== 'preview' || viewMode === 'preview' || !noteId) return
+    const line = readingLine(noteId)
+    if (line === undefined) return
+    // Chờ editor dựng xong và khôi phục vị trí cũ, rồi mới đặt con trỏ
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const v = getActiveEditor()
+        if (!v || !v.dom.isConnected) return
+        const l = v.state.doc.line(Math.min(line + 1, v.state.doc.lines))
+        v.dispatch({ selection: { anchor: l.from }, effects: EditorView.scrollIntoView(l.from, { y: 'start', yMargin: 24 }) })
+        v.focus()
+      })
+    )
+  }, [viewMode, noteId])
 
   if (multiCount > 1) return <BulkPanel />
 
@@ -363,7 +413,7 @@ function FocusChip(): React.JSX.Element {
       </button>
     )
   }
-  const label = f.phase === 'focus' ? 'Focus' : 'Break'
+  const label = f.phase === 'focus' ? (f.task ? (f.task.text.length > 28 ? `${f.task.text.slice(0, 28)}…` : f.task.text) : 'Focus') : 'Break'
   return (
     <button
       className={cx('status-chip', f.phase === 'break' && 'break', !f.endsAt && 'paused')}

@@ -30,6 +30,7 @@ import { startReminders } from './lib/reminders'
 import { toggleTypewriter, useEditorPrefs } from './lib/editorPrefs'
 import { startFocusClock } from './lib/focusTimer'
 import { startScratchpadSweep } from './lib/scratchpad'
+import { startHabitReminders } from './lib/habits'
 import { TranslatePanel } from './components/TranslatePanel'
 import { ComparePanel, isCompareOpen } from './components/ComparePanel'
 import { FlashcardReview, isReviewOpen } from './components/FlashcardReview'
@@ -38,6 +39,7 @@ import { isBoardOpen, StatusBoard } from './components/StatusBoard'
 import { AttachmentLibrary, isLibraryOpen } from './components/AttachmentLibrary'
 import { isTeleprompterOpen, Teleprompter } from './components/Teleprompter'
 import { isTagCleanupOpen, TagCleanup } from './components/TagCleanup'
+import { DuePicker, isDuePickerOpen } from './components/DuePicker'
 import './lib/noteLock'
 import { lookUpSelection, translateSelection } from './lib/utilities'
 import { useLiveTranslate } from './lib/liveTranslate'
@@ -96,6 +98,7 @@ export function App(): React.JSX.Element {
   useEffect(() => (noteWindowId ? undefined : startReminders()), [])
   useEffect(() => (noteWindowId ? undefined : startFocusClock()), [])
   useEffect(() => (noteWindowId ? undefined : startScratchpadSweep()), [])
+  useEffect(() => (noteWindowId ? undefined : startHabitReminders()), [])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -188,7 +191,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {
       const s = useStore.getState()
-      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isBoardOpen() || isLibraryOpen() || isTeleprompterOpen() || isTagCleanupOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
+      if (s.prefsOpen || s.palette || isHistoryOpen() || isCompareOpen() || isReviewOpen() || isLockDialogOpen() || isBoardOpen() || isLibraryOpen() || isTeleprompterOpen() || isTagCleanupOpen() || isDuePickerOpen() || isActivityOpen() || isGraphOpen() || usePresentation.getState().noteId) return
       // Esc trong một ô chọn/ô nhập nổi (notebook, status, tag…) chỉ đóng ô đó, không thoát chế độ tập trung
       const inPopover = !!(document.activeElement as HTMLElement | null)?.closest?.('.nbp-pop, .stp-pop, .tag-field, .kanban-input, .preview-find')
       const vimInEditor = useEditorPrefs.getState().vim && !!(document.activeElement as HTMLElement | null)?.closest?.('.cm-editor')
@@ -251,6 +254,13 @@ export function App(): React.JSX.Element {
         e.preventDefault()
         e.stopPropagation()
         lookUpSelection()
+        return
+      }
+      // ⌘⇧\ / Ctrl+Shift+\: xoay vòng bố cục (3 cột → danh sách + ghi chú → chỉ ghi chú)
+      if (e.shiftKey && !e.altKey && e.code === 'Backslash' && !noteWindowId) {
+        e.preventDefault()
+        e.stopPropagation()
+        s.cycleLayout()
         return
       }
       // ⌘⌥T / Ctrl+Alt+T: chế độ máy đánh chữ
@@ -415,6 +425,7 @@ export function App(): React.JSX.Element {
       <AttachmentLibrary />
       <Teleprompter />
       <TagCleanup />
+      <DuePicker />
       <CommandPalette />
       <HistoryPanel />
       <ActivityPanel />

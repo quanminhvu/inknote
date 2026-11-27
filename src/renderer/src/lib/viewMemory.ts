@@ -21,3 +21,8 @@ export const saveEditorSpot = (id: string, spot: EditorSpot): void => put(editor
 export const editorSpot = (id: string): EditorSpot | undefined => editorSpots.get(id)
 export const savePreviewSpot = (id: string, top: number): void => put(previewSpots, id, top)
 export const previewSpot = (id: string): number | undefined => previewSpots.get(id)
+
+// Dòng nguồn (0-based) của đoạn đang ở đầu khung đọc: rời chế độ đọc thì đặt con trỏ ở đó
+const readingLines = new Map<string, number>()
+export const saveReadingLine = (id: string, line: number): void => put(readingLines, id, line)
+export const readingLine = (id: string): number | undefined => readingLines.get(id)

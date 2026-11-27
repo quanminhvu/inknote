@@ -30,6 +30,8 @@ import { liveTranslate, useLiveTranslate } from '@/lib/liveTranslate'
 import { vimMode } from '@/lib/vimMode'
 import { ruler } from '@/lib/ruler'
 import { typewriter } from '@/lib/typewriter'
+import { linkCompact } from '@/lib/linkCompact'
+import { openDuePicker } from './DuePicker'
 import { useStore } from '@/lib/store'
 import type { EditorPrefs } from '@/lib/editorPrefs'
 
@@ -198,6 +200,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
   const vimConf = useRef(new Compartment())
   const rulerConf = useRef(new Compartment())
   const typewriterConf = useRef(new Compartment())
+  const linkConf = useRef(new Compartment())
   const prefConf = useRef({ gutter: new Compartment(), wrap: new Compartment(), spell: new Compartment(), strike: new Compartment() })
   const prefs = useEditorPrefs()
   onChangeRef.current = onChange
@@ -212,6 +215,7 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           vimConf.current.of(useEditorPrefs.getState().vim ? vimMode : []),
           rulerConf.current.of(ruler(useEditorPrefs.getState().ruler)),
           typewriterConf.current.of(typewriter(useEditorPrefs.getState().typewriter, useEditorPrefs.getState().dim)),
+          linkConf.current.of(useEditorPrefs.getState().compactLinks ? linkCompact : []),
           history(),
           prefConf.current.gutter.of(gutterExt(useEditorPrefs.getState())),
           // Nút gập ở lề trái: gập một mục (heading) hoặc một khối code
@@ -279,6 +283,13 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
           EditorView.domEventHandlers({
             // Cmd/Ctrl+click vào link tới ghi chú khác thì mở ghi chú đó
             mousedown(event, view) {
+              // Bấm vào ngày hạn của task: mở lịch để đổi ngày giờ
+              const due = (event.target as HTMLElement | null)?.closest?.('.cm-due')
+              if (due && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !view.state.readOnly) {
+                event.preventDefault()
+                openDuePicker(view, view.posAtDOM(due))
+                return true
+              }
               if (!(event.metaKey || event.ctrlKey) || event.button !== 0) return false
               const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
               if (pos === null) return false
@@ -440,7 +451,8 @@ export function MarkdownEditor({ value, readOnly = false, onChange, docId, live 
         c.strike.reconfigure(strikeExt(prefs)),
         vimConf.current.reconfigure(prefs.vim ? vimMode : []),
         rulerConf.current.reconfigure(ruler(prefs.ruler)),
-        typewriterConf.current.reconfigure(typewriter(prefs.typewriter, prefs.dim))
+        typewriterConf.current.reconfigure(typewriter(prefs.typewriter, prefs.dim)),
+        linkConf.current.reconfigure(prefs.compactLinks ? linkCompact : [])
       ]
     })
   }, [prefs])

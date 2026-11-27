@@ -17,6 +17,7 @@ import { openCompare } from './ComparePanel'
 import { openReview } from './FlashcardReview'
 import { openScratchpad } from '@/lib/scratchpad'
 import { openBoard } from './StatusBoard'
+import { openDuePicker } from './DuePicker'
 import { openLibrary } from './AttachmentLibrary'
 import { openTeleprompter } from './Teleprompter'
 import { openTagCleanup } from './TagCleanup'
@@ -28,7 +29,7 @@ import { insertText, password, randomString, transformSelection, uuid } from '@/
 import { lookUpSelection, searchGoogle, translateSelection } from '@/lib/utilities'
 import { convertSelectionToTable } from '@/lib/editorKeys'
 import { useLiveTranslate } from '@/lib/liveTranslate'
-import { toggleFocus, useFocusTimer } from '@/lib/focusTimer'
+import { focusOnTask, toggleFocus, useFocusTimer } from '@/lib/focusTimer'
 import { KanbanBoard } from './KanbanBoard'
 import { isKanban } from '@/lib/kanban'
 import { BUILTIN_THEMES, useTheme } from '@/lib/theme'
@@ -272,6 +273,7 @@ function commandItems(): Item[] {
       if (n) openLockDialog(n)
     }, '', 'password encrypt protect secret private'),
     cmd('lock-all', 'Lock All Notes Now', () => void lockAll().then((n) => useStore.getState().showNotice(n ? 'Locked.' : 'No locked note is open.')), '', 'password encrypt lock close'),
+    cmd('due-date', 'Set Due Date…', () => openDuePicker(), '', 'deadline reminder date time calendar task due'),
     cmd('board', 'Open Status Board', () => openBoard(), '', 'kanban status board columns'),
     cmd('attachments', 'Open Attachments', () => openLibrary(), '', 'images files gallery unused clean up storage'),
     cmd('tag-cleanup', 'Clean Up Tags…', () => openTagCleanup(), '', 'delete tags unused bulk remove'),
@@ -290,12 +292,21 @@ function commandItems(): Item[] {
       const on = toggleTypewriter()
       useStore.getState().showNotice(on ? 'Typewriter mode on.' : 'Typewriter mode off.')
     }, isMac() ? '⌘⌥T' : 'Ctrl+Alt+T', 'focus dim center ia writer distraction'),
+    cmd('compact-links', 'Toggle Compact Links', () => {
+      const p = useEditorPrefs.getState()
+      p.set({ compactLinks: !p.compactLinks })
+    }, '', 'link url shorten hide long'),
     cmd('vim', 'Toggle Vim Keybindings', () => {
       const p = useEditorPrefs.getState()
       p.set({ vim: !p.vim })
       useStore.getState().showNotice(p.vim ? 'Vim keybindings off.' : 'Vim keybindings on.')
     }, '', 'vim modal keys normal insert'),
     cmd('review', 'Review Flashcards', () => openReview(), '', 'flashcards anki spaced repetition study learn cards'),
+    cmd('focus-task', 'Focus on Current Task', () => {
+      const v = getActiveEditor()
+      if (v) focusOnTask(v.state.doc.lineAt(v.state.selection.main.head).text)
+      else useStore.getState().showNotice('Put the cursor on a task line first.')
+    }, '', 'pomodoro tomato timer task'),
     cmd('focus-start', 'Start Focus Timer', () => useFocusTimer.getState().start(), '', 'pomodoro timer focus work session 25'),
     cmd('focus-pause', 'Pause or Resume Focus Timer', () => toggleFocus(), '', 'pomodoro timer'),
     cmd('focus-stop', 'Stop Focus Timer', () => useFocusTimer.getState().stop(), '', 'pomodoro timer'),
@@ -304,6 +315,7 @@ function commandItems(): Item[] {
     cmd('lookup', 'Look Up Selection in Dictionary', () => lookUpSelection(), isMac() ? '⌃⌘D' : '', 'define dictionary meaning word'),
     cmd('google', 'Search Selection with Google', () => searchGoogle(), '', 'web search google'),
     cmd('shortcuts', 'Keyboard Shortcuts', () => openPreferences('shortcuts'), isMac() ? '⌘?' : 'Ctrl+Shift+/', 'keys hotkeys help cheat sheet'),
+    cmd('cycle-layout', 'Switch Layout (All / List + Note / Note Only)', () => s.cycleLayout(), isMac() ? '⌘⇧\\' : 'Ctrl+Shift+\\', 'bear view panes columns layout'),
     cmd('sidebar', 'Toggle Sidebar', () => s.toggleSidebar(), `${mod()}\\`, 'navigation panel hide show'),
     cmd('focus', 'Toggle Distraction-Free Mode', () => s.toggleDistractionFree(), `${mod()}${shift()}D`, 'focus zen fullscreen'),
     cmd('activity', 'Show Activity', () => openActivity(), undefined, 'statistics stats streak heatmap calendar words'),

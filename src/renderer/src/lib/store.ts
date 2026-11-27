@@ -88,6 +88,8 @@ export interface State extends Prefs {
   setViewMode: (mode: ViewMode) => void
   toggleDistractionFree: () => void
   toggleSidebar: () => void
+  /** Xoay vòng 3 bố cục kiểu Bear: đủ 3 cột → danh sách + ghi chú → chỉ ghi chú → … */
+  cycleLayout: () => void
   setPrefsOpen: (open: boolean) => void
   setPalette: (mode: 'commands' | 'templates' | 'actions' | 'tasks' | null) => void
   /** Mở một ghi chú ở bất cứ đâu, đổi sidebar nếu ghi chú đang bị ẩn khỏi danh sách */
@@ -334,6 +336,14 @@ export const useStore = create<State>((set, get) => {
     setViewMode: (viewMode) => set({ viewMode }),
     toggleDistractionFree: () => set((s) => ({ distractionFree: !s.distractionFree })),
     toggleSidebar: () => set((s) => ({ sidebarHidden: !s.sidebarHidden })),
+    cycleLayout: () =>
+      set((s) =>
+        s.distractionFree
+          ? { distractionFree: false, sidebarHidden: false }
+          : s.sidebarHidden
+            ? { distractionFree: true }
+            : { sidebarHidden: true }
+      ),
     setPrefsOpen: (prefsOpen) => set({ prefsOpen, palette: null }),
     setPalette: (palette) => set({ palette }),
 
