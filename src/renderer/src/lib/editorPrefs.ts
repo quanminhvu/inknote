@@ -46,6 +46,8 @@ export interface EditorPrefs {
   dim: 'off' | 'paragraph' | 'sentence'
   /** Rút gọn địa chỉ link dài ở chế độ Write */
   compactLinks: boolean
+  /** Bấm vào file đính kèm: xem ngay trong Inknote, hay mở bằng app mặc định của máy */
+  openFiles: 'inknote' | 'default'
 }
 
 const KEY = 'nibmark:editor'
@@ -69,7 +71,8 @@ const defaults: EditorPrefs = {
   ruler: 0,
   typewriter: false,
   dim: 'off',
-  compactLinks: true
+  compactLinks: true,
+  openFiles: 'inknote'
 }
 
 function read(): EditorPrefs {
@@ -83,6 +86,7 @@ function read(): EditorPrefs {
     merged.previewFontSize = px(merged.previewFontSize)
     merged.ruler = [0, 72, 80, 100, 120].includes(merged.ruler as number) ? merged.ruler : 0
     if (!['off', 'paragraph', 'sentence'].includes(merged.dim)) merged.dim = 'off'
+    if (!['inknote', 'default'].includes(merged.openFiles)) merged.openFiles = 'inknote'
     return merged
   } catch {
     return defaults
@@ -118,7 +122,8 @@ useEditorPrefs.subscribe((s) => {
     ruler: s.ruler,
     typewriter: s.typewriter,
     dim: s.dim,
-    compactLinks: s.compactLinks
+    compactLinks: s.compactLinks,
+    openFiles: s.openFiles
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(prefs))

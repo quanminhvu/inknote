@@ -35,7 +35,7 @@ interface PageInfo {
 
 const PAGES: PageInfo[] = [
   { id: 'appearance', label: 'Appearance', description: 'Theme, colours and your own styles.', icon: Palette, tint: '#e0567a', keywords: 'theme dark light colour color css styles font' },
-  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column typewriter focus dim center ia writer' },
+  { id: 'editor', label: 'Editor', description: 'How notes look and behave while you write.', icon: SquarePen, tint: '#2f6fe4', keywords: 'line numbers wrap spelling width tabs format paste url tasks strike translate language google reminder notification time due vim keybindings modal breaks newline compact list thumbnails font size ruler column typewriter focus dim center ia writer attachment file open default app viewer pdf' },
   { id: 'shortcuts', label: 'Shortcuts', description: 'Every keyboard shortcut, and global keys that work from any app.', icon: Keyboard, tint: '#64748b', keywords: 'quick note hotkey keyboard keys shortcut cheat sheet tray show hide' },
   { id: 'templates', label: 'Templates', description: 'Starting points for new notes.', icon: LayoutTemplate, tint: '#f08c1a', keywords: 'template daily date notebook' },
   { id: 'agents', label: 'AI Agents', description: 'Let Claude and other agents work with your notes.', icon: Bot, tint: '#8b5cf6', keywords: 'mcp claude cursor ai agent' },
@@ -542,6 +542,12 @@ function EditorSection(): React.JSX.Element {
             <option value="title">Link with the page title</option>
             <option value="url">Link with the URL as text</option>
             <option value="plain">Paste the URL as is</option>
+          </select>
+        </Row>
+        <Row label="Opening attachments" detail={p.openFiles === 'inknote' ? 'Images, PDF, text, audio and video open inside Inknote; other files open in their default app' : 'Every file opens in the app macOS uses for it'}>
+          <select className="settings-select" value={p.openFiles} onChange={(e) => p.set({ openFiles: e.target.value as 'inknote' | 'default' })}>
+            <option value="inknote">View in Inknote</option>
+            <option value="default">Open in the default app</option>
           </select>
         </Row>
       </Group>
